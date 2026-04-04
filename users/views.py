@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
-
+from django.contrib.auth import logout
 
 def register(request):
     if request.method == "POST":
@@ -40,3 +40,25 @@ def user_login(request):
 
 def dashboard(request):
     return render(request, 'home.html')
+
+from .models import Profile
+
+def profile(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    profile, created = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        bio = request.POST.get('bio')
+        phone = request.POST.get('phone')
+
+        profile.bio = bio
+        profile.phone = phone
+        profile.save()
+
+    return render(request, 'profile.html', {'profile': profile})
+
+def user_logout(request):
+    logout(request)
+    return redirect('login')
