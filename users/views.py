@@ -20,6 +20,8 @@ def register(request):
     return render(request, 'register.html')
 
 
+from django.contrib.auth import authenticate, login
+
 def user_login(request):
     if request.method == "POST":
         username = request.POST.get('username')
