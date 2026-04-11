@@ -1,8 +1,136 @@
 {% extends 'base.html' %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<div class="gradient-bg text-white py-20 text-center">
-    <h1 class="text-4xl font-bold">🏠 Homepage Coming Soon</h1>
-    <p class="mt-4">wAIT FOR A BIT</p>
+<!-- Hero Section with Gradient -->
+<div class="gradient-bg text-white">
+    <div class="max-w-7xl mx-auto px-4 py-16 md:py-24">
+        <div class="text-center md:text-left md:flex md:items-center">
+            <div class="md:w-2/3">
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">Bangladesh's #1 Affordable Exam Prep Platform</span>
+                <h1 class="text-4xl md:text-5xl font-bold mt-6 leading-tight">Ace Your Board Exams<br>with Smart Preparation</h1>
+                <p class="text-xl mt-4 text-blue-50">Access 1,20,000+ board exam questions, school papers, practical videos, and study notes — all for an affordable monthly subscription starting at just ৳99.</p>
+                <div class="mt-8 flex flex-wrap gap-4">
+                    <a href="#" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition">Start Free Trial</a>
+                    <a href="{% url 'question_bank' %}" class="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Browse Questions</a>
+                </div>
+                <p class="mt-4 text-sm text-blue-100">✨ No credit card required • 7-day free trial • Cancel anytime</p>
+            </div>
+            <div class="md:w-1/3 mt-8 md:mt-0 flex justify-center">
+                <!-- Stats Cards in Hero -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center">
+                        <div class="text-3xl font-bold">1.2L+</div>
+                        <div class="text-sm">Questions</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center">
+                        <div class="text-3xl font-bold">2.5L+</div>
+                        <div class="text-sm">Students</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center col-span-2">
+                        <div class="text-3xl font-bold">⭐ 4.9/5</div>
+                        <div class="text-sm">From 18,000+ reviews</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Cards -->
+<div class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="text-3xl font-bold text-center mb-4">Everything You Need</h2>
+    <p class="text-gray-600 text-center mb-12">One Platform, Complete Preparation</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Card 1 -->
+        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
+            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Board Exam Question Bank</h3>
+            <p class="text-gray-600 text-sm mb-2">80+ Subjects</p>
+            <p class="text-gray-500 text-sm">Previous years' questions from all major boards, filtered by subject, year, chapter.</p>
+            <a href="#" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+        </div>
+        <!-- Card 2 -->
+        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
+            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">School & College Papers</h3>
+            <p class="text-gray-600 text-sm mb-2">500+ Institutions</p>
+            <p class="text-gray-500 text-sm">Actual exam papers from top schools and colleges.</p>
+            <a href="#" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+        </div>
+        <!-- Card 3 -->
+        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Practical Video Tutorials</h3>
+            <p class="text-gray-600 text-sm mb-2">300+ Videos</p>
+            <p class="text-gray-500 text-sm">Step-by-step science practicals, interactive molecular lab.</p>
+            <a href="#" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+        </div>
+        <!-- Card 4 -->
+        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
+            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Smart Study Notes</h3>
+            <p class="text-gray-600 text-sm mb-2">All Subjects</p>
+            <p class="text-gray-500 text-sm">Concise, exam-focused notes from popular guidebooks.</p>
+            <a href="{% url 'study_notes' %}" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+        </div>
+    </div>
+</div>
+
+<!-- Boards Section (Fixed) -->
+<div class="bg-gray-100 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Questions from Every Education Board in Bangladesh</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {% for board in boards %}
+            <div class="bg-white p-4 rounded-xl card-shadow text-center">
+                <div class="font-semibold">{{ board }} Board</div>
+                <div class="text-sm text-gray-500">2.5M+ students</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-8">
+            <a href="#" class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50">Browse All Boards →</a>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials -->
+<div class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="text-3xl font-bold text-center mb-12">Students Love Prepare Yourself</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl card-shadow">
+            <p class="text-gray-700 italic">"The interactive molecular lab is amazing! I finally understood how H₂O and CO₂ bonding works."</p>
+            <div class="mt-4 font-semibold">Rahim Ahmed</div>
+            <div class="text-sm text-gray-500">Class 10, Chittagong Board</div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl card-shadow">
+            <p class="text-gray-700 italic">"I cleared my half-yearly with A+ after practising school papers from Prepare Yourself."</p>
+            <div class="mt-4 font-semibold">Tasfia Islam</div>
+            <div class="text-sm text-gray-500">Class 11, Rajshahi Board</div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl card-shadow">
+            <p class="text-gray-700 italic">"Prepare Yourself helped me score GPA 5.00 in HSC! Best ৳199 I ever spent."</p>
+            <div class="mt-4 font-semibold">Fatima Rahman</div>
+            <div class="text-sm text-gray-500">Class 12, Dhaka Board</div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="gradient-bg text-white py-16">
+    <div class="max-w-4xl mx-auto text-center px-4">
+        <h2 class="text-3xl font-bold mb-4">Ready to Start Your Board Exam Journey?</h2>
+        <p class="text-xl mb-8">Join over 2.5 lakh students already scoring better marks.</p>
+        <a href="#" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold text-lg hover:shadow-xl transition">Get Started Free – 7 Days Trial</a>
+    </div>
 </div>
 {% endblock %}
