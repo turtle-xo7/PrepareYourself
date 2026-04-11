@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+{% block title %}Practical Lab{% endblock %}
+{% block extra_head %}
+<style>
+    .tab-active {
+        background: white !important;
+        color: #3b82f6 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .tab-inactive {
+        background: #f3f4f6 !important;
+        color: #6b7280 !important;
+    }
+    .molecule-card {
+        transition: all 0.2s;
+    }
+    .molecule-card.selected {
+        border: 2px solid #3b82f6;
+        background: #eff6ff;
+    }
+    #moleculeCanvas {
+        width: 100%;
+        height: auto;
+        background: #f9fafb;
+        border-radius: 1rem;
+        display: block;
+        touch-action: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+        <a href="{% url 'home' %}" class="hover:text-blue-600">Home</a>
+        <span>/</span>
+        <span class="text-gray-900">Practical Lab</span>
+    </div>
+
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Practical Lab & Molecular Lab</h1>
+        <p class="text-gray-600 mt-2">Watch 300+ step-by-step practical guides — plus interact with molecules in our live Chemistry Lab to see bonding & reactions in real time!</p>
+    </div>
+
+    <div class="relative mb-8">
+        <input type="text" placeholder="Search experiments, topics..." class="w-full px-5 py-3 pl-12 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500">
+        <svg class="absolute left-4 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </div>
+
+    <div class="flex gap-2 mb-6 border-b border-gray-200">
+        <button id="tab-molecular" class="px-6 py-3 rounded-t-xl font-medium tab-active transition">Interactive Molecular Lab <span class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">NEW</span></button>
+        <button id="tab-videos" class="px-6 py-3 rounded-t-xl font-medium tab-inactive transition">Video Tutorials</button>
+    </div>
+
+    <div id="molecular-lab-section">
+        <div class="bg-white rounded-2xl card-shadow p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-2">Interactive Chemistry Molecular Lab</h2>
+            <p class="text-gray-600">Select any molecule below. Click "Break Bonds" to scatter atoms (bonds become dashed), or "Form Bonds" to reassemble with smooth animation. Partial charges (δ+/δ-) are shown where applicable.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl card-shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-lg">Molecular Viewer</h3>
+                        <div class="space-x-2">
+                            <button id="breakBtn" class="bg-red-100 text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-200 transition">🔨 Break Bonds</button>
+                            <button id="formBtn" class="bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium hover:bg-green-200 transition">✨ Form Bonds</button>
+                        </div>
+                    </div>
+                    <div style="max-width: 600px; margin: 0 auto;">
+                        <canvas id="moleculeCanvas" width="600" height="300"></canvas>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 text-center">Bonds become dashed when broken. Partial charges shown as δ+/δ-.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl card-shadow p-6">
+                <h4 class="font-medium text-gray-700 mb-3">SELECT MOLECULE</h4>
+                <div class="grid grid-cols-2 gap-2" id="moleculeList"></div>
+            </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl card-shadow p-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xl">🧪</span>
+                    <h3 class="font-semibold text-lg">Equation & Structure</h3>
+                </div>
+                <p id="equationDisplay" class="text-2xl font-mono mb-2">2H₂ + O₂ → 2H₂O</p>
+                <p id="funFactDisplay" class="text-gray-600 text-sm">Water is bent because 2 lone pairs on oxygen repel the O-H bonds...</p>
+            </div>
+            <div class="bg-white rounded-2xl card-shadow p-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-500 text-sm">BOND TYPE</p>
+                        <p id="bondTypeDisplay" class="text-xl font-semibold">Covalent (Polar)</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">ENERGY</p>
+                        <p id="bondEnergyDisplay" class="text-xl font-semibold">498 kJ/mol</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <p class="text-gray-500 text-sm">STRUCTURE</p>
+                    <p id="structureDescDisplay" class="font-medium">Bent, 104.5°</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-tutorials-section" class="hidden">
+        <div class="bg-white rounded-2xl card-shadow p-8 text-center">
+            <h3 class="text-xl font-semibold mb-2">300+ Practical Video Tutorials</h3>
+            <p class="text-gray-600">Coming soon! Check back for step-by-step guides on all science practicals.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ---------- Molecule Data (with partial charges) ----------
+        const molecules = [
+            {
+                id: 'h2o', name: 'H₂O', subtitle: 'Water',
+                atoms: [
+                    { symbol: 'O', x: 300, y: 150, color: '#ff4d4d', radius: 24, charge: 'δ-' },
+                    { symbol: 'H', x: 230, y: 100, color: '#a0a0a0', radius: 16, charge: 'δ+' },
+                    { symbol: 'H', x: 230, y: 200, color: '#a0a0a0', radius: 16, charge: 'δ+' }
+                ],
+                bonds: [[0,1], [0,2]],
+                equation: '2H₂ + O₂ → 2H₂O',
+                bondType: 'Covalent (Polar)',
+                bondEnergy: '498 kJ/mol (O-H)',
+                structureDesc: 'Bent, 104.5°',
+                funFact: 'Water is bent because 2 lone pairs on oxygen repel the O-H bonds, compressing the bond angle from 109.5° to 104.5°.'
+            },
+            {
+                id: 'co2', name: 'CO₂', subtitle: 'Carbon Dioxide',
+                atoms: [
+                    { symbol: 'C', x: 300, y: 150, color: '#505050', radius: 20, charge: '' },
+                    { symbol: 'O', x: 220, y: 150, color: '#ff4d4d', radius: 20, charge: 'δ-' },
+                    { symbol: 'O', x: 380, y: 150, color: '#ff4d4d', radius: 20, charge: 'δ-' }
+                ],
+                bonds: [[0,1], [0,2]],
+                equation: 'C + O₂ → CO₂',
+                bondType: 'Covalent (Double)',
+                bondEnergy: '799 kJ/mol (C=O)',
+                structureDesc: 'Linear, 180°',
+                funFact: 'CO₂ is a linear molecule with two double bonds. It is a greenhouse gas.'
+            },
+            {
+                id: 'o2', name: 'O₂', subtitle: 'Oxygen',
+                atoms: [
+                    { symbol: 'O', x: 260, y: 150, color: '#ff4d4d', radius: 22, charge: '' },
+                    { symbol: 'O', x: 340, y: 150, color: '#ff4d4d', radius: 22, charge: '' }
+                ],
+                bonds: [[0,1]],
+                equation: 'O + O → O₂',
+                bondType: 'Covalent (Double)',
+                bondEnergy: '498 kJ/mol',
+                structureDesc: 'Linear (diatomic)',
+                funFact: 'Oxygen gas is paramagnetic and supports combustion.'
+            },
+            {
+                id: 'nh3', name: 'NH₃', subtitle: 'Ammonia',
+                atoms: [
+                    { symbol: 'N', x: 300, y: 140, color: '#3050f0', radius: 22, charge: 'δ-' },
+                    { symbol: 'H', x: 260, y: 200, color: '#a0a0a0', radius: 14, charge: 'δ+' },
+                    { symbol: 'H', x: 340, y: 200, color: '#a0a0a0', radius: 14, charge: 'δ+' },
+                    { symbol: 'H', x: 300, y: 80, color: '#a0a0a0', radius: 14, charge: 'δ+' }
+                ],
+                bonds: [[0,1], [0,2], [0,3]],
+                equation: 'N₂ + 3H₂ → 2NH₃',
+                bondType: 'Covalent (Polar)',
+                bondEnergy: '391 kJ/mol (N-H)',
+                structureDesc: 'Trigonal pyramidal, 107°',
+                funFact: 'Ammonia has a lone pair, making it a base with a pungent smell.'
+            },
+            {
+                id: 'ch4', name: 'CH₄', subtitle: 'Methane',
+                atoms: [
+                    { symbol: 'C', x: 300, y: 150, color: '#505050', radius: 20, charge: '' },
+                    { symbol: 'H', x: 260, y: 110, color: '#a0a0a0', radius: 14, charge: '' },
+                    { symbol: 'H', x: 340, y: 110, color: '#a0a0a0', radius: 14, charge: '' },
+                    { symbol: 'H', x: 260, y: 190, color: '#a0a0a0', radius: 14, charge: '' },
+                    { symbol: 'H', x: 340, y: 190, color: '#a0a0a0', radius: 14, charge: '' }
+                ],
+                bonds: [[0,1], [0,2], [0,3], [0,4]],
+                equation: 'C + 2H₂ → CH₄',
+                bondType: 'Covalent',
+                bondEnergy: '439 kJ/mol (C-H)',
+                structureDesc: 'Tetrahedral, 109.5°',
+                funFact: 'Methane is the simplest hydrocarbon and a potent greenhouse gas.'
+            },
+            {
+                id: 'nacl', name: 'NaCl', subtitle: 'Sodium Chloride',
+                atoms: [
+                    { symbol: 'Na', x: 260, y: 150, color: '#3b82f6', radius: 24, charge: '⁺' },
+                    { symbol: 'Cl', x: 340, y: 150, color: '#10b981', radius: 26, charge: '⁻' }
+                ],
+                bonds: [[0,1]],
+                equation: '2Na + Cl₂ → 2NaCl',
+                bondType: 'Ionic',
+                bondEnergy: '787 kJ/mol (lattice)',
+                structureDesc: 'Cubic crystal',
+                funFact: 'Table salt forms an ionic lattice; Na⁺ and Cl⁻ ions attract electrostatically.'
+            }
+        ];
+
+        const canvas = document.getElementById('moleculeCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = 600;
+        canvas.height = 300;
+
+        let currentMolecule = molecules[0];
+        // Store original positions for reset
+        let originalAtoms = JSON.parse(JSON.stringify(currentMolecule.atoms));
+        let currentAtoms = JSON.parse(JSON.stringify(originalAtoms));
+        let bonds = currentMolecule.bonds;
+        let isBroken = false;
+        let animFrame = null;
+        let animationTargets = null; // target positions for animation
+
+        const equationEl = document.getElementById('equationDisplay');
+        const bondTypeEl = document.getElementById('bondTypeDisplay');
+        const bondEnergyEl = document.getElementById('bondEnergyDisplay');
+        const structureEl = document.getElementById('structureDescDisplay');
+        const funFactEl = document.getElementById('funFactDisplay');
+        const moleculeListDiv = document.getElementById('moleculeList');
+
+        function renderMoleculeList() {
+            moleculeListDiv.innerHTML = '';
+            molecules.forEach(mol => {
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition molecule-card ${mol.id === currentMolecule.id ? 'selected' : ''}`;
+                card.innerHTML = `<div class="font-bold">${mol.name}</div><div class="text-xs text-gray-500">${mol.subtitle}</div>`;
+                card.addEventListener('click', () => selectMolecule(mol));
+                moleculeListDiv.appendChild(card);
+            });
+        }
+
+        function selectMolecule(mol) {
+            // Stop any ongoing animation
+            if (animFrame) {
+                cancelAnimationFrame(animFrame);
+                animFrame = null;
+            }
+            currentMolecule = mol;
+            originalAtoms = JSON.parse(JSON.stringify(mol.atoms));
+            currentAtoms = JSON.parse(JSON.stringify(originalAtoms));
+            bonds = mol.bonds;
+            isBroken = false;
+            animationTargets = null;
+            updateInfoPanel();
+            drawMolecule();
+            renderMoleculeList();
+        }
+
+        function updateInfoPanel() {
+            equationEl.textContent = currentMolecule.equation;
+            bondTypeEl.textContent = currentMolecule.bondType;
+            bondEnergyEl.textContent = currentMolecule.bondEnergy;
+            structureEl.textContent = currentMolecule.structureDesc;
+            funFactEl.textContent = currentMolecule.funFact;
+        }
+
+        // Draw with bond style based on broken state
+        function drawMolecule() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw bonds
+            bonds.forEach(bondIdx => {
+                const from = currentAtoms[bondIdx[0]];
+                const to = currentAtoms[bondIdx[1]];
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                if (isBroken) {
+                    ctx.setLineDash([6, 6]);
+                    ctx.strokeStyle = '#aaaaaa';
+                    ctx.lineWidth = 2;
+                } else {
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = '#666';
+                    ctx.lineWidth = 4;
+                }
+                ctx.stroke();
+            });
+            ctx.setLineDash([]); // reset
+
+            // Draw atoms and charges
+            currentAtoms.forEach(atom => {
+                ctx.beginPath();
+                ctx.arc(atom.x, atom.y, atom.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = atom.color;
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${atom.radius * 0.7}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(atom.symbol, atom.x, atom.y);
+
+                // Draw partial charge if exists
+                if (atom.charge) {
+                    ctx.font = `bold ${atom.radius * 0.5}px Arial`;
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillText(atom.charge, atom.x + atom.radius*0.7, atom.y - atom.radius*0.7);
+                }
+            });
+        }
+
+        // Animation functions
+        function animateToTarget() {
+            if (!animationTargets) {
+                animFrame = null;
+                return;
+            }
+            let allArrived = true;
+            const speed = 0.15; // easing factor
+
+            for (let i = 0; i < currentAtoms.length; i++) {
+                const atom = currentAtoms[i];
+                const target = animationTargets[i];
+                const dx = target.x - atom.x;
+                const dy = target.y - atom.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 0.5) {
+                    allArrived = false;
+                    atom.x += dx * speed;
+                    atom.y += dy * speed;
+                } else {
+                    atom.x = target.x;
+                    atom.y = target.y;
+                }
+            }
+
+            drawMolecule();
+
+            if (!allArrived) {
+                animFrame = requestAnimationFrame(animateToTarget);
+            } else {
+                animFrame = null;
+                animationTargets = null;
+                // Ensure exact final positions
+                currentAtoms = JSON.parse(JSON.stringify(animationTargets));
+                drawMolecule();
+            }
+        }
+
+        function startAnimation(targetPositions) {
+            if (animFrame) cancelAnimationFrame(animFrame);
+            animationTargets = targetPositions;
+            animFrame = requestAnimationFrame(animateToTarget);
+        }
+
+        // Break bonds: compute scattered positions
+        function breakBonds() {
+            if (isBroken) return;
+            isBroken = true;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const targetPositions = currentAtoms.map(atom => {
+                const dx = atom.x - centerX;
+                const dy = atom.y - centerY;
+                const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                // Push outward + randomness
+                const newX = atom.x + (dx / dist) * 60 + (Math.random() - 0.5) * 30;
+                const newY = atom.y + (dy / dist) * 60 + (Math.random() - 0.5) * 30;
+                return { x: newX, y: newY };
+            });
+
+            startAnimation(targetPositions);
+        }
+
+        function formBonds() {
+            if (!isBroken) return;
+            isBroken = false;
+            // Target original positions
+            const targetPositions = JSON.parse(JSON.stringify(originalAtoms));
+            startAnimation(targetPositions);
+        }
+
+        // Attach listeners
+        document.getElementById('breakBtn').addEventListener('click', breakBonds);
+        document.getElementById('formBtn').addEventListener('click', formBonds);
+
+        // Tabs
+        const tabMolecular = document.getElementById('tab-molecular');
+        const tabVideos = document.getElementById('tab-videos');
+        const sectionMolecular = document.getElementById('molecular-lab-section');
+        const sectionVideos = document.getElementById('video-tutorials-section');
+
+        tabMolecular.addEventListener('click', () => {
+            tabMolecular.classList.remove('tab-inactive'); tabMolecular.classList.add('tab-active');
+            tabVideos.classList.remove('tab-active'); tabVideos.classList.add('tab-inactive');
+            sectionMolecular.classList.remove('hidden');
+            sectionVideos.classList.add('hidden');
+            setTimeout(() => drawMolecule(), 20);
+        });
+
+        tabVideos.addEventListener('click', () => {
+            tabVideos.classList.remove('tab-inactive'); tabVideos.classList.add('tab-active');
+            tabMolecular.classList.remove('tab-active'); tabMolecular.classList.add('tab-inactive');
+            sectionVideos.classList.remove('hidden');
+            sectionMolecular.classList.add('hidden');
+        });
+
+        // Initialize
+        renderMoleculeList();
+        updateInfoPanel();
+        drawMolecule();
+    });
+</script>
+{% endblock %}
