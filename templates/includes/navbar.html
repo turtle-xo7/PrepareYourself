@@ -1,0 +1,29 @@
+<nav class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <a href="{% url 'home' %}" class="flex items-center space-x-2">
+                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Prepare Yourself</span>
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Smart Learning</span>
+                </a>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium">Home</a>
+                <a href="{% url 'question_bank' %}" class="text-gray-700 hover:text-blue-600 font-medium">Question Bank</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 font-medium">Practical Videos</a>
+                <a href="{% url 'study_notes' %}" class="text-gray-700 hover:text-blue-600 font-medium">Study Notes</a>
+                <a href="{% url 'pricing' %}" class="text-gray-700 hover:text-blue-600 font-medium">Subscription</a>
+                <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium">Dashboard</a>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg">Log In</a>
+                <a href="#" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition">Sign Up</a>
+            </div>
+        </div>
+    </div>
+</nav>
