@@ -1,39 +1,39 @@
 {% extends 'base.html' %}
-{% load static %}
 {% block title %}Practical Lab{% endblock %}
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
     <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <a href="{% url 'home' %}" class="hover:text-blue-600">Home</a>
-        <span>/</span>
-        <span class="text-gray-900">Practical Lab</span>
+        <a href="{% url 'home' %}" class="hover:text-blue-600">Home</a> <span>/</span> <span>Practical Lab</span>
     </div>
-
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Practical Lab & Molecular Lab</h1>
-        <p class="text-gray-600 mt-2">Interactive molecular simulation with bond breaking & forming.</p>
-    </div>
+    <h1 class="text-3xl font-bold text-gray-900">Practical Lab & Molecular Lab</h1>
+    <p class="text-gray-600 mt-2 mb-6">Interactive molecular simulation with bond breaking & forming.</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Canvas Column -->
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="bg-white rounded-2xl shadow-md p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-semibold text-lg">Molecular Viewer</h3>
                     <div class="space-x-2">
-                        <button id="breakBtn" class="bg-red-100 text-red-700 px-4 py-2 rounded-lg font-medium">Break Bonds</button>
-                        <button id="formBtn" class="bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium">Form Bonds</button>
+                        <button id="breakBtn" class="bg-red-100 text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-200">Break Bonds</button>
+                        <button id="formBtn" class="bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium hover:bg-green-200">Form Bonds</button>
                     </div>
                 </div>
-                <div style="max-width: 600px; margin: 0 auto;">
-                    <canvas id="moleculeCanvas" width="600" height="300" style="background: #f9fafb; border-radius: 1rem; width: 100%; height: auto;"></canvas>
+                <div style="max-width: 600px; margin: 0 auto; background: #f9fafb; border-radius: 1rem; padding: 10px;">
+                    <canvas id="moleculeCanvas" width="600" height="300" style="display: block; width: 100%; height: auto; border-radius: 8px;"></canvas>
                 </div>
-                <p class="text-xs text-gray-400 mt-2 text-center">Click buttons to interact</p>
+                <p class="text-xs text-gray-400 mt-2 text-center">Click Break Bonds to scatter atoms, Form Bonds to reset.</p>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-lg p-6">
+        <!-- Molecule Selector (simple) -->
+        <div class="bg-white rounded-2xl shadow-md p-6">
             <h4 class="font-medium text-gray-700 mb-3">SELECT MOLECULE</h4>
-            <div class="grid grid-cols-2 gap-2" id="moleculeList"></div>
+            <div class="space-y-2">
+                <button data-mol="h2o" class="mol-btn w-full text-left p-3 rounded-xl border-2 border-blue-500 bg-blue-50">H₂O (Water)</button>
+                <button data-mol="co2" class="mol-btn w-full text-left p-3 rounded-xl border border-gray-200 hover:bg-gray-50">CO₂ (Carbon Dioxide)</button>
+                <button data-mol="o2" class="mol-btn w-full text-left p-3 rounded-xl border border-gray-200 hover:bg-gray-50">O₂ (Oxygen)</button>
+            </div>
         </div>
     </div>
 </div>
@@ -42,73 +42,144 @@
 {% block scripts %}
 <script>
     (function() {
-        console.log('Script started');
+        console.log('Practical Lab script starting...');
         const canvas = document.getElementById('moleculeCanvas');
-        if (!canvas) { console.error('Canvas not found'); return; }
+        if (!canvas) {
+            console.error('Canvas element not found!');
+            return;
+        }
         const ctx = canvas.getContext('2d');
-        canvas.width = 600; canvas.height = 300;
 
-        const molecules = [
-            {
-                id: 'h2o', name: 'H₂O', subtitle: 'Water',
+        // Define molecules
+        const molecules = {
+            h2o: {
+                name: 'H₂O',
                 atoms: [
                     { symbol: 'O', x: 300, y: 150, color: '#ff4d4d', radius: 24 },
                     { symbol: 'H', x: 230, y: 100, color: '#a0a0a0', radius: 16 },
                     { symbol: 'H', x: 230, y: 200, color: '#a0a0a0', radius: 16 }
                 ],
                 bonds: [[0,1], [0,2]]
+            },
+            co2: {
+                name: 'CO₂',
+                atoms: [
+                    { symbol: 'C', x: 300, y: 150, color: '#505050', radius: 20 },
+                    { symbol: 'O', x: 220, y: 150, color: '#ff4d4d', radius: 20 },
+                    { symbol: 'O', x: 380, y: 150, color: '#ff4d4d', radius: 20 }
+                ],
+                bonds: [[0,1], [0,2]]
+            },
+            o2: {
+                name: 'O₂',
+                atoms: [
+                    { symbol: 'O', x: 260, y: 150, color: '#ff4d4d', radius: 22 },
+                    { symbol: 'O', x: 340, y: 150, color: '#ff4d4d', radius: 22 }
+                ],
+                bonds: [[0,1]]
             }
-        ];
+        };
 
-        let current = molecules[0];
-        let atoms = JSON.parse(JSON.stringify(current.atoms));
-        let bonds = current.bonds;
+        let currentMolId = 'h2o';
+        let currentMol = molecules[currentMolId];
+        let atoms = JSON.parse(JSON.stringify(currentMol.atoms));
+        let bonds = currentMol.bonds;
         let isBroken = false;
-        const originalAtoms = JSON.parse(JSON.stringify(current.atoms));
+        const originalAtoms = JSON.parse(JSON.stringify(currentMol.atoms));
 
         function draw() {
-            ctx.clearRect(0, 0, 600, 300);
-            bonds.forEach(b => {
-                const from = atoms[b[0]], to = atoms[b[1]];
-                ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y);
-                ctx.strokeStyle = isBroken ? '#aaa' : '#666';
-                ctx.lineWidth = isBroken ? 2 : 4;
-                if(isBroken) ctx.setLineDash([6, 6]); else ctx.setLineDash([]);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw bonds
+            bonds.forEach(bondIdx => {
+                const from = atoms[bondIdx[0]];
+                const to = atoms[bondIdx[1]];
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                if (isBroken) {
+                    ctx.setLineDash([6, 6]);
+                    ctx.strokeStyle = '#aaaaaa';
+                    ctx.lineWidth = 2;
+                } else {
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = '#666666';
+                    ctx.lineWidth = 4;
+                }
                 ctx.stroke();
             });
             ctx.setLineDash([]);
-            atoms.forEach(a => {
-                ctx.beginPath(); ctx.arc(a.x, a.y, a.radius, 0, 2*Math.PI);
-                ctx.fillStyle = a.color; ctx.fill();
-                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
-                ctx.fillStyle = 'white'; ctx.font = `bold ${a.radius*0.7}px Arial`;
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(a.symbol, a.x, a.y);
+
+            // Draw atoms
+            atoms.forEach(atom => {
+                ctx.beginPath();
+                ctx.arc(atom.x, atom.y, atom.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = atom.color;
+                ctx.fill();
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `bold ${atom.radius * 0.7}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(atom.symbol, atom.x, atom.y);
             });
         }
 
-        document.getElementById('breakBtn').addEventListener('click', () => {
-            if(isBroken) return;
+        function breakBonds() {
+            if (isBroken) return;
             isBroken = true;
-            const cx = 300, cy = 150;
-            atoms.forEach(a => {
-                const dx = a.x - cx, dy = a.y - cy;
-                const dist = Math.sqrt(dx*dx+dy*dy) || 1;
-                a.x += (dx/dist)*60 + (Math.random()-0.5)*30;
-                a.y += (dy/dist)*60 + (Math.random()-0.5)*30;
+            const centerX = 300, centerY = 150;
+            atoms.forEach(atom => {
+                const dx = atom.x - centerX;
+                const dy = atom.y - centerY;
+                const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                atom.x += (dx / dist) * 50 + (Math.random() - 0.5) * 30;
+                atom.y += (dy / dist) * 50 + (Math.random() - 0.5) * 30;
             });
             draw();
-        });
+        }
 
-        document.getElementById('formBtn').addEventListener('click', () => {
-            if(!isBroken) return;
+        function formBonds() {
+            if (!isBroken) return;
             isBroken = false;
             atoms = JSON.parse(JSON.stringify(originalAtoms));
             draw();
+        }
+
+        function switchMolecule(molId) {
+            currentMolId = molId;
+            currentMol = molecules[molId];
+            atoms = JSON.parse(JSON.stringify(currentMol.atoms));
+            bonds = currentMol.bonds;
+            isBroken = false;
+            // Reset originalAtoms
+            originalAtoms.length = 0;
+            Object.assign(originalAtoms, JSON.parse(JSON.stringify(currentMol.atoms)));
+            draw();
+
+            // Update button styles
+            document.querySelectorAll('.mol-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-200');
+            });
+            document.querySelector(`[data-mol="${molId}"]`).classList.add('border-blue-500', 'bg-blue-50');
+        }
+
+        // Attach event listeners
+        document.getElementById('breakBtn').addEventListener('click', breakBonds);
+        document.getElementById('formBtn').addEventListener('click', formBonds);
+
+        document.querySelectorAll('.mol-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                switchMolecule(e.currentTarget.dataset.mol);
+            });
         });
 
+        // Initial draw
         draw();
-        console.log('Ready');
+        console.log('Practical Lab ready.');
     })();
 </script>
 {% endblock %}
