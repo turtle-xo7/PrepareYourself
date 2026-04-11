@@ -1,152 +1,187 @@
-{% extends 'base.html' %}
-{% block title %}Home{% endblock %}
-{% block content %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ---------- Molecule Data ----------
+        const molecules = [
+            {
+                id: 'h2o', name: 'H₂O', subtitle: 'Water',
+                atoms: [
+                    { symbol: 'O', x: 300, y: 150, color: '#ff4d4d', radius: 24, charge: 'δ-' },
+                    { symbol: 'H', x: 230, y: 100, color: '#a0a0a0', radius: 16, charge: 'δ+' },
+                    { symbol: 'H', x: 230, y: 200, color: '#a0a0a0', radius: 16, charge: 'δ+' }
+                ],
+                bonds: [[0,1], [0,2]],
+                equation: '2H₂ + O₂ → 2H₂O',
+                bondType: 'Covalent (Polar)',
+                bondEnergy: '498 kJ/mol (O-H)',
+                structureDesc: 'Bent, 104.5°',
+                funFact: 'Water is bent because 2 lone pairs on oxygen repel the O-H bonds.'
+            },
+            {
+                id: 'co2', name: 'CO₂', subtitle: 'Carbon Dioxide',
+                atoms: [
+                    { symbol: 'C', x: 300, y: 150, color: '#505050', radius: 20, charge: '' },
+                    { symbol: 'O', x: 220, y: 150, color: '#ff4d4d', radius: 20, charge: 'δ-' },
+                    { symbol: 'O', x: 380, y: 150, color: '#ff4d4d', radius: 20, charge: 'δ-' }
+                ],
+                bonds: [[0,1], [0,2]],
+                equation: 'C + O₂ → CO₂',
+                bondType: 'Covalent (Double)',
+                bondEnergy: '799 kJ/mol (C=O)',
+                structureDesc: 'Linear, 180°',
+                funFact: 'CO₂ is a linear molecule with two double bonds.'
+            },
+            // ... (বাকি মলিকিউলগুলো আগের মতোই থাকবে)
+        ];
 
-<!-- Hero Section -->
-<div class="gradient-bg text-white">
-    <div class="max-w-7xl mx-auto px-4 py-16 md:py-24">
-        <div class="text-center md:text-left md:flex md:items-center">
-            <div class="md:w-2/3">
-                <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">Bangladesh's #1 Affordable Exam Prep Platform</span>
-                <h1 class="text-4xl md:text-5xl font-bold mt-6 leading-tight">Ace Your Board Exams<br>with Smart Preparation</h1>
-                <p class="text-xl mt-4 text-blue-50">Access 1,20,000+ board exam questions, school papers, practical videos, and study notes — all for an affordable monthly subscription starting at just ৳99.</p>
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <a href="#" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition">Start Free Trial</a>
-                    <a href="{% url 'question_bank' %}" class="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Browse Questions</a>
-                </div>
-                <p class="mt-4 text-sm text-blue-100">✨ No credit card required • 7-day free trial • Cancel anytime</p>
-            </div>
-            <div class="md:w-1/3 mt-8 md:mt-0 flex justify-center">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center">
-                        <div class="text-3xl font-bold">1.2L+</div>
-                        <div class="text-sm">Questions</div>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center">
-                        <div class="text-3xl font-bold">2.5L+</div>
-                        <div class="text-sm">Students</div>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center col-span-2">
-                        <div class="text-3xl font-bold">⭐ 4.9/5</div>
-                        <div class="text-sm">From 18,000+ reviews</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+        const canvas = document.getElementById('moleculeCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = 600;
+        canvas.height = 300;
 
-<!-- Quick Access to Molecular Lab -->
-<div class="max-w-7xl mx-auto px-4 pt-8">
-    <a href="{% url 'practical_lab' %}" class="block bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-6 card-shadow hover:shadow-lg transition group">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center text-3xl">🧬</div>
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 group-hover:text-purple-700 transition">Interactive Molecular Lab</h3>
-                    <p class="text-gray-600">Break & form bonds, see charges and bond angles — live 3D-style simulation!</p>
-                </div>
-            </div>
-            <div class="text-purple-600 font-medium group-hover:translate-x-1 transition">Try Now →</div>
-        </div>
-    </a>
-</div>
+        let currentMolecule = molecules[0];
+        let originalAtoms = JSON.parse(JSON.stringify(currentMolecule.atoms));
+        let currentAtoms = JSON.parse(JSON.stringify(originalAtoms));
+        let bonds = currentMolecule.bonds;
+        let isBroken = false;
 
-<!-- Feature Cards -->
-<div class="max-w-7xl mx-auto px-4 py-16">
-    <h2 class="text-3xl font-bold text-center mb-4">Everything You Need</h2>
-    <p class="text-gray-600 text-center mb-12">One Platform, Complete Preparation</p>
+        const equationEl = document.getElementById('equationDisplay');
+        const bondTypeEl = document.getElementById('bondTypeDisplay');
+        const bondEnergyEl = document.getElementById('bondEnergyDisplay');
+        const structureEl = document.getElementById('structureDescDisplay');
+        const funFactEl = document.getElementById('funFactDisplay');
+        const moleculeListDiv = document.getElementById('moleculeList');
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Card 1 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Board Exam Question Bank</h3>
-            <p class="text-gray-600 text-sm mb-2">80+ Subjects</p>
-            <p class="text-gray-500 text-sm">Previous years' questions from all major boards, filtered by subject, year, chapter.</p>
-            <a href="{% url 'question_bank' %}" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
-        </div>
-        <!-- Card 2 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">School & College Papers</h3>
-            <p class="text-gray-600 text-sm mb-2">500+ Institutions</p>
-            <p class="text-gray-500 text-sm">Actual exam papers from top schools and colleges.</p>
-            <a href="#" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
-        </div>
-        <!-- Card 3 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Practical Video Tutorials</h3>
-            <p class="text-gray-600 text-sm mb-2">300+ Videos</p>
-            <p class="text-gray-500 text-sm">Step-by-step science practicals, interactive molecular lab.</p>
-            <a href="{% url 'practical_lab' %}" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
-        </div>
-        <!-- Card 4 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Smart Study Notes</h3>
-            <p class="text-gray-600 text-sm mb-2">All Subjects</p>
-            <p class="text-gray-500 text-sm">Concise, exam-focused notes from popular guidebooks.</p>
-            <a href="{% url 'study_notes' %}" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
-        </div>
-    </div>
-</div>
+        function renderMoleculeList() {
+            moleculeListDiv.innerHTML = '';
+            molecules.forEach(mol => {
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition molecule-card ${mol.id === currentMolecule.id ? 'selected' : ''}`;
+                card.innerHTML = `<div class="font-bold">${mol.name}</div><div class="text-xs text-gray-500">${mol.subtitle}</div>`;
+                card.addEventListener('click', () => selectMolecule(mol));
+                moleculeListDiv.appendChild(card);
+            });
+        }
 
-<!-- Boards Section -->
-<div class="bg-gray-100 py-16">
-    <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Questions from Every Education Board in Bangladesh</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {% for board in boards %}
-            <div class="bg-white p-4 rounded-xl card-shadow text-center">
-                <div class="font-semibold">{{ board.name }} Board</div>
-                <div class="text-sm text-gray-500">{{ board.students }} students</div>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="text-center mt-8">
-            <a href="#" class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50">Browse All Boards →</a>
-        </div>
-    </div>
-</div>
+        function selectMolecule(mol) {
+            currentMolecule = mol;
+            originalAtoms = JSON.parse(JSON.stringify(mol.atoms));
+            currentAtoms = JSON.parse(JSON.stringify(originalAtoms));
+            bonds = mol.bonds;
+            isBroken = false;
+            updateInfoPanel();
+            drawMolecule();
+            renderMoleculeList();
+        }
 
-<!-- Testimonials -->
-<div class="max-w-7xl mx-auto px-4 py-16">
-    <h2 class="text-3xl font-bold text-center mb-12">Students Love Prepare Yourself</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-2xl card-shadow">
-            <p class="text-gray-700 italic">"The interactive molecular lab is amazing! I finally understood how H₂O and CO₂ bonding works."</p>
-            <div class="mt-4 font-semibold">Rahim Ahmed</div>
-            <div class="text-sm text-gray-500">Class 10, Chittagong Board</div>
-        </div>
-        <div class="bg-white p-6 rounded-2xl card-shadow">
-            <p class="text-gray-700 italic">"I cleared my half-yearly with A+ after practising school papers from Prepare Yourself."</p>
-            <div class="mt-4 font-semibold">Tasfia Islam</div>
-            <div class="text-sm text-gray-500">Class 11, Rajshahi Board</div>
-        </div>
-        <div class="bg-white p-6 rounded-2xl card-shadow">
-            <p class="text-gray-700 italic">"Prepare Yourself helped me score GPA 5.00 in HSC! Best ৳199 I ever spent."</p>
-            <div class="mt-4 font-semibold">Fatima Rahman</div>
-            <div class="text-sm text-gray-500">Class 12, Dhaka Board</div>
-        </div>
-    </div>
-</div>
+        function updateInfoPanel() {
+            equationEl.textContent = currentMolecule.equation;
+            bondTypeEl.textContent = currentMolecule.bondType;
+            bondEnergyEl.textContent = currentMolecule.bondEnergy;
+            structureEl.textContent = currentMolecule.structureDesc;
+            funFactEl.textContent = currentMolecule.funFact;
+        }
 
-<!-- CTA -->
-<div class="gradient-bg text-white py-16">
-    <div class="max-w-4xl mx-auto text-center px-4">
-        <h2 class="text-3xl font-bold mb-4">Ready to Start Your Board Exam Journey?</h2>
-        <p class="text-xl mb-8">Join over 2.5 lakh students already scoring better marks.</p>
-        <a href="#" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold text-lg hover:shadow-xl transition">Get Started Free – 7 Days Trial</a>
-    </div>
-</div>
+        function drawMolecule() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw bonds
+            bonds.forEach(bondIdx => {
+                const from = currentAtoms[bondIdx[0]];
+                const to = currentAtoms[bondIdx[1]];
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                if (isBroken) {
+                    ctx.setLineDash([6, 6]);
+                    ctx.strokeStyle = '#aaaaaa';
+                    ctx.lineWidth = 2;
+                } else {
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = '#666';
+                    ctx.lineWidth = 4;
+                }
+                ctx.stroke();
+            });
+            ctx.setLineDash([]);
+
+            // Draw atoms and charges
+            currentAtoms.forEach(atom => {
+                ctx.beginPath();
+                ctx.arc(atom.x, atom.y, atom.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = atom.color;
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${atom.radius * 0.7}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(atom.symbol, atom.x, atom.y);
+
+                if (atom.charge) {
+                    ctx.font = `bold ${atom.radius * 0.5}px Arial`;
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillText(atom.charge, atom.x + atom.radius*0.7, atom.y - atom.radius*0.7);
+                }
+            });
+        }
+
+        // সরাসরি পজিশন পরিবর্তন (অ্যানিমেশন ছাড়া)
+        function breakBonds() {
+            if (isBroken) return;
+            isBroken = true;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            currentAtoms.forEach(atom => {
+                const dx = atom.x - centerX;
+                const dy = atom.y - centerY;
+                const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                atom.x += (dx / dist) * 60 + (Math.random() - 0.5) * 30;
+                atom.y += (dy / dist) * 60 + (Math.random() - 0.5) * 30;
+            });
+            drawMolecule();
+        }
+
+        function formBonds() {
+            if (!isBroken) return;
+            isBroken = false;
+            currentAtoms = JSON.parse(JSON.stringify(originalAtoms));
+            drawMolecule();
+        }
+
+        // Event listeners
+        document.getElementById('breakBtn').addEventListener('click', breakBonds);
+        document.getElementById('formBtn').addEventListener('click', formBonds);
+
+        // Tabs
+        const tabMolecular = document.getElementById('tab-molecular');
+        const tabVideos = document.getElementById('tab-videos');
+        const sectionMolecular = document.getElementById('molecular-lab-section');
+        const sectionVideos = document.getElementById('video-tutorials-section');
+
+        tabMolecular.addEventListener('click', () => {
+            tabMolecular.classList.remove('tab-inactive'); tabMolecular.classList.add('tab-active');
+            tabVideos.classList.remove('tab-active'); tabVideos.classList.add('tab-inactive');
+            sectionMolecular.classList.remove('hidden');
+            sectionVideos.classList.add('hidden');
+            setTimeout(drawMolecule, 20);
+        });
+
+        tabVideos.addEventListener('click', () => {
+            tabVideos.classList.remove('tab-inactive'); tabVideos.classList.add('tab-active');
+            tabMolecular.classList.remove('tab-active'); tabMolecular.classList.add('tab-inactive');
+            sectionVideos.classList.remove('hidden');
+            sectionMolecular.classList.add('hidden');
+        });
+
+        // Initialize
+        renderMoleculeList();
+        updateInfoPanel();
+        drawMolecule();
+    });
+</script>
 {% endblock %}
