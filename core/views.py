@@ -17,3 +17,11 @@ def pricing(request):
 
 def dashboard(request):
     return render(request, 'core/dashboard.html')
+
+def home(request):
+    boards = ['Dhaka', 'Chittagong', 'Rajshahi', 'Comilla', 'Sylhet', 'Jessore', 'Barisal', 'Dinajpur']
+    context = {
+        'boards': boards,
+    }
+    return render(request, 'core/home.html', context)
+
