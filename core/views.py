@@ -25,3 +25,5 @@ def home(request):
     }
     return render(request, 'core/home.html', context)
 
+def practical_lab(request):
+    return render(request, 'core/practical_lab.html')
