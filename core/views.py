@@ -486,7 +486,7 @@ def study_notes(request):
                     ]
                 },
                 {
-                    'title': 'পত্র লিখন',
+                    'title': 'পত্র লিখ',
                     'pages': 10,
                     'downloads': 1200,
                     'rating': 4.7,
