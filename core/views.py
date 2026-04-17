@@ -37,10 +37,9 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-        if user:
+        if user is not None:
             login(request, user)
-            next_url = request.GET.get('next', 'home')
-            return redirect(next_url)
+            return redirect('home')
         else:
             messages.error(request, 'Username বা Password ভুল।')
     return render(request, 'core/login.html')

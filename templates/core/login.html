@@ -1,20 +1,26 @@
-{% extends 'base.html' %}
-{% block title %}Login{% endblock %}
-{% block content %}
-<div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Prepare Yourself</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
   <div class="w-full max-w-md">
-
     <div class="text-center mb-8">
-      <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-        <span class="text-white text-xl font-bold">P</span>
-      </div>
-      <h1 class="text-2xl font-bold text-gray-900">PrepareYourself</h1>
-      <p class="text-gray-500 mt-1 text-sm">তোমার account এ login করো</p>
+      <a href="/">
+        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <span class="text-white text-xl font-bold">P</span>
+        </div>
+        <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Prepare Yourself</span>
+      </a>
+      <p class="text-gray-500 mt-2 text-sm">তোমার account এ login করো</p>
     </div>
 
     {% if messages %}
     {% for msg in messages %}
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm">
       ⚠️ {{ msg }}
     </div>
     {% endfor %}
@@ -27,7 +33,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
           <input type="text" name="username" required autofocus
             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="তোমার username">
+            placeholder="তোমার username লিখো">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
@@ -36,12 +42,12 @@
             placeholder="••••••••">
         </div>
         <button type="submit"
-          class="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition text-sm">
+          class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition text-sm">
           Login করো
         </button>
       </form>
     </div>
-
+    <p class="text-center text-xs text-gray-400 mt-6">© 2026 Prepare Yourself</p>
   </div>
-</div>
-{% endblock %}
+</body>
+</html>
