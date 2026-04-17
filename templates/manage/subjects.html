@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Manage Subjects{% endblock %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-50">
+  <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
+    <a href="{% url 'manage_dashboard' %}" class="text-gray-400 hover:text-gray-600 text-sm">← Dashboard</a>
+    <span class="text-gray-300">/</span>
+    <span class="text-sm font-medium text-gray-700">Subjects</span>
+  </div>
+
+  <div class="max-w-3xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Subjects</h1>
+
+    {% if messages %}{% for msg in messages %}
+    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">✅ {{ msg }}</div>
+    {% endfor %}{% endif %}
+
+    <form method="post" action="{% url 'subject_add' %}" class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+      {% csrf_token %}
+      <p class="text-sm font-medium text-gray-700 mb-3">নতুন Subject যোগ করো</p>
+      <div class="flex gap-3">
+        <input type="text" name="name" placeholder="Subject name (e.g. Physics)" required
+          class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" name="icon" placeholder="Icon e.g. ⚡"
+          class="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm text-center">
+        <input type="text" name="color" placeholder="Color e.g. blue"
+          class="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">Add</button>
+      </div>
+    </form>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Name</th>
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Icon</th>
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Color</th>
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for s in subjects %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium text-gray-800">{{ s.name }}</td>
+            <td class="px-4 py-3 text-xl">{{ s.icon }}</td>
+            <td class="px-4 py-3 text-gray-500">{{ s.color }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded text-xs {% if s.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                {% if s.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <form method="post" action="{% url 'subject_delete' s.pk %}" onsubmit="return confirm('Delete করবে?')">
+                {% csrf_token %}
+                <button type="submit" class="text-red-500 hover:underline text-sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">কোনো subject নেই।</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

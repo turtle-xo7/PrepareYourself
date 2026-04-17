@@ -21,8 +21,15 @@
 
             <!-- Auth Buttons -->
             <div class="flex items-center space-x-3">
-                <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg">Log In</a>
-                <a href="#" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition">Sign Up</a>
+                {% if request.user.is_authenticated %}
+                    {% if request.user.is_staff %}
+                    <a href="{% url 'manage_dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg">⚙️ Manage</a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="text-gray-700 hover:text-red-600 font-medium px-3 py-2 rounded-lg">Log Out</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg">Log In</a>
+                    <a href="#" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition">Sign Up</a>
+                {% endif %}
             </div>
         </div>
     </div>

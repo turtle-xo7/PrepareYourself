@@ -1,11 +1,62 @@
 from django.contrib import admin
-from .models import Question, MCQOption
+from .models import Board, Subject, Class, Question
+from .models import UserProfile
 
-class MCQOptionInline(admin.TabularInline):
-    model = MCQOption
-    extra = 4
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'is_admin')
+    list_editable = ('is_admin',)
 
+# ---------- BOARD ----------
+@admin.register(Board)
+class BoardAdmin(admin.ModelAdmin):
+    list_display = ('name', 'student_count', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('name',)
+    list_editable = ('is_active',)
+
+
+# ---------- SUBJECT ----------
+@admin.register(Subject)
+class SubjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'icon', 'color', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('name',)
+    list_editable = ('is_active',)
+
+
+# ---------- CLASS ----------
+@admin.register(Class)
+class ClassAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+
+# ---------- QUESTION ----------
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    inlines = [MCQOptionInline]
-    list_filter = ['subject', 'board', 'difficulty', 'is_mcq']
+    list_display = (
+        'id', 'chapter', 'subject', 'board',
+        'class_obj', 'year', 'question_type', 'difficulty'
+    )
+    list_filter = ('board', 'subject', 'class_obj', 'question_type', 'difficulty')
+    search_fields = ('chapter', 'question_text')
+    list_per_page = 20
+
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('board', 'subject', 'class_obj', 'year', 'chapter')
+        }),
+        ('Question', {
+            'fields': ('question_text', 'question_type', 'difficulty')
+        }),
+        ('MCQ Options', {
+            'fields': ('option1', 'option2', 'option3', 'option4', 'correct_option')
+        }),
+        ('Written Answer', {
+            'fields': ('answer_hint',)
+        }),
+    )
+
+
+

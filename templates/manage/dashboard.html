@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Manage Panel{% endblock %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-50">
+  <!-- Top Bar -->
+  <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <span class="text-white text-sm font-bold">M</span>
+      </div>
+      <span class="font-semibold text-gray-800">Manage Panel</span>
+    </div>
+    <a href="{% url 'home' %}" class="text-sm text-gray-500 hover:text-gray-700">← Main Site</a>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Welcome -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <p class="text-gray-500 mt-1">সব কিছু এখান থেকে manage করো।</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-3xl font-bold text-blue-600">{{ total_questions }}</p>
+        <p class="text-sm text-gray-500 mt-1">📝 Questions</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-3xl font-bold text-purple-600">{{ total_boards }}</p>
+        <p class="text-sm text-gray-500 mt-1">🏫 Boards</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-3xl font-bold text-green-600">{{ total_subjects }}</p>
+        <p class="text-sm text-gray-500 mt-1">📚 Subjects</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-3xl font-bold text-yellow-600">{{ total_classes }}</p>
+        <p class="text-sm text-gray-500 mt-1">🎓 Classes</p>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <a href="{% url 'manage_questions' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-5 transition group">
+        <div class="text-2xl mb-3">📝</div>
+        <h2 class="font-semibold">Questions</h2>
+        <p class="text-sm text-blue-200 mt-1">Add, edit, delete</p>
+        <div class="mt-3 text-xs text-blue-200 group-hover:text-white">Manage →</div>
+      </a>
+      <a href="{% url 'manage_boards' %}" class="bg-white hover:shadow-md border border-gray-200 text-gray-800 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-3">🏫</div>
+        <h2 class="font-semibold">Boards</h2>
+        <p class="text-sm text-gray-500 mt-1">Education boards</p>
+        <div class="mt-3 text-xs text-blue-600 group-hover:underline">Manage →</div>
+      </a>
+      <a href="{% url 'manage_subjects' %}" class="bg-white hover:shadow-md border border-gray-200 text-gray-800 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-3">📚</div>
+        <h2 class="font-semibold">Subjects</h2>
+        <p class="text-sm text-gray-500 mt-1">Physics, Chemistry...</p>
+        <div class="mt-3 text-xs text-blue-600 group-hover:underline">Manage →</div>
+      </a>
+      <a href="{% url 'manage_classes' %}" class="bg-white hover:shadow-md border border-gray-200 text-gray-800 rounded-xl p-5 transition group">
+        <div class="text-2xl mb-3">🎓</div>
+        <h2 class="font-semibold">Classes</h2>
+        <p class="text-sm text-gray-500 mt-1">Class 9, 10, Inter...</p>
+        <div class="mt-3 text-xs text-blue-600 group-hover:underline">Manage →</div>
+      </a>
+    </div>
+
+    <!-- Recent Questions -->
+    <div class="bg-white rounded-xl border border-gray-200">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800">সর্বশেষ যোগ করা Questions</h2>
+        <a href="{% url 'question_add' %}" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700">+ নতুন</a>
+      </div>
+      <div class="divide-y divide-gray-100">
+        {% for q in recent_questions %}
+        <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50">
+          <div class="flex items-center gap-3">
+            <span class="px-2 py-0.5 rounded text-xs font-medium
+              {% if q.question_type == 'MCQ' %}bg-blue-100 text-blue-700{% else %}bg-purple-100 text-purple-700{% endif %}">
+              {{ q.question_type }}
+            </span>
+            <div>
+              <p class="text-sm font-medium text-gray-800">{{ q.chapter|truncatechars:40 }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">{{ q.subject }} • {{ q.board }} • {{ q.year }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs px-2 py-0.5 rounded
+              {% if q.difficulty == 'Easy' %}bg-green-100 text-green-700
+              {% elif q.difficulty == 'Medium' %}bg-yellow-100 text-yellow-700
+              {% else %}bg-red-100 text-red-700{% endif %}">
+              {{ q.difficulty }}
+            </span>
+            <a href="{% url 'question_edit' q.pk %}" class="text-xs text-blue-600 hover:underline">Edit</a>
+          </div>
+        </div>
+        {% empty %}
+        <div class="px-6 py-8 text-center text-gray-400 text-sm">
+          কোনো question নেই। <a href="{% url 'question_add' %}" class="text-blue-600 hover:underline">এখনই যোগ করো।</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

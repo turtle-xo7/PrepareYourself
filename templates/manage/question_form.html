@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Question{% endblock %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-50">
+  <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
+    <a href="{% url 'manage_questions' %}" class="text-gray-400 hover:text-gray-600 text-sm">← Questions</a>
+    <span class="text-gray-300">/</span>
+    <span class="text-sm font-medium text-gray-700">{{ action }} Question</span>
+  </div>
+
+  <div class="max-w-3xl mx-auto px-6 py-8">
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Basic Info</h2>
+        <div class="grid grid-cols-2 gap-4">
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Board</label>
+            <select name="board" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Select Board —</option>
+              {% for b in boards %}
+              <option value="{{ b.pk }}" {% if question.board.pk == b.pk %}selected{% endif %}>{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+            <select name="subject" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Select Subject —</option>
+              {% for s in subjects %}
+              <option value="{{ s.pk }}" {% if question.subject.pk == s.pk %}selected{% endif %}>{{ s.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+            <select name="class_obj" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Select Class —</option>
+              {% for c in classes %}
+              <option value="{{ c.pk }}" {% if question.class_obj.pk == c.pk %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+            <select name="year" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Select Year —</option>
+              {% for y in years %}
+              <option value="{{ y }}" {% if question.year == y %}selected{% endif %}>{{ y }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
+            <select name="question_type" id="q_type" onchange="toggleMCQ()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="MCQ" {% if question.question_type == 'MCQ' %}selected{% endif %}>MCQ</option>
+              <option value="WRITTEN" {% if question.question_type == 'WRITTEN' %}selected{% endif %}>Written</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+            <select name="difficulty" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="Easy" {% if question.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+              <option value="Medium" {% if question.difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+              <option value="Hard" {% if question.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Chapter</label>
+          <input type="text" name="chapter" value="{{ question.chapter }}" required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="e.g. আলো ও প্রতিসরণ">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
+          <textarea name="question_text" rows="3" required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="প্রশ্নটি লিখুন...">{{ question.question_text }}</textarea>
+        </div>
+      </div>
+
+      <div id="mcq_fields" class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">MCQ Options</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">ক — Option 1</label>
+            <input type="text" name="option1" value="{{ question.option1 }}"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">খ — Option 2</label>
+            <input type="text" name="option2" value="{{ question.option2 }}"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">গ — Option 3</label>
+            <input type="text" name="option3" value="{{ question.option3 }}"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">ঘ — Option 4</label>
+            <input type="text" name="option4" value="{{ question.option4 }}"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">সঠিক উত্তর</label>
+          <select name="correct_option" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="1" {% if question.correct_option == 1 %}selected{% endif %}>ক (Option 1)</option>
+            <option value="2" {% if question.correct_option == 2 %}selected{% endif %}>খ (Option 2)</option>
+            <option value="3" {% if question.correct_option == 3 %}selected{% endif %}>গ (Option 3)</option>
+            <option value="4" {% if question.correct_option == 4 %}selected{% endif %}>ঘ (Option 4)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="written_fields" class="hidden bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide mb-3">Answer Hint</h2>
+        <textarea name="answer_hint" rows="4"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="উত্তরের hint লিখুন...">{{ question.answer_hint }}</textarea>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700">
+          {{ action }} করো
+        </button>
+        <a href="{% url 'manage_questions' %}" class="px-6 py-2.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50">
+          Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleMCQ() {
+  const type = document.getElementById('q_type').value;
+  document.getElementById('mcq_fields').classList.toggle('hidden', type !== 'MCQ');
+  document.getElementById('written_fields').classList.toggle('hidden', type !== 'WRITTEN');
+}
+toggleMCQ();
+</script>
+
+{% endblock %}
