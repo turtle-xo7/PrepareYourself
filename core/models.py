@@ -16,7 +16,7 @@ class Board(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def _str_(self):
         return f"{self.name} Board"
 
 
@@ -35,7 +35,7 @@ class Subject(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def _str_(self):
         return self.name
 
 
@@ -47,7 +47,7 @@ class Class(models.Model):
         ordering = ['numeric_value']
         verbose_name_plural = "Classes"
 
-    def __str__(self):
+    def _str_(self):
         return self.name
 
 
@@ -83,13 +83,29 @@ class Question(models.Model):
     class Meta:
         ordering = ['-year', 'subject', 'chapter']
 
-    def __str__(self):
+    def _str_(self):
         return f"{self.board} | Class {self.class_obj.numeric_value} | {self.subject} | {self.chapter[:30]}"
 
 
 class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('STUDENT', 'Student'),
+        ('ADMIN', 'Teacher/Tutor/Institution'),
+    ]
+    PLAN_CHOICES = [
+        ('FREE', 'Free'),
+        ('BASIC', 'Basic'),
+        ('PREMIUM', 'Premium'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='STUDENT')
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='FREE')
     is_admin = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"{self.user.username} ({'Admin' if self.is_admin else 'User'})"
+    def _str_(self):
+        return f"{self.user.username} ({self.role} - {self.plan})"
+
+    @property
+    def is_premium(self):
+        return self.plan in ['BASIC', 'PREMIUM']

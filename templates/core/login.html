@@ -6,48 +6,161 @@
     <title>Login - Prepare Yourself</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4 py-8">
   <div class="w-full max-w-md">
-    <div class="text-center mb-8">
+
+    <div class="text-center mb-6">
       <a href="/">
-        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
           <span class="text-white text-xl font-bold">P</span>
         </div>
         <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Prepare Yourself</span>
       </a>
-      <p class="text-gray-500 mt-2 text-sm">তোমার account এ login করো</p>
     </div>
 
     {% if messages %}
     {% for msg in messages %}
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm">
-      ⚠️ {{ msg }}
-    </div>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm">⚠️ {{ msg }}</div>
     {% endfor %}
     {% endif %}
 
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-      <form method="post" class="space-y-5">
-        {% csrf_token %}
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
-          <input type="text" name="username" required autofocus
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="তোমার username লিখো">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-          <input type="password" name="password" required
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="••••••••">
-        </div>
-        <button type="submit"
-          class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition text-sm">
-          Login করো
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+
+      <!-- Tabs -->
+      <div class="flex mb-6 bg-gray-100 rounded-xl p-1">
+        <button onclick="showTab('login')" id="tab-login"
+          class="flex-1 py-2 text-sm font-medium rounded-lg bg-white text-blue-600 shadow-sm transition">
+          Log In
         </button>
-      </form>
+        <button onclick="showTab('signup')" id="tab-signup"
+          class="flex-1 py-2 text-sm font-medium rounded-lg text-gray-500 transition">
+          Sign Up
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="form-login">
+        <p class="text-gray-500 text-sm text-center mb-5">তোমার account এ login করো</p>
+        <form method="post" action="{% url 'login' %}" class="space-y-5">
+          {% csrf_token %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+            <input type="text" name="username" required autofocus
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="তোমার username লিখো">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+            <input type="password" name="password" required
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••">
+          </div>
+          <button type="submit"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition text-sm">
+            Login করো
+          </button>
+        </form>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="form-signup" class="hidden">
+        <p class="text-gray-500 text-sm text-center mb-5">নতুন account বানাও</p>
+        <form method="post" action="{% url 'signup' %}" class="space-y-4">
+          {% csrf_token %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" name="username" required
+              class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" name="email" required
+              class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" name="password" required
+              class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">আমি একজন</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                <input type="radio" name="role" value="STUDENT" checked class="hidden">
+                <p class="font-medium text-sm">🎓 Student</p>
+                <p class="text-xs text-gray-500">শিক্ষার্থী</p>
+              </label>
+              <label class="border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                <input type="radio" name="role" value="ADMIN" class="hidden">
+                <p class="font-medium text-sm">👨‍🏫 Teacher</p>
+                <p class="text-xs text-gray-500">শিক্ষক/প্রতিষ্ঠান</p>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Plan বাছো</label>
+            <div class="space-y-2">
+              <label class="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                <div>
+                  <p class="font-medium text-sm">Free</p>
+                  <p class="text-xs text-gray-500">সীমিত access</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold">৳0</span>
+                  <input type="radio" name="plan" value="FREE" checked>
+                </div>
+              </label>
+              <label class="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                <div>
+                  <p class="font-medium text-sm">Basic</p>
+                  <p class="text-xs text-gray-500">সব question bank</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold">৳99/mo</span>
+                  <input type="radio" name="plan" value="BASIC">
+                </div>
+              </label>
+              <label class="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                <div>
+                  <p class="font-medium text-sm">Premium</p>
+                  <p class="text-xs text-gray-500">সব feature + mentor</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold">৳199/mo</span>
+                  <input type="radio" name="plan" value="PREMIUM">
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition text-sm">
+            Sign Up করো
+          </button>
+        </form>
+      </div>
+
     </div>
     <p class="text-center text-xs text-gray-400 mt-6">© 2026 Prepare Yourself</p>
   </div>
+
+  <script>
+    function showTab(tab) {
+      document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+      document.getElementById('form-signup').classList.toggle('hidden', tab !== 'signup');
+      document.getElementById('tab-login').className = tab === 'login'
+        ? 'flex-1 py-2 text-sm font-medium rounded-lg bg-white text-blue-600 shadow-sm transition'
+        : 'flex-1 py-2 text-sm font-medium rounded-lg text-gray-500 transition';
+      document.getElementById('tab-signup').className = tab === 'signup'
+        ? 'flex-1 py-2 text-sm font-medium rounded-lg bg-white text-blue-600 shadow-sm transition'
+        : 'flex-1 py-2 text-sm font-medium rounded-lg text-gray-500 transition';
+    }
+
+    {% if request.path == '/signup/' %}
+    showTab('signup');
+    {% endif %}
+  </script>
 </body>
 </html>

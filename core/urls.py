@@ -25,6 +25,8 @@ urlpatterns = [
     path('manage/classes/', views.manage_classes, name='manage_classes'),
     path('manage/classes/add/', views.class_add, name='class_add'),
     path('manage/classes/<int:pk>/delete/', views.class_delete, name='class_delete'),
+    path('signup/', views.signup_view, name='signup'),
+    path('checkout/', views.checkout, name='checkout'),
     path('logout/', views.logout_view, name='logout'),
 
 ]

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from .models import Board, Subject, Class, Question, UserProfile
 from datetime import datetime
 
@@ -9,20 +10,33 @@ CURRENT_YEAR = datetime.now().year
 YEARS = list(range(CURRENT_YEAR, CURRENT_YEAR - 6, -1))
 
 
-# -------- DECORATOR --------
+# -------- DECORATORS --------
 
 def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            messages.error(request, 'লগইন করো।')
             return redirect('login')
         try:
-            if not request.user.profile.is_admin:
-                messages.error(request, 'তোমার এই page এ access নেই।')
+            if request.user.profile.role != 'ADMIN':
+                messages.error(request, 'শুধু Teacher/Tutor/Institution এই page access করতে পারবে।')
                 return redirect('home')
         except UserProfile.DoesNotExist:
-            messages.error(request, 'তোমার account এ admin access নেই।')
             return redirect('home')
+        return view_func(request, *args, **kwargs)
+    wrapper.__name__ = view_func.__name__
+    return wrapper
+
+
+def premium_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        try:
+            if not request.user.profile.is_premium:
+                messages.error(request, 'এই feature শুধু Premium users এর জন্য।')
+                return redirect('pricing')
+        except UserProfile.DoesNotExist:
+            return redirect('pricing')
         return view_func(request, *args, **kwargs)
     wrapper.__name__ = view_func.__name__
     return wrapper
@@ -44,9 +58,51 @@ def login_view(request):
             messages.error(request, 'Username বা Password ভুল।')
     return render(request, 'core/login.html')
 
+
+def signup_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        role = request.POST.get('role', 'STUDENT')
+        plan = request.POST.get('plan', 'FREE')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'এই username আগে থেকে আছে।')
+            return render(request, 'core/signup.html')
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        UserProfile.objects.create(
+            user=user,
+            role=role,
+            plan=plan,
+            is_admin=(role == 'ADMIN')
+        )
+        login(request, user)
+
+        if plan != 'FREE':
+            return redirect('checkout')
+
+        messages.success(request, 'Account created successfully!')
+        return redirect('home')
+    return render(request, 'core/signup.html')
+
+
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+@login_required
+def checkout(request):
+    if request.method == 'POST':
+        request.user.profile.plan = request.POST.get('plan', 'BASIC')
+        request.user.profile.save()
+        messages.success(request, f'{request.user.profile.plan} plan activated!')
+        return redirect('home')
+    return render(request, 'core/checkout.html')
 
 
 # -------- FRONTEND VIEWS --------
@@ -54,17 +110,21 @@ def logout_view(request):
 def home(request):
     return render(request, 'core/home.html')
 
-def study_notes(request):
-    return render(request, 'core/study_notes.html')
-
 def pricing(request):
     return render(request, 'core/pricing.html')
 
+@premium_required
+def study_notes(request):
+    return render(request, 'core/study_notes.html')
+
+@premium_required
 def dashboard(request):
     return render(request, 'core/dashboard.html')
 
+@premium_required
 def practical_lab(request):
     return render(request, 'core/practical_lab.html')
+
 
 def question_bank(request):
     boards = Board.objects.filter(is_active=True)
@@ -86,16 +146,29 @@ def question_bank(request):
     if year:
         questions = questions.filter(year=year)
 
+    # Premium check
+    is_premium = False
+    if request.user.is_authenticated:
+        try:
+            is_premium = request.user.profile.is_premium
+        except UserProfile.DoesNotExist:
+            pass
+
+    # Free user দের জন্য শুধু প্রথম 10 টা
+    if not is_premium:
+        questions = questions[:10]
+
     return render(request, 'core/question_bank.html', {
         'boards': boards,
         'subjects': subjects,
         'classes': classes,
         'questions': questions,
         'years': YEARS,
+        'is_premium': is_premium,
     })
 
 
-# -------- MANAGE PANEL (admin only) --------
+# -------- MANAGE PANEL (ADMIN ONLY) --------
 
 @admin_required
 def manage_dashboard(request):

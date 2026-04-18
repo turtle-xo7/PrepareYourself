@@ -7,6 +7,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,6 +40,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.user_role',
             ],
         },
     },
@@ -69,3 +71,11 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Prepare Yourself Admin",
+    "site_header": "Prepare Yourself",
+    "site_brand": "PY Admin",
+    "welcome_sign": "Welcome to Prepare Yourself",
+    "copyright": "Prepare Yourself 2026",
+}
