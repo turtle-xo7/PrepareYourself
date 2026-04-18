@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Board, Subject, Class, Question
+from .models import Board, Subject, Class, Question, UserProfile
+from django.contrib import admin
+from .models import Board, Subject, Class, Question, UserProfile, PracticalVideo
 from .models import UserProfile
 
 @admin.register(UserProfile)
@@ -58,5 +60,8 @@ class QuestionAdmin(admin.ModelAdmin):
         }),
     )
 
-
-
+@admin.register(PracticalVideo)
+class PracticalVideoAdmin(admin.ModelAdmin):
+    list_display = ('title', 'subject', 'class_obj', 'is_active')
+    list_filter = ('subject', 'class_obj', 'is_active')
+    list_editable = ('is_active',)

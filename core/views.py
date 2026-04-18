@@ -123,7 +123,24 @@ def dashboard(request):
 
 @premium_required
 def practical_lab(request):
-    return render(request, 'core/practical_lab.html')
+    from .models import PracticalVideo
+    videos = PracticalVideo.objects.filter(is_active=True)
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+
+    subject_filter = request.GET.get('subject')
+    class_filter = request.GET.get('class_obj')
+
+    if subject_filter:
+        videos = videos.filter(subject__slug=subject_filter)
+    if class_filter:
+        videos = videos.filter(class_obj__id=class_filter)
+
+    return render(request, 'core/practical_lab.html', {
+        'videos': videos,
+        'subjects': subjects,
+        'classes': classes,
+    })
 
 
 def question_bank(request):
@@ -325,3 +342,24 @@ def class_delete(request, pk):
         get_object_or_404(Class, pk=pk).delete()
         messages.success(request, 'Class deleted!')
     return redirect('manage_classes')
+
+
+def practical_videos(request):
+    from .models import PracticalVideo
+    videos = PracticalVideo.objects.filter(is_active=True)
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+
+    subject_filter = request.GET.get('subject')
+    class_filter = request.GET.get('class_obj')
+
+    if subject_filter:
+        videos = videos.filter(subject__slug=subject_filter)
+    if class_filter:
+        videos = videos.filter(class_obj__id=class_filter)
+
+    return render(request, 'core/practical_videos.html', {
+        'videos': videos,
+        'subjects': subjects,
+        'classes': classes,
+    })

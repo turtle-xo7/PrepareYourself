@@ -2,10 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 
+
 class Board(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
-    student_count = models.CharField(max_length=20, help_text="e.g., 5M+")
+    student_count = models.CharField(max_length=20)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -16,8 +17,8 @@ class Board(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-    def _str_(self):
-        return f"{self.name} Board"
+    def __str__(self):
+        return self.name
 
 
 class Subject(models.Model):
@@ -35,7 +36,7 @@ class Subject(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-    def _str_(self):
+    def __str__(self):
         return self.name
 
 
@@ -45,22 +46,15 @@ class Class(models.Model):
 
     class Meta:
         ordering = ['numeric_value']
-        verbose_name_plural = "Classes"
+        verbose_name_plural = 'Classes'
 
-    def _str_(self):
+    def __str__(self):
         return self.name
 
 
 class Question(models.Model):
-    DIFFICULTY_CHOICES = [
-        ('Easy', 'Easy'),
-        ('Medium', 'Medium'),
-        ('Hard', 'Hard'),
-    ]
-    QUESTION_TYPE_CHOICES = [
-        ('MCQ', 'Multiple Choice'),
-        ('WRITTEN', 'Written'),
-    ]
+    DIFFICULTY_CHOICES = [('Easy','Easy'),('Medium','Medium'),('Hard','Hard')]
+    QUESTION_TYPE_CHOICES = [('MCQ','Multiple Choice'),('WRITTEN','Written')]
 
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='questions')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='questions')
@@ -83,29 +77,38 @@ class Question(models.Model):
     class Meta:
         ordering = ['-year', 'subject', 'chapter']
 
-    def _str_(self):
-        return f"{self.board} | Class {self.class_obj.numeric_value} | {self.subject} | {self.chapter[:30]}"
+    def __str__(self):
+        return self.chapter
 
 
 class UserProfile(models.Model):
-    ROLE_CHOICES = [
-        ('STUDENT', 'Student'),
-        ('ADMIN', 'Teacher/Tutor/Institution'),
-    ]
-    PLAN_CHOICES = [
-        ('FREE', 'Free'),
-        ('BASIC', 'Basic'),
-        ('PREMIUM', 'Premium'),
-    ]
+    ROLE_CHOICES = [('STUDENT','Student'),('ADMIN','Teacher/Tutor/Institution')]
+    PLAN_CHOICES = [('FREE','Free'),('BASIC','Basic'),('PREMIUM','Premium')]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='STUDENT')
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='FREE')
     is_admin = models.BooleanField(default=False)
 
-    def _str_(self):
-        return f"{self.user.username} ({self.role} - {self.plan})"
+    def __str__(self):
+        return self.user.username
 
     @property
     def is_premium(self):
         return self.plan in ['BASIC', 'PREMIUM']
+
+
+class PracticalVideo(models.Model):
+    title = models.CharField(max_length=200)
+    youtube_url = models.CharField(max_length=200)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='videos')
+    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='videos')
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
