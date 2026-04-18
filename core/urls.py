@@ -29,6 +29,9 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('logout/', views.logout_view, name='logout'),
     path('practical-videos/', views.practical_videos, name='practical_videos'),
+    path('practical-videos/add/', views.video_add, name='video_add'),
+    path('practical-videos/<int:pk>/delete/', views.video_delete, name='video_delete'),
+
 
 
 ]

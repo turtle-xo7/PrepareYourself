@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Add Video{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Add Practical Video</h1>
+
+    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input type="text" name="title" required
+                    class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">YouTube Video ID</label>
+                <input type="text" name="youtube_url" required placeholder="e.g: s-jDK1UOUds"
+                    class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-xs text-gray-400 mt-1">YouTube URL এর v= এর পরের অংশ দাও</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                <select name="subject" required
+                    class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none">
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                <select name="class_obj" required
+                    class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none">
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                <textarea name="description" rows="3"
+                    class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit"
+                    class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition">
+                    Add Video
+                </button>
+                <a href="{% url 'practical_videos' %}"
+                    class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

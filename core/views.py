@@ -363,3 +363,37 @@ def practical_videos(request):
         'subjects': subjects,
         'classes': classes,
     })
+
+@admin_required
+def video_add(request):
+    from .models import PracticalVideo
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        youtube_url = request.POST.get('youtube_url')
+        subject_id = request.POST.get('subject')
+        class_id = request.POST.get('class_obj')
+        description = request.POST.get('description', '')
+        PracticalVideo.objects.create(
+            title=title,
+            youtube_url=youtube_url,
+            subject_id=subject_id,
+            class_obj_id=class_id,
+            description=description,
+            is_active=True
+        )
+        messages.success(request, 'Video added successfully!')
+        return redirect('practical_videos')
+    return render(request, 'core/video_add.html', {
+        'subjects': subjects,
+        'classes': classes,
+    })
+
+@admin_required
+def video_delete(request, pk):
+    from .models import PracticalVideo
+    video = get_object_or_404(PracticalVideo, pk=pk)
+    video.delete()
+    messages.success(request, 'Video deleted!')
+    return redirect('practical_videos')
