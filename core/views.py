@@ -449,3 +449,13 @@ def video_delete(request, pk):
     video.delete()
     messages.success(request, 'Video deleted!')
     return redirect('practical_videos')
+
+@superadmin_required
+def update_user(request, pk):
+    profile = get_object_or_404(UserProfile, pk=pk)
+    if request.method == 'POST':
+        profile.role = request.POST.get('role', profile.role)
+        profile.plan = request.POST.get('plan', profile.plan)
+        profile.save()
+        messages.success(request, f'{profile.user.username} updated!')
+    return redirect('superadmin_dashboard')

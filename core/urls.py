@@ -32,7 +32,5 @@ urlpatterns = [
     path('practical-videos/add/', views.video_add, name='video_add'),
     path('practical-videos/<int:pk>/delete/', views.video_delete, name='video_delete'),
     path('superadmin/', views.superadmin_dashboard, name='superadmin_dashboard'),
-
-
-
-]
+    path('superadmin/user/<int:pk>/update/', views.update_user, name='update_user'),
+    ]

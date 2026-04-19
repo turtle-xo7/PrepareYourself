@@ -11,45 +11,25 @@
     </div>
 
     <!-- User Stats -->
-    <!-- User Stats -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-xs text-gray-500 mb-1">Total Users</p>
-        <p class="text-3xl font-bold text-gray-900">{{ total_users }}</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Total Users</p>
+            <p class="text-3xl font-bold text-gray-900">{{ total_users }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Students</p>
+            <p class="text-3xl font-bold text-blue-600">{{ total_students }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Teachers</p>
+            <p class="text-3xl font-bold text-purple-600">{{ total_teachers }}</p>
+        </div>
+        <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
+            <p class="text-xs text-green-600 mb-1">Paid Users 💰</p>
+            <p class="text-3xl font-bold text-green-700">{{ paid_users }}</p>
+        </div>
     </div>
-    <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-xs text-gray-500 mb-1">Students</p>
-        <p class="text-3xl font-bold text-blue-600">{{ total_students }}</p>
-    </div>
-    <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-xs text-gray-500 mb-1">Teachers</p>
-        <p class="text-3xl font-bold text-purple-600">{{ total_teachers }}</p>
-    </div>
-    <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
-        <p class="text-xs text-green-600 mb-1">Paid Users 💰</p>
-        <p class="text-3xl font-bold text-green-700">{{ paid_users }}</p>
-    </div>
-</div>
 
-<!-- Super Admin Stats -->
-<div class="grid grid-cols-4 gap-4 mb-6">
-    <div class="bg-yellow-50 rounded-2xl border border-yellow-200 p-5">
-        <p class="text-xs text-yellow-600 mb-1">Super Admins 👑</p>
-        <p class="text-3xl font-bold text-yellow-700">{{ total_superadmins }}</p>
-    </div>
-    <div class="bg-gray-50 rounded-2xl border border-gray-200 p-5">
-        <p class="text-xs text-gray-500 mb-1">Free Plan</p>
-        <p class="text-2xl font-bold text-gray-700">{{ free_users }}</p>
-    </div>
-    <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
-        <p class="text-xs text-blue-500 mb-1">Basic Plan</p>
-        <p class="text-2xl font-bold text-blue-700">{{ basic_users }}</p>
-    </div>
-    <div class="bg-purple-50 rounded-2xl border border-purple-200 p-5">
-        <p class="text-xs text-purple-500 mb-1">Premium Plan</p>
-        <p class="text-2xl font-bold text-purple-700">{{ premium_users }}</p>
-    </div>
-</div>
     <!-- Subscription Stats -->
     <div class="grid grid-cols-3 gap-4 mb-6">
         <div class="bg-gray-50 rounded-2xl border border-gray-200 p-5">
@@ -106,6 +86,7 @@
                     <th class="text-left px-6 py-3 text-gray-500 font-medium">Role</th>
                     <th class="text-left px-6 py-3 text-gray-500 font-medium">Plan</th>
                     <th class="text-left px-6 py-3 text-gray-500 font-medium">Joined</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -131,6 +112,25 @@
                         {% endif %}
                     </td>
                     <td class="px-6 py-3 text-gray-500">{{ profile.user.date_joined|date:"d M Y" }}</td>
+                    <td class="px-6 py-3">
+                        {% if not profile.is_superadmin %}
+                        <form method="post" action="{% url 'update_user' profile.pk %}" class="flex gap-2">
+                            {% csrf_token %}
+                            <select name="role" class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none">
+                                <option value="STUDENT" {% if profile.role == 'STUDENT' %}selected{% endif %}>Student</option>
+                                <option value="ADMIN" {% if profile.role == 'ADMIN' %}selected{% endif %}>Teacher</option>
+                            </select>
+                            <select name="plan" class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none">
+                                <option value="FREE" {% if profile.plan == 'FREE' %}selected{% endif %}>Free</option>
+                                <option value="BASIC" {% if profile.plan == 'BASIC' %}selected{% endif %}>Basic</option>
+                                <option value="PREMIUM" {% if profile.plan == 'PREMIUM' %}selected{% endif %}>Premium</option>
+                            </select>
+                            <button type="submit" class="text-xs bg-blue-600 text-white px-2 py-1 rounded-lg hover:bg-blue-700">
+                                Save
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
