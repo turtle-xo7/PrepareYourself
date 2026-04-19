@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Super Admin Dashboard{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">👑 Super Admin Dashboard</h1>
+            <p class="text-gray-500 text-sm mt-1">Prepare Yourself এর সব কিছু</p>
+        </div>
+    </div>
+
+    <!-- User Stats -->
+    <!-- User Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs text-gray-500 mb-1">Total Users</p>
+        <p class="text-3xl font-bold text-gray-900">{{ total_users }}</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs text-gray-500 mb-1">Students</p>
+        <p class="text-3xl font-bold text-blue-600">{{ total_students }}</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs text-gray-500 mb-1">Teachers</p>
+        <p class="text-3xl font-bold text-purple-600">{{ total_teachers }}</p>
+    </div>
+    <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
+        <p class="text-xs text-green-600 mb-1">Paid Users 💰</p>
+        <p class="text-3xl font-bold text-green-700">{{ paid_users }}</p>
+    </div>
+</div>
+
+<!-- Super Admin Stats -->
+<div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="bg-yellow-50 rounded-2xl border border-yellow-200 p-5">
+        <p class="text-xs text-yellow-600 mb-1">Super Admins 👑</p>
+        <p class="text-3xl font-bold text-yellow-700">{{ total_superadmins }}</p>
+    </div>
+    <div class="bg-gray-50 rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs text-gray-500 mb-1">Free Plan</p>
+        <p class="text-2xl font-bold text-gray-700">{{ free_users }}</p>
+    </div>
+    <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
+        <p class="text-xs text-blue-500 mb-1">Basic Plan</p>
+        <p class="text-2xl font-bold text-blue-700">{{ basic_users }}</p>
+    </div>
+    <div class="bg-purple-50 rounded-2xl border border-purple-200 p-5">
+        <p class="text-xs text-purple-500 mb-1">Premium Plan</p>
+        <p class="text-2xl font-bold text-purple-700">{{ premium_users }}</p>
+    </div>
+</div>
+    <!-- Subscription Stats -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-gray-50 rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Free Plan</p>
+            <p class="text-2xl font-bold text-gray-700">{{ free_users }}</p>
+        </div>
+        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
+            <p class="text-xs text-blue-500 mb-1">Basic Plan</p>
+            <p class="text-2xl font-bold text-blue-700">{{ basic_users }}</p>
+        </div>
+        <div class="bg-purple-50 rounded-2xl border border-purple-200 p-5">
+            <p class="text-xs text-purple-500 mb-1">Premium Plan</p>
+            <p class="text-2xl font-bold text-purple-700">{{ premium_users }}</p>
+        </div>
+    </div>
+
+    <!-- Content Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <a href="{% url 'manage_questions' %}" class="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 mb-1">Questions</p>
+            <p class="text-2xl font-bold text-gray-900">{{ total_questions }}</p>
+        </a>
+        <a href="{% url 'manage_boards' %}" class="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 mb-1">Boards</p>
+            <p class="text-2xl font-bold text-gray-900">{{ total_boards }}</p>
+        </a>
+        <a href="{% url 'manage_subjects' %}" class="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 mb-1">Subjects</p>
+            <p class="text-2xl font-bold text-gray-900">{{ total_subjects }}</p>
+        </a>
+        <a href="{% url 'practical_videos' %}" class="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 mb-1">Videos</p>
+            <p class="text-2xl font-bold text-gray-900">{{ total_videos }}</p>
+        </a>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <a href="{% url 'question_add' %}" class="bg-blue-600 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-blue-700 transition">+ Add Question</a>
+        <a href="{% url 'video_add' %}" class="bg-purple-600 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-purple-700 transition">+ Add Video</a>
+        <a href="{% url 'board_add' %}" class="bg-green-600 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-green-700 transition">+ Add Board</a>
+        <a href="{% url 'subject_add' %}" class="bg-orange-500 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-orange-600 transition">+ Add Subject</a>
+    </div>
+
+    <!-- Recent Signups -->
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">Recent Signups</h2>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Username</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Role</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Plan</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Joined</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for profile in recent_users %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3 font-medium text-gray-900">{{ profile.user.username }}</td>
+                    <td class="px-6 py-3">
+                        {% if profile.is_superadmin %}
+                        <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs">👑 Admin</span>
+                        {% elif profile.role == 'ADMIN' %}
+                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">Teacher</span>
+                        {% else %}
+                        <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">Student</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-3">
+                        {% if profile.plan == 'PREMIUM' %}
+                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">Premium</span>
+                        {% elif profile.plan == 'BASIC' %}
+                        <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">Basic</span>
+                        {% else %}
+                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">Free</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-3 text-gray-500">{{ profile.user.date_joined|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

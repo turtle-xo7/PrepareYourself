@@ -89,6 +89,7 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='STUDENT')
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='FREE')
     is_admin = models.BooleanField(default=False)
+    is_superadmin = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username

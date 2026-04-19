@@ -27,6 +27,20 @@ def admin_required(view_func):
     return wrapper
 
 
+def superadmin_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        try:
+            if not request.user.profile.is_superadmin:
+                return redirect('home')
+        except:
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    wrapper.__name__ = view_func.__name__
+    return wrapper
+
+
 def premium_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -60,34 +74,39 @@ def login_view(request):
 
 
 def signup_view(request):
-    if request.user.is_authenticated:
-        return redirect('home')
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password')
         role = request.POST.get('role', 'STUDENT')
         plan = request.POST.get('plan', 'FREE')
+        admin_code = request.POST.get('admin_code', '')
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, 'এই username আগে থেকে আছে।')
-            return render(request, 'core/signup.html')
+            messages.error(request, 'Username already taken!')
+            return redirect('login')
 
         user = User.objects.create_user(username=username, email=email, password=password)
+
+        is_superadmin = False
+        if admin_code == 'PY2026ADMIN':
+            role = 'ADMIN'
+            is_superadmin = True
+
         UserProfile.objects.create(
             user=user,
             role=role,
             plan=plan,
-            is_admin=(role == 'ADMIN')
+            is_superadmin=is_superadmin
         )
-        login(request, user)
 
         if plan != 'FREE':
-            return redirect('checkout')
+            return redirect(f'/checkout/?plan={plan}')
 
-        messages.success(request, 'Account created successfully!')
+        login(request, user)
         return redirect('home')
-    return render(request, 'core/signup.html')
+
+    return redirect('login')
 
 
 def logout_view(request):
@@ -117,7 +136,7 @@ def pricing(request):
 def study_notes(request):
     return render(request, 'core/study_notes.html')
 
-@premium_required
+@login_required
 def dashboard(request):
     return render(request, 'core/dashboard.html')
 
@@ -163,7 +182,6 @@ def question_bank(request):
     if year:
         questions = questions.filter(year=year)
 
-    # Premium check
     is_premium = False
     if request.user.is_authenticated:
         try:
@@ -171,7 +189,6 @@ def question_bank(request):
         except UserProfile.DoesNotExist:
             pass
 
-    # Free user দের জন্য শুধু প্রথম 10 টা
     if not is_premium:
         questions = questions[:10]
 
@@ -185,20 +202,55 @@ def question_bank(request):
     })
 
 
+# -------- SUPERADMIN DASHBOARD --------
+
+@superadmin_required
+def superadmin_dashboard(request):
+    from .models import PracticalVideo
+
+    total_superadmins = UserProfile.objects.filter(is_superadmin=True).count()
+    total_users = UserProfile.objects.filter(is_superadmin=False).count()
+    total_students = UserProfile.objects.filter(role='STUDENT', is_superadmin=False).count()
+    total_teachers = UserProfile.objects.filter(role='ADMIN', is_superadmin=False).count()
+    free_users = UserProfile.objects.filter(plan='FREE', is_superadmin=False).count()
+    basic_users = UserProfile.objects.filter(plan='BASIC', is_superadmin=False).count()
+    premium_users = UserProfile.objects.filter(plan='PREMIUM', is_superadmin=False).count()
+    paid_users = basic_users + premium_users
+    total_questions = Question.objects.filter(is_active=True).count()
+    total_boards = Board.objects.filter(is_active=True).count()
+    total_subjects = Subject.objects.filter(is_active=True).count()
+    total_videos = PracticalVideo.objects.filter(is_active=True).count()
+    recent_users = UserProfile.objects.filter(is_superadmin=False).select_related('user').order_by('-user__date_joined')[:10]
+
+    return render(request, 'core/superadmin_dashboard.html', {
+        'total_superadmins': total_superadmins,
+        'total_users': total_users,
+        'total_students': total_students,
+        'total_teachers': total_teachers,
+        'free_users': free_users,
+        'basic_users': basic_users,
+        'premium_users': premium_users,
+        'paid_users': paid_users,
+        'total_questions': total_questions,
+        'total_boards': total_boards,
+        'total_subjects': total_subjects,
+        'total_videos': total_videos,
+        'recent_users': recent_users,
+    })
+
 # -------- MANAGE PANEL (ADMIN ONLY) --------
 
 @admin_required
 def manage_dashboard(request):
-    context = {
-        'total_questions': Question.objects.count(),
-        'total_boards': Board.objects.count(),
-        'total_subjects': Subject.objects.count(),
-        'total_classes': Class.objects.count(),
-        'recent_questions': Question.objects.select_related(
-            'board', 'subject', 'class_obj'
-        ).order_by('-created_at')[:5],
-    }
-    return render(request, 'manage/dashboard.html', context)
+    from .models import PracticalVideo
+
+    total_questions = Question.objects.filter(is_active=True).count()
+    total_videos = PracticalVideo.objects.filter(is_active=True).count()
+
+    return render(request, 'manage/dashboard.html', {
+        'total_questions': total_questions,
+        'total_videos': total_videos,
+    })
 
 @admin_required
 def manage_questions(request):

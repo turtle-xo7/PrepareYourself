@@ -13,28 +13,34 @@
             <div class="hidden md:flex items-center space-x-6">
                 <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium">Home</a>
                 <a href="{% url 'question_bank' %}" class="text-gray-700 hover:text-blue-600 font-medium">Question Bank</a>
-                <a href="{% url 'practical_videos' %}" ...>Practical Videos</a>
+                <a href="{% url 'practical_videos' %}" class="text-gray-700 hover:text-blue-600 font-medium">Practical Videos</a>
                 <a href="{% url 'study_notes' %}" class="text-gray-700 hover:text-blue-600 font-medium">Study Notes</a>
                 <a href="{% url 'pricing' %}" class="text-gray-700 hover:text-blue-600 font-medium">Subscription</a>
                 <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium">Dashboard</a>
             </div>
 
             <!-- Auth Buttons -->
-    <div class="flex items-center space-x-3">
-    {% if request.user.is_authenticated %}
-        {% if is_admin %}
-        <a href="{% url 'manage_dashboard' %}"
-           title="Manage Panel"
-           class="text-gray-500 hover:text-blue-600 px-2 py-2 rounded-lg transition">
-            ⚙️
-        </a>
-        {% endif %}
-        <a href="{% url 'logout' %}" class="text-gray-700 hover:text-red-600 font-medium px-3 py-2 rounded-lg">Log Out</a>
-    {% else %}
-        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg">Log In</a>
-        <a href="{% url 'signup' %}" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition">Sign Up</a>
-    {% endif %}
-</div>
+            <div class="flex items-center space-x-3">
+                {% if request.user.is_authenticated %}
+                    {% if is_superadmin %}
+                    <a href="{% url 'superadmin_dashboard' %}"
+                       title="Super Admin"
+                       class="text-gray-500 hover:text-purple-600 px-2 py-2 rounded-lg transition">
+                        👑
+                    </a>
+                    {% elif is_admin %}
+                    <a href="{% url 'manage_dashboard' %}"
+                       title="Manage Panel"
+                       class="text-gray-500 hover:text-blue-600 px-2 py-2 rounded-lg transition">
+                        ⚙️
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="text-gray-700 hover:text-red-600 font-medium px-3 py-2 rounded-lg">Log Out</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg">Log In</a>
+                    <a href="{% url 'signup' %}" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition">Sign Up</a>
+                {% endif %}
+            </div>
 
         </div>
     </div>
