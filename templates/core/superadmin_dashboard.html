@@ -79,21 +79,23 @@
         <div class="px-6 py-4 border-b border-gray-100">
             <h2 class="font-semibold text-gray-900">Recent Signups</h2>
         </div>
+        <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Username</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Role</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Plan</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Joined</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Action</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium">Username</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium">Role</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium">Plan</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium">Joined</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium">Update</th>
+                    <th class="text-left px-4 py-3 text-gray-500 font-medium">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 {% for profile in recent_users %}
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-3 font-medium text-gray-900">{{ profile.user.username }}</td>
-                    <td class="px-6 py-3">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{ profile.user.username }}</td>
+                    <td class="px-4 py-3">
                         {% if profile.is_superadmin %}
                         <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs">👑 Admin</span>
                         {% elif profile.role == 'ADMIN' %}
@@ -102,7 +104,7 @@
                         <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">Student</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-3">
+                    <td class="px-4 py-3">
                         {% if profile.plan == 'PREMIUM' %}
                         <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">Premium</span>
                         {% elif profile.plan == 'BASIC' %}
@@ -111,30 +113,51 @@
                         <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">Free</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-3 text-gray-500">{{ profile.user.date_joined|date:"d M Y" }}</td>
-                    <td class="px-6 py-3">
+                    <td class="px-4 py-3 text-gray-500">{{ profile.user.date_joined|date:"d M Y" }}</td>
+                    <td class="px-4 py-3">
                         {% if not profile.is_superadmin %}
-                        <form method="post" action="{% url 'update_user' profile.pk %}" class="flex gap-2">
+                        <form method="post" action="{% url 'update_user' profile.pk %}" class="flex gap-1">
                             {% csrf_token %}
-                            <select name="role" class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none">
+                            <select name="role" class="text-xs border border-gray-200 rounded-lg px-1 py-1 outline-none">
                                 <option value="STUDENT" {% if profile.role == 'STUDENT' %}selected{% endif %}>Student</option>
                                 <option value="ADMIN" {% if profile.role == 'ADMIN' %}selected{% endif %}>Teacher</option>
                             </select>
-                            <select name="plan" class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none">
+                            <select name="plan" class="text-xs border border-gray-200 rounded-lg px-1 py-1 outline-none">
                                 <option value="FREE" {% if profile.plan == 'FREE' %}selected{% endif %}>Free</option>
                                 <option value="BASIC" {% if profile.plan == 'BASIC' %}selected{% endif %}>Basic</option>
                                 <option value="PREMIUM" {% if profile.plan == 'PREMIUM' %}selected{% endif %}>Premium</option>
                             </select>
-                            <button type="submit" class="text-xs bg-blue-600 text-white px-2 py-1 rounded-lg hover:bg-blue-700">
-                                Save
-                            </button>
+                            <button type="submit" class="text-xs bg-blue-600 text-white px-2 py-1 rounded-lg hover:bg-blue-700">Save</button>
                         </form>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if not profile.is_superadmin %}
+                        <div class="flex gap-1">
+                            {% if profile.plan != 'FREE' %}
+                            <form method="post" action="{% url 'cancel_subscription' profile.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('Cancel subscription?')"
+                                    class="text-xs bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600">
+                                    Cancel Sub
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'delete_user' profile.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('Delete {{ profile.user.username }}?')"
+                                    class="text-xs bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
                         {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        </div>
     </div>
 
 </div>

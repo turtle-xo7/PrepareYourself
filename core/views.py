@@ -459,3 +459,21 @@ def update_user(request, pk):
         profile.save()
         messages.success(request, f'{profile.user.username} updated!')
     return redirect('superadmin_dashboard')
+
+@superadmin_required
+def delete_user(request, pk):
+    profile = get_object_or_404(UserProfile, pk=pk)
+    if request.method == 'POST':
+        user = profile.user
+        user.delete()
+        messages.success(request, 'User deleted!')
+    return redirect('superadmin_dashboard')
+
+@superadmin_required
+def cancel_subscription(request, pk):
+    profile = get_object_or_404(UserProfile, pk=pk)
+    if request.method == 'POST':
+        profile.plan = 'FREE'
+        profile.save()
+        messages.success(request, f'{profile.user.username} subscription cancelled!')
+    return redirect('superadmin_dashboard')

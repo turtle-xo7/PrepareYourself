@@ -33,4 +33,6 @@ urlpatterns = [
     path('practical-videos/<int:pk>/delete/', views.video_delete, name='video_delete'),
     path('superadmin/', views.superadmin_dashboard, name='superadmin_dashboard'),
     path('superadmin/user/<int:pk>/update/', views.update_user, name='update_user'),
+    path('superadmin/user/<int:pk>/delete/', views.delete_user, name='delete_user'),
+    path('superadmin/user/<int:pk>/cancel-subscription/', views.cancel_subscription, name='cancel_subscription'),
     ]
