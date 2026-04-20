@@ -35,4 +35,7 @@ urlpatterns = [
     path('superadmin/user/<int:pk>/update/', views.update_user, name='update_user'),
     path('superadmin/user/<int:pk>/delete/', views.delete_user, name='delete_user'),
     path('superadmin/user/<int:pk>/cancel-subscription/', views.cancel_subscription, name='cancel_subscription'),
+    path('track-progress/', views.track_progress, name='track_progress'),
+    path('progress/', views.progress_history, name='progress_history'),
+
     ]

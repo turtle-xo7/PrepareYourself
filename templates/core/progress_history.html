@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Progress History{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">📈 Full Progress History</h1>
+            <p class="text-gray-500 text-sm mt-1">তোমার সব progress এখানে</p>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Total Answered</p>
+            <p class="text-3xl font-bold text-gray-900">{{ total_answered }}</p>
+        </div>
+        <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
+            <p class="text-xs text-green-600 mb-1">Correct ✓</p>
+            <p class="text-3xl font-bold text-green-700">{{ total_correct }}</p>
+        </div>
+        <div class="bg-red-50 rounded-2xl border border-red-200 p-5">
+            <p class="text-xs text-red-500 mb-1">Wrong ✗</p>
+            <p class="text-3xl font-bold text-red-600">{{ total_wrong }}</p>
+        </div>
+        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
+            <p class="text-xs text-blue-500 mb-1">Accuracy</p>
+            <p class="text-3xl font-bold text-blue-700">{{ accuracy }}%</p>
+        </div>
+    </div>
+
+    <!-- Last 30 Days Chart -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 class="font-semibold text-gray-900 mb-4">Last 30 Days Activity</h2>
+        <canvas id="dailyChart" height="100"></canvas>
+    </div>
+
+    <!-- Subject Progress -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 class="font-semibold text-gray-900 mb-4">Subject wise Progress</h2>
+        {% if subject_progress %}
+        <div class="space-y-4">
+            {% for sp in subject_progress %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="font-medium text-gray-700">{{ sp.question__subject__name }}</span>
+                    <span class="text-gray-500">{{ sp.correct }}/{{ sp.total }} correct</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                    <div class="bg-blue-600 h-2.5 rounded-full"
+                        style="width: {% widthratio sp.correct sp.total 100 %}%">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm">কোনো progress নেই।</p>
+        {% endif %}
+    </div>
+
+    <!-- Question History -->
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">Recent Question History</h2>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Question</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Subject</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Result</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for p in history %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3 text-gray-700">{{ p.question.question_text|truncatechars:50 }}</td>
+                    <td class="px-6 py-3 text-gray-500">{{ p.question.subject.name }}</td>
+                    <td class="px-6 py-3">
+                        {% if p.is_correct %}
+                        <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">✓ Correct</span>
+                        {% else %}
+                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs">✗ Wrong</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-3 text-gray-500">{{ p.answered_at|date:"d M Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
+            datasets: [
+                {
+                    label: 'Total',
+                    data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
+                    backgroundColor: '#93c5fd',
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Correct',
+                    data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
+                    backgroundColor: '#22c55e',
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -8,15 +8,12 @@ class Board(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     student_count = models.CharField(max_length=20)
     is_active = models.BooleanField(default=True)
-
     class Meta:
         ordering = ['name']
-
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
-
     def __str__(self):
         return self.name
 
@@ -27,15 +24,12 @@ class Subject(models.Model):
     icon = models.CharField(max_length=10, blank=True)
     color = models.CharField(max_length=20, default='blue')
     is_active = models.BooleanField(default=True)
-
     class Meta:
         ordering = ['name']
-
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
-
     def __str__(self):
         return self.name
 
@@ -43,11 +37,9 @@ class Subject(models.Model):
 class Class(models.Model):
     name = models.CharField(max_length=20, unique=True)
     numeric_value = models.IntegerField(unique=True)
-
     class Meta:
         ordering = ['numeric_value']
         verbose_name_plural = 'Classes'
-
     def __str__(self):
         return self.name
 
@@ -55,7 +47,6 @@ class Class(models.Model):
 class Question(models.Model):
     DIFFICULTY_CHOICES = [('Easy','Easy'),('Medium','Medium'),('Hard','Hard')]
     QUESTION_TYPE_CHOICES = [('MCQ','Multiple Choice'),('WRITTEN','Written')]
-
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='questions')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='questions')
     class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='questions')
@@ -73,10 +64,8 @@ class Question(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-
     class Meta:
         ordering = ['-year', 'subject', 'chapter']
-
     def __str__(self):
         return self.chapter
 
@@ -84,16 +73,13 @@ class Question(models.Model):
 class UserProfile(models.Model):
     ROLE_CHOICES = [('STUDENT','Student'),('ADMIN','Teacher/Tutor/Institution')]
     PLAN_CHOICES = [('FREE','Free'),('BASIC','Basic'),('PREMIUM','Premium')]
-
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='STUDENT')
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='FREE')
     is_admin = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
-
     def __str__(self):
         return self.user.username
-
     @property
     def is_premium(self):
         return self.plan in ['BASIC', 'PREMIUM']
@@ -107,9 +93,18 @@ class PracticalVideo(models.Model):
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         ordering = ['-created_at']
-
     def __str__(self):
         return self.title
+
+
+class UserProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='progress')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    is_correct = models.BooleanField()
+    answered_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-answered_at']
+    def __str__(self):
+        return f"{self.user.username} - {self.question.id}"

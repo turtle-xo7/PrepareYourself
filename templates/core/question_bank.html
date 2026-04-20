@@ -69,7 +69,7 @@
         <!-- Question Cards -->
         <div class="flex-1 space-y-4">
             {% for q in questions %}
-            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-md transition" id="q-{{ forloop.counter }}">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-md transition" id="q-{{ forloop.counter }}" data-qid="{{ q.pk }}">
 
                 <!-- Tags -->
                 <div class="flex flex-wrap items-center gap-2 mb-3">
@@ -188,7 +188,10 @@ function checkAns(qid) {
     const rev = document.getElementById('reveal-' + qid);
     rev.textContent = chosen === correct ? '✓ সঠিক উত্তর দিয়েছ!' : '✗ ভুল হয়েছে। সবুজটি সঠিক উত্তর।';
     rev.classList.remove('hidden');
-    document.getElementById('check-' + qid).disabled = true;
+    document.querySelectorAll('#opts-' + qid + ' .mcq-btn').forEach(b => {
+    b.disabled = true;
+    b.style.cursor = 'not-allowed';
+});
 
     const dot = document.getElementById('nav-' + qid);
     if (dot) {
@@ -200,12 +203,26 @@ function checkAns(qid) {
         }
     }
 
-
     if (!dot.dataset.answered) {
         dot.dataset.answered = '1';
         _answered++;
-    }
 
+        const card = document.getElementById('q-' + qid);
+        const questionId = card ? card.dataset.qid : null;
+        if (questionId) {
+            fetch('/track-progress/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({
+                    question_id: questionId,
+                    is_correct: chosen === correct
+                })
+            });
+        }
+    }
 
     const pct = _total > 0 ? Math.min(Math.round((_answered / _total) * 100), 100) : 0;
     document.getElementById('progress-bar').style.width = pct + '%';

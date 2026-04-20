@@ -3,8 +3,10 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from .models import Board, Subject, Class, Question, UserProfile
 from datetime import datetime
+import json
 
 CURRENT_YEAR = datetime.now().year
 YEARS = list(range(CURRENT_YEAR, CURRENT_YEAR - 6, -1))
@@ -100,10 +102,11 @@ def signup_view(request):
             is_superadmin=is_superadmin
         )
 
+        login(request, user)
+
         if plan != 'FREE':
             return redirect(f'/checkout/?plan={plan}')
 
-        login(request, user)
         return redirect('home')
 
     return redirect('login')
@@ -136,9 +139,86 @@ def pricing(request):
 def study_notes(request):
     return render(request, 'core/study_notes.html')
 
-@login_required
+@premium_required
 def dashboard(request):
-    return render(request, 'core/dashboard.html')
+    from .models import UserProgress
+    from django.db.models import Count, Q
+    from datetime import timedelta
+    from django.utils import timezone
+
+    user = request.user
+    progress = UserProgress.objects.filter(user=user)
+    total_answered = progress.count()
+    total_correct = progress.filter(is_correct=True).count()
+    total_wrong = total_answered - total_correct
+    accuracy = round((total_correct / total_answered * 100), 1) if total_answered > 0 else 0
+
+    subject_progress = progress.values('question__subject__name').annotate(
+        total=Count('id'),
+        correct=Count('id', filter=Q(is_correct=True))
+    ).order_by('-total')[:5]
+
+    today = timezone.now().date()
+    daily_data = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        count = progress.filter(answered_at__date=day).count()
+        daily_data.append({'day': day.strftime('%a'), 'count': count})
+
+    return render(request, 'core/dashboard.html', {
+        'total_answered': total_answered,
+        'total_correct': total_correct,
+        'total_wrong': total_wrong,
+        'accuracy': accuracy,
+        'subject_progress': list(subject_progress),
+        'daily_data': daily_data,
+    })
+
+
+@premium_required
+def progress_history(request):
+    from .models import UserProgress
+    from django.db.models import Count, Q
+    from datetime import timedelta
+    from django.utils import timezone
+
+    user = request.user
+    progress = UserProgress.objects.filter(user=user).select_related('question', 'question__subject')
+
+    total_answered = progress.count()
+    total_correct = progress.filter(is_correct=True).count()
+    total_wrong = total_answered - total_correct
+    accuracy = round((total_correct / total_answered * 100), 1) if total_answered > 0 else 0
+
+    subject_progress = progress.values('question__subject__name').annotate(
+        total=Count('id'),
+        correct=Count('id', filter=Q(is_correct=True))
+    ).order_by('-total')
+
+    today = timezone.now().date()
+    daily_data = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        count = progress.filter(answered_at__date=day).count()
+        correct = progress.filter(answered_at__date=day, is_correct=True).count()
+        daily_data.append({
+            'day': day.strftime('%d %b'),
+            'count': count,
+            'correct': correct
+        })
+
+    history = progress.order_by('-answered_at')[:50]
+
+    return render(request, 'core/progress_history.html', {
+        'total_answered': total_answered,
+        'total_correct': total_correct,
+        'total_wrong': total_wrong,
+        'accuracy': accuracy,
+        'subject_progress': list(subject_progress),
+        'daily_data': daily_data,
+        'history': history,
+    })
+
 
 @premium_required
 def practical_lab(request):
@@ -202,6 +282,24 @@ def question_bank(request):
     })
 
 
+@login_required
+def track_progress(request):
+    if request.method == 'POST':
+        from .models import UserProgress
+        data = json.loads(request.body)
+        question_id = data.get('question_id')
+        is_correct = data.get('is_correct', False)
+        question_obj = Question.objects.filter(pk=question_id).first()
+        if question_obj:
+            UserProgress.objects.get_or_create(
+                user=request.user,
+                question=question_obj,
+                defaults={'is_correct': is_correct}
+            )
+        return JsonResponse({'status': 'ok'})
+    return JsonResponse({'status': 'error'})
+
+
 # -------- SUPERADMIN DASHBOARD --------
 
 @superadmin_required
@@ -238,15 +336,14 @@ def superadmin_dashboard(request):
         'recent_users': recent_users,
     })
 
+
 # -------- MANAGE PANEL (ADMIN ONLY) --------
 
 @admin_required
 def manage_dashboard(request):
     from .models import PracticalVideo
-
     total_questions = Question.objects.filter(is_active=True).count()
     total_videos = PracticalVideo.objects.filter(is_active=True).count()
-
     return render(request, 'manage/dashboard.html', {
         'total_questions': total_questions,
         'total_videos': total_videos,
@@ -254,9 +351,7 @@ def manage_dashboard(request):
 
 @admin_required
 def manage_questions(request):
-    questions = Question.objects.select_related(
-        'board', 'subject', 'class_obj'
-    ).order_by('-created_at')
+    questions = Question.objects.select_related('board', 'subject', 'class_obj').order_by('-created_at')
     return render(request, 'manage/questions.html', {'questions': questions})
 
 @admin_required
@@ -396,6 +491,7 @@ def class_delete(request, pk):
     return redirect('manage_classes')
 
 
+@premium_required
 def practical_videos(request):
     from .models import PracticalVideo
     videos = PracticalVideo.objects.filter(is_active=True)
@@ -477,3 +573,53 @@ def cancel_subscription(request, pk):
         profile.save()
         messages.success(request, f'{profile.user.username} subscription cancelled!')
     return redirect('superadmin_dashboard')
+
+
+@premium_required
+def progress_history(request):
+    from .models import UserProgress
+    from django.db.models import Count
+    from datetime import timedelta
+    from django.utils import timezone
+
+    user = request.user
+    progress = UserProgress.objects.filter(user=user).select_related('question', 'question__subject')
+
+    total_answered = progress.count()
+    total_correct = progress.filter(is_correct=True).count()
+    total_wrong = total_answered - total_correct
+    accuracy = round((total_correct / total_answered * 100), 1) if total_answered > 0 else 0
+
+    # Subject wise progress
+    subject_progress = progress.values(
+        'question__subject__name'
+    ).annotate(
+        total=Count('id'),
+        correct=Count('id', filter=__import__('django.db.models', fromlist=['Q']).Q(is_correct=True))
+    ).order_by('-total')
+
+    # Last 30 days activity
+    today = timezone.now().date()
+    daily_data = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        count = progress.filter(answered_at__date=day).count()
+        correct = progress.filter(answered_at__date=day, is_correct=True).count()
+        daily_data.append({
+            'day': day.strftime('%d %b'),
+            'count': count,
+            'correct': correct
+        })
+
+    # Question history
+    history = progress.order_by('-answered_at')[:50]
+
+    return render(request, 'core/progress_history.html', {
+        'total_answered': total_answered,
+        'total_correct': total_correct,
+        'total_wrong': total_wrong,
+        'accuracy': accuracy,
+        'subject_progress': list(subject_progress),
+        'daily_data': daily_data,
+        'history': history,
+    })

@@ -79,3 +79,5 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to Prepare Yourself",
     "copyright": "Prepare Yourself 2026",
 }
+
+LOGIN_URL = '/login/'

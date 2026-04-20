@@ -4,10 +4,75 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
 
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 class="text-2xl font-bold text-gray-900">📊 My Progress</h1>
         <p class="text-gray-500 text-sm mt-1">স্বাগতম, {{ request.user.username }}!</p>
     </div>
 
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Total Answered</p>
+            <p class="text-3xl font-bold text-gray-900">{{ total_answered }}</p>
+        </div>
+        <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
+            <p class="text-xs text-green-600 mb-1">Correct ✓</p>
+            <p class="text-3xl font-bold text-green-700">{{ total_correct }}</p>
+        </div>
+        <div class="bg-red-50 rounded-2xl border border-red-200 p-5">
+            <p class="text-xs text-red-500 mb-1">Wrong ✗</p>
+            <p class="text-3xl font-bold text-red-600">{{ total_wrong }}</p>
+        </div>
+        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
+            <p class="text-xs text-blue-500 mb-1">Accuracy</p>
+            <p class="text-3xl font-bold text-blue-700">{{ accuracy }}%</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+        <!-- Accuracy Chart -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="font-semibold text-gray-900 mb-4">Correct vs Wrong</h2>
+            <canvas id="accuracyChart" height="200"></canvas>
+        </div>
+
+        <!-- Daily Activity -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="font-semibold text-gray-900 mb-4">Last 7 Days Activity</h2>
+            <canvas id="dailyChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Subject Progress -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 class="font-semibold text-gray-900 mb-4">Subject wise Progress</h2>
+        {% if subject_progress %}
+        <div class="space-y-4">
+            {% for sp in subject_progress %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="font-medium text-gray-700">{{ sp.question__subject__name }}</span>
+                    <span class="text-gray-500">{{ sp.correct }}/{{ sp.total }} correct</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full"
+                        style="width: {% widthratio sp.correct sp.total 100 %}%">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm">এখনো কোনো question answer করোনি।</p>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="flex justify-end mb-4">
+    <a href="{% url 'progress_history' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+        View Full Progress History →
+    </a>
+</div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <a href="{% url 'question_bank' %}" class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition">
             <p class="text-2xl mb-2">📚</p>
@@ -37,4 +102,49 @@
     {% endif %}
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Accuracy Chart
+    const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+    new Chart(accuracyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Correct', 'Wrong'],
+            datasets: [{
+                data: [{{ total_correct }}, {{ total_wrong }}],
+                backgroundColor: ['#22c55e', '#ef4444'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Daily Activity Chart
+    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
+            datasets: [{
+                label: 'Questions Answered',
+                data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
+                backgroundColor: '#3b82f6',
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+</script>
 {% endblock %}
