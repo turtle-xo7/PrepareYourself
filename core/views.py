@@ -766,3 +766,178 @@ def notifications(request):
     return render(request, 'core/notifications.html', {
         'feedbacks': feedbacks,
     })
+
+@premium_required
+def study_notes(request):
+    from .models import StudyNote
+    notes = StudyNote.objects.filter(is_active=True).select_related('subject', 'class_obj', 'created_by')
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+
+    subject_filter = request.GET.get('subject')
+    class_filter = request.GET.get('class_obj')
+    search = request.GET.get('search', '')
+
+    if subject_filter:
+        notes = notes.filter(subject__slug=subject_filter)
+    if class_filter:
+        notes = notes.filter(class_obj__id=class_filter)
+    if search:
+        notes = notes.filter(title__icontains=search) | notes.filter(chapter__icontains=search)
+
+    return render(request, 'core/study_notes.html', {
+        'notes': notes,
+        'subjects': subjects,
+        'classes': classes,
+        'search': search,
+    })
+
+
+@premium_required
+def study_note_detail(request, pk):
+    from .models import StudyNote
+    note = get_object_or_404(StudyNote, pk=pk, is_active=True)
+    return render(request, 'core/study_note_detail.html', {
+        'note': note,
+    })
+
+
+@admin_required
+def study_note_add(request):
+    from .models import StudyNote
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+    if request.method == 'POST':
+        StudyNote.objects.create(
+            title=request.POST.get('title'),
+            subject=get_object_or_404(Subject, pk=request.POST.get('subject')),
+            class_obj=get_object_or_404(Class, pk=request.POST.get('class_obj')),
+            chapter=request.POST.get('chapter'),
+            content=request.POST.get('content', ''),
+            created_by=request.user,
+            is_active=True
+        )
+        messages.success(request, 'Note added!')
+        return redirect('study_notes')
+    return render(request, 'core/study_note_add.html', {
+        'subjects': subjects,
+        'classes': classes,
+    })
+
+
+@admin_required
+def study_note_delete(request, pk):
+    from .models import StudyNote
+    note = get_object_or_404(StudyNote, pk=pk)
+    if request.method == 'POST':
+        note.delete()
+        messages.success(request, 'Note deleted!')
+    return redirect('study_notes')
+
+
+@login_required
+def ask_ai(request):
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        question = data.get('question', '')
+        note_content = data.get('note_content', '')
+
+        import urllib.request
+        import urllib.error
+
+        payload = json.dumps({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 1000,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"এই study note এর উপর ভিত্তি করে বাংলায় উত্তর দাও:\n\nNote:\n{note_content}\n\nQuestion: {question}"
+                }
+            ]
+        }).encode('utf-8')
+
+        req = urllib.request.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=payload,
+            headers={
+                'Content-Type': 'application/json',
+                'anthropic-version': '2023-06-01',
+            },
+            method='POST'
+        )
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                answer = result['content'][0]['text']
+                return JsonResponse({'answer': answer})
+        except Exception as e:
+            return JsonResponse({'answer': 'AI এর সাথে সংযোগ করতে পারছি না।'})
+
+    return JsonResponse({'error': 'Invalid request'})
+
+@admin_required
+def study_note_edit(request, pk):
+    from .models import StudyNote
+    note = get_object_or_404(StudyNote, pk=pk)
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+    if request.method == 'POST':
+        note.title = request.POST.get('title')
+        note.subject = get_object_or_404(Subject, pk=request.POST.get('subject'))
+        note.class_obj = get_object_or_404(Class, pk=request.POST.get('class_obj'))
+        note.chapter = request.POST.get('chapter')
+        note.content = request.POST.get('content', '')
+        note.save()
+        messages.success(request, 'Note updated!')
+        return redirect('study_note_detail', pk=note.pk)
+    return render(request, 'core/study_note_edit.html', {
+        'note': note,
+        'subjects': subjects,
+        'classes': classes,
+    })
+
+@login_required
+def ask_ai(request):
+    if request.method == 'POST':
+        import json
+        import urllib.request
+        data = json.loads(request.body)
+        question = data.get('question', '')
+        note_content = data.get('note_content', '')
+
+        payload = json.dumps({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 1000,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"Based on this study note, answer in Bengali:\n\nNote:\n{note_content}\n\nQuestion: {question}\n\nPlease respond in Bengali."
+                }
+            ]
+        }, ensure_ascii=False).encode('utf-8')
+
+        req = urllib.request.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=payload,
+            headers={
+                'Content-Type': 'application/json; charset=utf-8',
+                'anthropic-version': '2023-06-01',
+                'x-api-key': 'YOUR_KEY_HERE',
+            },
+            method='POST'
+        )
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                answer = result['content'][0]['text']
+                return JsonResponse({'answer': answer})
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            return JsonResponse({'answer': f'Error: {error_body}'})
+        except Exception as e:
+            return JsonResponse({'answer': f'Error: {str(e)}'})
+
+    return JsonResponse({'error': 'Invalid request'})
