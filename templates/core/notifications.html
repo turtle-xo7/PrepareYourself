@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
+        <h1 class="text-2xl font-bold text-gray-900">🔔 Teacher Feedback</h1>
+    </div>
+
+    {% if feedbacks %}
+    <div class="space-y-4">
+        {% for fb in feedbacks %}
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <span class="font-medium text-blue-600">{{ fb.teacher.username }}</span>
+                    <span class="text-gray-400 text-sm ml-2">{{ fb.created_at|date:"d M Y H:i" }}</span>
+                </div>
+                {% if not fb.is_read %}
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">New</span>
+                {% endif %}
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3 mb-3">
+                <p class="text-xs text-gray-500 mb-1">Question:</p>
+                <p class="text-sm text-gray-700">{{ fb.progress.question.question_text|truncatechars:100 }}</p>
+                <span class="text-xs {% if fb.progress.is_correct %}text-green-600{% else %}text-red-500{% endif %}">
+                    {% if fb.progress.is_correct %}✓ Correct{% else %}✗ Wrong{% endif %}
+                </span>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-3">
+                <p class="text-xs text-blue-500 mb-1">Teacher এর feedback:</p>
+                <p class="text-sm text-gray-800">{{ fb.comment }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 text-gray-400">
+        <p class="text-4xl mb-3">🔔</p>
+        <p>কোনো feedback নেই এখনো।</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

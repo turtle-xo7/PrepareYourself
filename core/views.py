@@ -48,7 +48,10 @@ def premium_required(view_func):
         if not request.user.is_authenticated:
             return redirect('login')
         try:
-            if not request.user.profile.is_premium:
+            profile = request.user.profile
+            if profile.role == 'ADMIN' or profile.is_superadmin:
+                return view_func(request, *args, **kwargs)
+            if not profile.is_premium:
                 messages.error(request, 'এই feature শুধু Premium users এর জন্য।')
                 return redirect('pricing')
         except UserProfile.DoesNotExist:
@@ -139,9 +142,23 @@ def pricing(request):
 def study_notes(request):
     return render(request, 'core/study_notes.html')
 
-@premium_required
+
+@login_required
 def dashboard(request):
-    from .models import UserProgress
+    try:
+        if request.user.profile.role == 'ADMIN' and not request.user.profile.is_superadmin:
+            return redirect('teacher_dashboard')
+    except:
+        pass
+
+    try:
+        if not request.user.profile.is_premium:
+            messages.error(request, 'এই feature শুধু Premium users এর জন্য।')
+            return redirect('pricing')
+    except:
+        return redirect('pricing')
+
+    from .models import UserProgress, TeacherFeedback
     from django.db.models import Count, Q
     from datetime import timedelta
     from django.utils import timezone
@@ -165,6 +182,8 @@ def dashboard(request):
         count = progress.filter(answered_at__date=day).count()
         daily_data.append({'day': day.strftime('%a'), 'count': count})
 
+    unread_count = TeacherFeedback.objects.filter(student=user, is_read=False).count()
+
     return render(request, 'core/dashboard.html', {
         'total_answered': total_answered,
         'total_correct': total_correct,
@@ -172,11 +191,23 @@ def dashboard(request):
         'accuracy': accuracy,
         'subject_progress': list(subject_progress),
         'daily_data': daily_data,
+        'unread_count': unread_count,
     })
-
-
-@premium_required
+@login_required
 def progress_history(request):
+    try:
+        if request.user.profile.role == 'ADMIN' and not request.user.profile.is_superadmin:
+            return redirect('teacher_dashboard')
+    except:
+        pass
+
+    try:
+        if not request.user.profile.is_premium:
+            messages.error(request, 'এই feature শুধু Premium users এর জন্য।')
+            return redirect('pricing')
+    except:
+        return redirect('pricing')
+
     from .models import UserProgress
     from django.db.models import Count, Q
     from datetime import timedelta
@@ -344,15 +375,25 @@ def manage_dashboard(request):
     from .models import PracticalVideo
     total_questions = Question.objects.filter(is_active=True).count()
     total_videos = PracticalVideo.objects.filter(is_active=True).count()
+    total_boards = Board.objects.filter(is_active=True).count()
+    total_subjects = Subject.objects.filter(is_active=True).count()
+    total_classes = Class.objects.count()
+    recent_questions = Question.objects.select_related('board', 'subject').order_by('-created_at')[:5]
     return render(request, 'manage/dashboard.html', {
         'total_questions': total_questions,
         'total_videos': total_videos,
+        'total_boards': total_boards,
+        'total_subjects': total_subjects,
+        'total_classes': total_classes,
+        'recent_questions': recent_questions,
     })
+
 
 @admin_required
 def manage_questions(request):
     questions = Question.objects.select_related('board', 'subject', 'class_obj').order_by('-created_at')
     return render(request, 'manage/questions.html', {'questions': questions})
+
 
 @admin_required
 def question_add(request):
@@ -382,6 +423,7 @@ def question_add(request):
         'boards': boards, 'subjects': subjects,
         'classes': classes, 'years': YEARS, 'action': 'Add'
     })
+
 
 @admin_required
 def question_edit(request, pk):
@@ -413,6 +455,7 @@ def question_edit(request, pk):
         'years': YEARS, 'action': 'Edit'
     })
 
+
 @admin_required
 def question_delete(request, pk):
     question = get_object_or_404(Question, pk=pk)
@@ -421,10 +464,12 @@ def question_delete(request, pk):
         messages.success(request, 'Question deleted!')
     return redirect('manage_questions')
 
+
 @admin_required
 def manage_boards(request):
     boards = Board.objects.all()
     return render(request, 'manage/boards.html', {'boards': boards})
+
 
 @admin_required
 def board_add(request):
@@ -437,6 +482,7 @@ def board_add(request):
         messages.success(request, 'Board added!')
     return redirect('manage_boards')
 
+
 @admin_required
 def board_delete(request, pk):
     if request.method == 'POST':
@@ -444,10 +490,12 @@ def board_delete(request, pk):
         messages.success(request, 'Board deleted!')
     return redirect('manage_boards')
 
+
 @admin_required
 def manage_subjects(request):
     subjects = Subject.objects.all()
     return render(request, 'manage/subjects.html', {'subjects': subjects})
+
 
 @admin_required
 def subject_add(request):
@@ -461,6 +509,7 @@ def subject_add(request):
         messages.success(request, 'Subject added!')
     return redirect('manage_subjects')
 
+
 @admin_required
 def subject_delete(request, pk):
     if request.method == 'POST':
@@ -468,10 +517,12 @@ def subject_delete(request, pk):
         messages.success(request, 'Subject deleted!')
     return redirect('manage_subjects')
 
+
 @admin_required
 def manage_classes(request):
     classes = Class.objects.all()
     return render(request, 'manage/classes.html', {'classes': classes})
+
 
 @admin_required
 def class_add(request):
@@ -482,6 +533,7 @@ def class_add(request):
         )
         messages.success(request, 'Class added!')
     return redirect('manage_classes')
+
 
 @admin_required
 def class_delete(request, pk):
@@ -512,6 +564,7 @@ def practical_videos(request):
         'classes': classes,
     })
 
+
 @admin_required
 def video_add(request):
     from .models import PracticalVideo
@@ -538,6 +591,7 @@ def video_add(request):
         'classes': classes,
     })
 
+
 @admin_required
 def video_delete(request, pk):
     from .models import PracticalVideo
@@ -545,6 +599,7 @@ def video_delete(request, pk):
     video.delete()
     messages.success(request, 'Video deleted!')
     return redirect('practical_videos')
+
 
 @superadmin_required
 def update_user(request, pk):
@@ -556,6 +611,7 @@ def update_user(request, pk):
         messages.success(request, f'{profile.user.username} updated!')
     return redirect('superadmin_dashboard')
 
+
 @superadmin_required
 def delete_user(request, pk):
     profile = get_object_or_404(UserProfile, pk=pk)
@@ -564,6 +620,7 @@ def delete_user(request, pk):
         user.delete()
         messages.success(request, 'User deleted!')
     return redirect('superadmin_dashboard')
+
 
 @superadmin_required
 def cancel_subscription(request, pk):
@@ -575,33 +632,91 @@ def cancel_subscription(request, pk):
     return redirect('superadmin_dashboard')
 
 
-@premium_required
-def progress_history(request):
+@admin_required
+@admin_required
+def teacher_dashboard(request):
     from .models import UserProgress
-    from django.db.models import Count
+    from django.db.models import Count, Q
     from datetime import timedelta
     from django.utils import timezone
 
-    user = request.user
-    progress = UserProgress.objects.filter(user=user).select_related('question', 'question__subject')
+    today = timezone.now().date()
+
+    students = UserProfile.objects.filter(
+        role='STUDENT', is_superadmin=False
+    ).select_related('user').order_by('-user__date_joined')
+
+    student_data = []
+    total_answered_all = 0
+    active_today = 0
+    accuracy_list = []
+
+    for s in students:
+        progress = UserProgress.objects.filter(user=s.user)
+        total = progress.count()
+        correct = progress.filter(is_correct=True).count()
+        today_count = progress.filter(answered_at__date=today).count()
+        accuracy = round((correct / total * 100), 1) if total > 0 else 0
+        total_answered_all += total
+        if today_count > 0:
+            active_today += 1
+        if total > 0:
+            accuracy_list.append(accuracy)
+        student_data.append({
+            'profile': s,
+            'total': total,
+            'correct': correct,
+            'wrong': total - correct,
+            'accuracy': accuracy,
+            'today_count': today_count,
+        })
+
+    avg_accuracy = round(sum(accuracy_list) / len(accuracy_list), 1) if accuracy_list else 0
+
+    # Last 7 days class activity
+    daily_data = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        count = UserProgress.objects.filter(answered_at__date=day).count()
+        correct = UserProgress.objects.filter(answered_at__date=day, is_correct=True).count()
+        daily_data.append({
+            'day': day.strftime('%a'),
+            'count': count,
+            'correct': correct,
+        })
+
+    return render(request, 'teacher/dashboard.html', {
+        'student_data': student_data,
+        'total_answered_all': total_answered_all,
+        'active_today': active_today,
+        'avg_accuracy': avg_accuracy,
+        'daily_data': daily_data,
+    })
+
+
+@admin_required
+def student_detail(request, pk):
+    from .models import UserProgress
+    from django.db.models import Count, Q
+    from datetime import timedelta
+    from django.utils import timezone
+
+    profile = get_object_or_404(UserProfile, pk=pk)
+    progress = UserProgress.objects.filter(user=profile.user).select_related('question', 'question__subject')
 
     total_answered = progress.count()
     total_correct = progress.filter(is_correct=True).count()
     total_wrong = total_answered - total_correct
     accuracy = round((total_correct / total_answered * 100), 1) if total_answered > 0 else 0
 
-    # Subject wise progress
-    subject_progress = progress.values(
-        'question__subject__name'
-    ).annotate(
+    subject_progress = progress.values('question__subject__name').annotate(
         total=Count('id'),
-        correct=Count('id', filter=__import__('django.db.models', fromlist=['Q']).Q(is_correct=True))
+        correct=Count('id', filter=Q(is_correct=True))
     ).order_by('-total')
 
-    # Last 30 days activity
     today = timezone.now().date()
     daily_data = []
-    for i in range(29, -1, -1):
+    for i in range(13, -1, -1):
         day = today - timedelta(days=i)
         count = progress.filter(answered_at__date=day).count()
         correct = progress.filter(answered_at__date=day, is_correct=True).count()
@@ -611,10 +726,10 @@ def progress_history(request):
             'correct': correct
         })
 
-    # Question history
-    history = progress.order_by('-answered_at')[:50]
+    history = progress.order_by('-answered_at')[:30]
 
-    return render(request, 'core/progress_history.html', {
+    return render(request, 'teacher/student_detail.html', {
+        'profile': profile,
         'total_answered': total_answered,
         'total_correct': total_correct,
         'total_wrong': total_wrong,
@@ -622,4 +737,32 @@ def progress_history(request):
         'subject_progress': list(subject_progress),
         'daily_data': daily_data,
         'history': history,
+    })
+
+@admin_required
+def give_feedback(request, progress_pk):
+    from .models import UserProgress, TeacherFeedback
+    progress = get_object_or_404(UserProgress, pk=progress_pk)
+    if request.method == 'POST':
+        comment = request.POST.get('comment', '').strip()
+        if comment:
+            TeacherFeedback.objects.create(
+                teacher=request.user,
+                student=progress.user,
+                progress=progress,
+                comment=comment
+            )
+            messages.success(request, 'Feedback sent!')
+    return redirect('student_detail', pk=progress.user.profile.pk)
+
+
+@login_required
+def notifications(request):
+    from .models import TeacherFeedback
+    feedbacks = TeacherFeedback.objects.filter(
+        student=request.user
+    ).select_related('teacher', 'progress__question')
+    feedbacks.filter(is_read=False).update(is_read=True)
+    return render(request, 'core/notifications.html', {
+        'feedbacks': feedbacks,
     })

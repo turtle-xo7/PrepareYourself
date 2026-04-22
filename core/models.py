@@ -108,3 +108,16 @@ class UserProgress(models.Model):
         ordering = ['-answered_at']
     def __str__(self):
         return f"{self.user.username} - {self.question.id}"
+
+
+class TeacherFeedback(models.Model):
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks_given')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks_received')
+    progress = models.ForeignKey(UserProgress, on_delete=models.CASCADE, related_name='feedbacks')
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    class Meta:
+        ordering = ['-created_at']
+    def __str__(self):
+        return f"{self.teacher.username} → {self.student.username}"

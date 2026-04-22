@@ -42,6 +42,18 @@
       </div>
     </div>
 
+    <!-- Student Progress Link -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-5 mb-8 flex items-center justify-between">
+      <div>
+        <h2 class="font-semibold text-white text-lg">👨‍🎓 Student Progress</h2>
+        <p class="text-blue-100 text-sm mt-1">সব student এর progress দেখো</p>
+      </div>
+      <a href="{% url 'teacher_dashboard' %}"
+         class="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:shadow-md transition">
+        View Students →
+      </a>
+    </div>
+
     <!-- Quick Actions -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <a href="{% url 'manage_questions' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-5 transition group">

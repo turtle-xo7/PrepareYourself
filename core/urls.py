@@ -37,5 +37,9 @@ urlpatterns = [
     path('superadmin/user/<int:pk>/cancel-subscription/', views.cancel_subscription, name='cancel_subscription'),
     path('track-progress/', views.track_progress, name='track_progress'),
     path('progress/', views.progress_history, name='progress_history'),
+path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
+path('teacher/student/<int:pk>/', views.student_detail, name='student_detail'),
+path('teacher/feedback/<int:progress_pk>/', views.give_feedback, name='give_feedback'),
+path('student/notifications/', views.notifications, name='notifications'),
 
     ]
