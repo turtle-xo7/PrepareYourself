@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">👨‍🏫 Teacher Dashboard</h1>
+        <p class="text-gray-500 text-sm mt-1">সব student এর progress একনজরে</p>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Total Students</p>
+            <p class="text-3xl font-bold text-gray-900">{{ student_data|length }}</p>
+        </div>
+        <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
+            <p class="text-xs text-green-600 mb-1">Active Today</p>
+            <p class="text-3xl font-bold text-green-700">{{ active_today }}</p>
+        </div>
+        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
+            <p class="text-xs text-blue-500 mb-1">Total Answered</p>
+            <p class="text-3xl font-bold text-blue-700">{{ total_answered_all }}</p>
+        </div>
+        <div class="bg-purple-50 rounded-2xl border border-purple-200 p-5">
+            <p class="text-xs text-purple-500 mb-1">Avg Accuracy</p>
+            <p class="text-3xl font-bold text-purple-700">{{ avg_accuracy }}%</p>
+        </div>
+    </div>
+
+    <!-- Daily Activity Chart -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 class="font-semibold text-gray-900 mb-4">📈 Last 7 Days — Class Activity</h2>
+        <canvas id="classActivityChart" height="80"></canvas>
+    </div>
+
+    <!-- Student Table -->
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h2 class="font-semibold text-gray-900">Student Progress</h2>
+            <input type="text" id="searchInput" placeholder="Search student..."
+                onkeyup="filterTable()"
+                class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="studentTable">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Student</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Plan</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Answered</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Correct</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Wrong</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Accuracy</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Today</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Detail</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for s in student_data %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3 font-medium text-gray-900">{{ s.profile.user.username }}</td>
+                    <td class="px-6 py-3">
+                        {% if s.profile.plan == 'PREMIUM' %}
+                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">Premium</span>
+                        {% elif s.profile.plan == 'BASIC' %}
+                        <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">Basic</span>
+                        {% else %}
+                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">Free</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-3 text-gray-700">{{ s.total }}</td>
+                    <td class="px-6 py-3 text-green-600 font-medium">{{ s.correct }}</td>
+                    <td class="px-6 py-3 text-red-500 font-medium">{{ s.wrong }}</td>
+                    <td class="px-6 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-20 bg-gray-100 rounded-full h-2">
+                                <div class="h-2 rounded-full {% if s.accuracy >= 70 %}bg-green-500{% elif s.accuracy >= 40 %}bg-yellow-500{% else %}bg-red-500{% endif %}"
+                                    style="width: {{ s.accuracy }}%"></div>
+                            </div>
+                            <span class="text-xs text-gray-600">{{ s.accuracy }}%</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-3">
+                        {% if s.today_count > 0 %}
+                        <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">✓ {{ s.today_count }}</span>
+                        {% else %}
+                        <span class="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full text-xs">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-3">
+                        <a href="{% url 'student_detail' s.profile.pk %}"
+                            class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-400">কোনো student নেই।</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Class Activity Chart
+    const ctx = document.getElementById('classActivityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
+            datasets: [{
+                label: 'Questions Answered',
+                data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
+                backgroundColor: '#3b82f6',
+                borderRadius: 6,
+            }, {
+                label: 'Correct',
+                data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
+                backgroundColor: '#22c55e',
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    // Search
+    function filterTable() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#studentTable tbody tr');
+        rows.forEach(row => {
+            const name = row.cells[0]?.textContent.toLowerCase() || '';
+            row.style.display = name.includes(input) ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}
