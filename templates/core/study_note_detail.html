@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}{{ note.title }}{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'study_notes' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
+            <div class="flex gap-2">
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ note.subject.name }}</span>
+                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ note.class_obj.name }}</span>
+            </div>
+        </div>
+        {% if is_admin %}
+        <a href="{% url 'study_note_edit' note.pk %}"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+            ✏️ Edit
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ note.title }}</h1>
+        <p class="text-sm text-gray-500 mb-6">Chapter: {{ note.chapter }}</p>
+        <div class="prose max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">{{ note.content }}</div>
+    </div>
+
+    <!-- AI Q&A -->
+    <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-200 p-6">
+        <h2 class="font-semibold text-gray-900 mb-4">🤖 AI কে জিজ্ঞেস করো</h2>
+        <p class="text-sm text-gray-500 mb-4">এই note সম্পর্কে যেকোনো প্রশ্ন করো</p>
+
+        <div id="chat-box" class="space-y-3 mb-4 max-h-64 overflow-y-auto"></div>
+
+        <div class="flex gap-2">
+            <input type="text" id="ai-question"
+                placeholder="এই note সম্পর্কে প্রশ্ন করো..."
+                class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="askAI()"
+                class="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+                Ask
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const noteContent = `{{ note.content|escapejs }}`;
+
+async function askAI() {
+    const question = document.getElementById('ai-question').value.trim();
+    if (!question) return;
+
+    const chatBox = document.getElementById('chat-box');
+
+    chatBox.innerHTML += `
+        <div class="flex justify-end">
+            <div class="bg-blue-600 text-white text-sm px-4 py-2 rounded-xl max-w-xs">${question}</div>
+        </div>`;
+
+    document.getElementById('ai-question').value = '';
+
+    chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">AI ভাবছে...</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const response = await fetch('/study-notes/ask-ai/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({
+                question: question,
+                note_content: noteContent
+            })
+        });
+
+        const data = await response.json();
+        document.getElementById('loading').remove();
+
+        chatBox.innerHTML += `
+            <div class="flex justify-start">
+                <div class="bg-white border border-gray-200 text-sm px-4 py-2 rounded-xl max-w-sm text-gray-800">${data.answer}</div>
+            </div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (e) {
+        document.getElementById('loading').remove();
+        chatBox.innerHTML += `<div class="text-red-500 text-sm">Error হয়েছে।</div>`;
+    }
+}
+
+document.getElementById('ai-question').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') askAI();
+});
+</script>
+{% endblock %}
