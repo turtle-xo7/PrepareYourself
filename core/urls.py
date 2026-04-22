@@ -41,5 +41,12 @@ path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
 path('teacher/student/<int:pk>/', views.student_detail, name='student_detail'),
 path('teacher/feedback/<int:progress_pk>/', views.give_feedback, name='give_feedback'),
 path('student/notifications/', views.notifications, name='notifications'),
+path('study-notes/', views.study_notes, name='study_notes'),
+path('study-notes/<int:pk>/', views.study_note_detail, name='study_note_detail'),
+path('study-notes/add/', views.study_note_add, name='study_note_add'),
+path('study-notes/<int:pk>/delete/', views.study_note_delete, name='study_note_delete'),
+path('study-notes/ask-ai/', views.ask_ai, name='ask_ai'),
+path('study-notes/<int:pk>/edit/', views.study_note_edit, name='study_note_edit'),
+
 
     ]
