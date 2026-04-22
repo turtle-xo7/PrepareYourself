@@ -1,407 +1,75 @@
 {% extends 'base.html' %}
-{% load static %}
-
 {% block title %}Study Notes{% endblock %}
-
 {% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
 
-<style>
-    * { box-sizing: border-box; }
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">📝 Study Notes</h1>
+            <p class="text-gray-500 mt-1">Chapter-wise গুরুত্বপূর্ণ নোট</p>
+        </div>
+        {% if is_admin %}
+        <a href="{% url 'study_note_add' %}"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+            + Add Note
+        </a>
+        {% endif %}
+    </div>
 
-    .page-header {
-        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-        color: white;
-        padding: 2.5rem 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .page-header p { opacity: 0.8; font-size: 1rem; }
+    <!-- Search & Filters -->
+    <form method="get" class="flex gap-3 mb-8 flex-wrap">
+        <input type="text" name="search" value="{{ search }}"
+            placeholder="Search notes..."
+            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 flex-1 min-w-48">
+        <select name="subject" onchange="this.form.submit()"
+            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
+            <option value="">All Subjects</option>
+            {% for s in subjects %}
+            <option value="{{ s.slug }}" {% if request.GET.subject == s.slug %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="class_obj" onchange="this.form.submit()"
+            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
+            <option value="">All Classes</option>
+            {% for c in classes %}
+            <option value="{{ c.id }}" {% if request.GET.class_obj == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">Search</button>
+    </form>
 
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 3rem; }
-
-    .subject-tabs {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-bottom: 2rem;
-        background: white;
-        padding: 1rem;
-        border-radius: 12px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-    .tab-btn {
-        padding: 0.5rem 1.2rem;
-        border: 2px solid #e2e8f0;
-        border-radius: 999px;
-        background: white;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: #4a5568;
-        transition: all 0.2s;
-    }
-    .tab-btn:hover { border-color: #667eea; color: #667eea; }
-    .tab-btn.active { background: #667eea; border-color: #667eea; color: white; }
-
-    .subject-section { display: none; }
-    .subject-section.active { display: block; }
-
-    .section-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #2d3748;
-        margin-bottom: 1.2rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 3px solid #667eea;
-        display: inline-block;
-    }
-
-    .chapters-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 1.2rem;
-        margin-bottom: 2rem;
-    }
-
-    .chapter-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.4rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        border: 1px solid #e8ecf0;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .chapter-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(102,126,234,0.2);
-        border-color: #667eea;
-    }
-
-    .chapter-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-    }
-    .chapter-title { font-size: 1.05rem; font-weight: 700; color: #2d3748; flex: 1; }
-    .chapter-rating {
-        background: #fef9c3;
-        color: #854d0e;
-        font-size: 0.78rem;
-        font-weight: 600;
-        padding: 3px 8px;
-        border-radius: 999px;
-        white-space: nowrap;
-    }
-
-    .chapter-meta {
-        display: flex;
-        gap: 1rem;
-        font-size: 0.82rem;
-        color: #718096;
-        margin-bottom: 1.2rem;
-    }
-
-    .preview-btn {
-        width: 100%;
-        padding: 0.6rem 1rem;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 0.88rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-    .preview-btn:hover { background: #5a67d8; }
-
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.55);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        padding: 1rem;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal-box {
-        background: white;
-        border-radius: 16px;
-        width: 100%;
-        max-width: 640px;
-        max-height: 88vh;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        animation: slideUp 0.25s ease;
-    }
-    @keyframes slideUp {
-        from { transform: translateY(30px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-
-    .modal-header {
-        padding: 1.4rem 1.6rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border-radius: 16px 16px 0 0;
-        color: white;
-    }
-    .modal-header h2 { font-size: 1.2rem; font-weight: 700; }
-    .modal-header p { font-size: 0.82rem; opacity: 0.85; margin-top: 3px; }
-
-    .modal-close {
-        background: rgba(255,255,255,0.2);
-        border: none;
-        color: white;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        font-size: 1.1rem;
-        cursor: pointer;
-        flex-shrink: 0;
-    }
-    .modal-close:hover { background: rgba(255,255,255,0.35); }
-
-    .modal-body { overflow-y: auto; padding: 1.4rem 1.6rem; flex: 1; }
-
-    .notes-progress {
-        background: #eef2ff;
-        padding: 0.7rem 1rem;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        color: #4338ca;
-        font-weight: 500;
-        margin-bottom: 1.2rem;
-    }
-
-    .note-item {
-        margin-bottom: 1rem;
-        background: #f7f9fc;
-        border-radius: 10px;
-        border-left: 4px solid #667eea;
-        overflow: hidden;
-    }
-    .note-item-header {
-        padding: 0.75rem 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-    }
-    .note-item-header:hover { background: #eef2ff; }
-    .note-heading { font-size: 0.95rem; font-weight: 600; color: #3730a3; }
-    .note-toggle { font-size: 1rem; color: #667eea; font-weight: 700; transition: transform 0.2s; }
-    .note-toggle.open { transform: rotate(180deg); }
-
-    .note-content { display: none; padding: 0 1rem 1rem; font-size: 0.9rem; color: #374151; line-height: 1.7; }
-    .note-content.open { display: block; }
-
-    .modal-footer {
-        padding: 1rem 1.6rem;
-        border-top: 1px solid #e2e8f0;
-        display: flex;
-        gap: 0.8rem;
-    }
-    .btn-expand-all {
-        flex: 1;
-        padding: 0.6rem;
-        background: #f0f4f8;
-        color: #4a5568;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-    .btn-expand-all:hover { background: #e2e8f0; }
-    .btn-download {
-        flex: 1;
-        padding: 0.6rem;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-    .btn-download:hover { background: #5a67d8; }
-
-    .popular-section { margin-top: 2.5rem; }
-    .popular-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-    .popular-card {
-        background: white;
-        border-radius: 10px;
-        padding: 1.1rem;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-        border: 1px solid #e8ecf0;
-        transition: transform 0.2s;
-    }
-    .popular-card:hover { transform: translateY(-2px); }
-    .popular-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    .popular-title { font-size: 0.9rem; font-weight: 600; color: #2d3748; margin-bottom: 0.3rem; }
-    .popular-sub { font-size: 0.78rem; color: #718096; }
-    .popular-meta { display: flex; justify-content: space-between; margin-top: 0.6rem; font-size: 0.78rem; color: #667eea; font-weight: 600; }
-</style>
-
-<div class="page-header">
-    <h1>📚 Key Study Notes</h1>
-    <p>Chapter-wise গুরুত্বপূর্ণ নোট — Preview করো, ডাউনলোড করো</p>
-</div>
-
-<div class="container">
-
-    <div class="subject-tabs">
-        {% for subject in subjects %}
-        <button class="tab-btn {% if forloop.first %}active{% endif %}"
-                onclick="switchTab('{{ subject.name|slugify }}', this)">
-            {{ subject.icon }} {{ subject.name }}
-        </button>
+    <!-- Notes Grid -->
+    {% if notes %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for note in notes %}
+        <a href="{% url 'study_note_detail' note.pk %}"
+            class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition block">
+            <div class="flex justify-between items-start mb-3">
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ note.subject.name }}</span>
+                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ note.class_obj.name }}</span>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-1">{{ note.title }}</h3>
+            <p class="text-sm text-gray-500 mb-3">{{ note.chapter }}</p>
+            <p class="text-xs text-gray-400">{{ note.content|truncatechars:80 }}</p>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-xs text-gray-400">{{ note.created_at|date:"d M Y" }}</span>
+                {% if is_admin %}
+                <form method="post" action="{% url 'study_note_delete' note.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('Delete?')"
+                        class="text-xs text-red-500 hover:text-red-700">🗑 Delete</button>
+                </form>
+                {% endif %}
+            </div>
+        </a>
         {% endfor %}
     </div>
-
-    {% for subject in subjects %}
-    <div class="subject-section {% if forloop.first %}active{% endif %}" id="tab-{{ subject.name|slugify }}">
-        <div class="section-title">{{ subject.icon }} {{ subject.name }}</div>
-        <div class="chapters-grid">
-            {% for chapter in subject.chapters %}
-            <div class="chapter-card"
-                 data-notes='{{ chapter.key_notes|safe }}'
-                 data-subject="{{ subject.name }}"
-                 data-chapter="{{ chapter.title }}">
-                <div class="chapter-card-header">
-                    <div class="chapter-title">{{ chapter.title }}</div>
-                    <div class="chapter-rating">⭐ {{ chapter.rating }}</div>
-                </div>
-                <div class="chapter-meta">
-                    <span>📄 {{ chapter.pages }} pages</span>
-                    <span>⬇ {{ chapter.downloads }} downloads</span>
-                </div>
-                <button class="preview-btn" onclick="openModalFromCard(this.closest('.chapter-card'))">
-                    👁 Key Notes দেখুন
-                </button>
-            </div>
-            {% endfor %}
-        </div>
+    {% else %}
+    <div class="text-center py-20 text-gray-400">
+        <p class="text-4xl mb-3">📝</p>
+        <p>কোনো note নেই এখনো।</p>
     </div>
-    {% endfor %}
-
-    <div class="popular-section">
-        <div class="section-title">🔥 সবচেয়ে জনপ্রিয় নোট</div>
-        <div class="popular-grid">
-            {% for note in popular_notes %}
-            <div class="popular-card">
-                <div class="popular-icon">{{ note.icon }}</div>
-                <div class="popular-title">{{ note.title }}</div>
-                <div class="popular-sub">{{ note.subject }}</div>
-                <div class="popular-meta">
-                    <span>⭐ {{ note.rating }}</span>
-                    <span>⬇ {{ note.downloads }}</span>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+    {% endif %}
 
 </div>
-
-<div class="modal-overlay" id="notesModal" onclick="closeModalOutside(event)">
-    <div class="modal-box">
-        <div class="modal-header">
-            <div>
-                <h2 id="modalTitle"></h2>
-                <p id="modalSubject"></p>
-            </div>
-            <button class="modal-close" onclick="closeModal()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="notes-progress" id="notesProgress"></div>
-            <div id="notesContainer"></div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-expand-all" onclick="toggleAll()">সব খুলুন / বন্ধ করুন</button>
-            <button class="btn-download">⬇ PDF ডাউনলোড</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    var allOpen = false;
-
-    function switchTab(slug, btn) {
-        document.querySelectorAll('.subject-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + slug).classList.add('active');
-        btn.classList.add('active');
-    }
-
-    function openModalFromCard(card) {
-        var notes = JSON.parse(card.dataset.notes);
-        openModal(card.dataset.subject, card.dataset.chapter, notes);
-    }
-
-    function openModal(subject, chapter, notes) {
-        document.getElementById('modalTitle').textContent = chapter;
-        document.getElementById('modalSubject').textContent = subject;
-        document.getElementById('notesProgress').textContent = '📌 ' + notes.length + ' টি গুরুত্বপূর্ণ পয়েন্ট — ক্লিক করে বিস্তারিত দেখুন';
-
-        var container = document.getElementById('notesContainer');
-        container.innerHTML = '';
-        allOpen = false;
-
-        notes.forEach(function(note) {
-            var item = document.createElement('div');
-            item.className = 'note-item';
-            item.innerHTML =
-                '<div class="note-item-header" onclick="toggleNote(this)">' +
-                    '<span class="note-heading">📌 ' + note.heading + '</span>' +
-                    '<span class="note-toggle">▼</span>' +
-                '</div>' +
-                '<div class="note-content">' + note.content + '</div>';
-            container.appendChild(item);
-        });
-
-        document.getElementById('notesModal').classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function toggleNote(header) {
-        var content = header.nextElementSibling;
-        var toggle = header.querySelector('.note-toggle');
-        var isOpen = content.classList.contains('open');
-        content.classList.toggle('open', !isOpen);
-        toggle.classList.toggle('open', !isOpen);
-    }
-
-    function toggleAll() {
-        allOpen = !allOpen;
-        document.querySelectorAll('.note-content').forEach(c => c.classList.toggle('open', allOpen));
-        document.querySelectorAll('.note-toggle').forEach(t => t.classList.toggle('open', allOpen));
-    }
-
-    function closeModal() {
-        document.getElementById('notesModal').classList.remove('open');
-        document.body.style.overflow = '';
-    }
-
-    function closeModalOutside(e) {
-        if (e.target === document.getElementById('notesModal')) closeModal();
-    }
-
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-</script>
-
 {% endblock %}
