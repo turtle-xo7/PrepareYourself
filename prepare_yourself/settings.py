@@ -81,3 +81,7 @@ JAZZMIN_SETTINGS = {
 }
 
 LOGIN_URL = '/login/'
+
+TINYMCE_DEFAULT_CONFIG = {
+    'promotion': False,
+}
