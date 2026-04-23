@@ -50,7 +50,7 @@
             </div>
             <h3 class="font-semibold text-gray-900 mb-1">{{ note.title }}</h3>
             <p class="text-sm text-gray-500 mb-3">{{ note.chapter }}</p>
-            <p class="text-xs text-gray-400">{{ note.content|truncatechars:80 }}</p>
+            <p class="text-xs text-gray-400">{{ note.content|striptags|truncatechars:80 }}</p>
             <div class="mt-4 flex justify-between items-center">
                 <span class="text-xs text-gray-400">{{ note.created_at|date:"d M Y" }}</span>
                 {% if is_admin %}
