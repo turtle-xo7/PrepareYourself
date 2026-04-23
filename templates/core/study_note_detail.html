@@ -1,6 +1,19 @@
 {% extends 'base.html' %}
 {% block title %}{{ note.title }}{% endblock %}
 {% block content %}
+
+<!-- Fixed Reading Progress Bar -->
+<div class="fixed top-0 left-0 w-full z-50 h-1.5 bg-gray-100">
+    <div id="progress-bar" class="bg-blue-600 h-1.5 transition-all duration-300"
+        style="width: {{ read_progress.scroll_percent }}%"></div>
+</div>
+
+<!-- Progress % badge -->
+<div class="fixed bottom-4 right-4 bg-white border border-gray-200 shadow-lg rounded-full px-4 py-2 text-sm font-medium text-gray-700 z-50">
+    <span id="progress-text">{{ read_progress.scroll_percent }}%</span>
+    {% if read_progress.is_completed %} ✅{% endif %}
+</div>
+
 <div class="max-w-4xl mx-auto px-4 py-8">
 
     <div class="flex items-center justify-between mb-6">
@@ -11,19 +24,43 @@
                 <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ note.class_obj.name }}</span>
             </div>
         </div>
-        {% if is_admin %}
-        <a href="{% url 'study_note_edit' note.pk %}"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
-            ✏️ Edit
-        </a>
-        {% endif %}
+        <div class="flex items-center gap-2">
+            <button id="bookmark-btn" onclick="toggleBookmark()"
+                class="px-3 py-2 rounded-lg text-sm font-medium transition border
+                {% if is_bookmarked %}bg-yellow-100 text-yellow-700 border-yellow-300{% else %}bg-gray-100 text-gray-600 border-gray-200{% endif %}">
+                {% if is_bookmarked %}🔖 Saved{% else %}🔖 Save{% endif %}
+            </button>
+            {% if is_admin %}
+            <a href="{% url 'study_note_edit' note.pk %}"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+                ✏️ Edit
+            </a>
+            {% endif %}
+        </div>
     </div>
 
+    <!-- Note Content -->
     <div class="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
         <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ note.title }}</h1>
         <p class="text-sm text-gray-500 mb-6">Chapter: {{ note.chapter }}</p>
         <div class="prose max-w-none text-gray-700 leading-relaxed">{{ note.content|safe }}</div>
     </div>
+
+    <!-- Related Notes -->
+    {% if related_notes %}
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <h2 class="font-semibold text-gray-900 mb-4">📚 Related Notes</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {% for rn in related_notes %}
+            <a href="{% url 'study_note_detail' rn.pk %}"
+                class="border border-gray-100 rounded-xl p-4 hover:shadow-md transition block">
+                <p class="font-medium text-gray-800 text-sm mb-1">{{ rn.title }}</p>
+                <p class="text-xs text-gray-400">{{ rn.chapter }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- AI Q&A -->
     <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-200 p-6">
@@ -47,39 +84,68 @@
 
 <script>
 const noteContent = `{{ note.content|striptags|escapejs }}`;
+const csrfToken = '{{ csrf_token }}';
+const noteId = {{ note.pk }};
 
+// Bookmark
+async function toggleBookmark() {
+    const btn = document.getElementById('bookmark-btn');
+    const res = await fetch(`/study-notes/${noteId}/bookmark/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'},
+    });
+    const data = await res.json();
+    if (data.bookmarked) {
+        btn.className = 'px-3 py-2 rounded-lg text-sm font-medium transition border bg-yellow-100 text-yellow-700 border-yellow-300';
+        btn.innerHTML = '🔖 Saved';
+    } else {
+        btn.className = 'px-3 py-2 rounded-lg text-sm font-medium transition border bg-gray-100 text-gray-600 border-gray-200';
+        btn.innerHTML = '🔖 Save';
+    }
+}
+
+// Reading Progress
+let lastSent = 0;
+window.addEventListener('scroll', function() {
+    const scrolled = window.scrollY;
+    const total = document.body.scrollHeight - window.innerHeight;
+    const percent = total > 0 ? Math.round((scrolled / total) * 100) : 0;
+
+    document.getElementById('progress-bar').style.width = percent + '%';
+    document.getElementById('progress-text').textContent = percent + '%' + (percent >= 90 ? ' ✅' : '');
+
+    if (Math.abs(percent - lastSent) >= 5) {
+        lastSent = percent;
+        fetch(`/study-notes/${noteId}/read-progress/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'},
+            body: JSON.stringify({scroll_percent: percent})
+        });
+    }
+});
+
+// AI Q&A
 async function askAI() {
     const question = document.getElementById('ai-question').value.trim();
     if (!question) return;
 
     const chatBox = document.getElementById('chat-box');
-
     chatBox.innerHTML += `
         <div class="flex justify-end">
             <div class="bg-blue-600 text-white text-sm px-4 py-2 rounded-xl max-w-xs">${question}</div>
         </div>`;
-
     document.getElementById('ai-question').value = '';
-
     chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">AI ভাবছে...</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
         const response = await fetch('/study-notes/ask-ai/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-            body: JSON.stringify({
-                question: question,
-                note_content: noteContent
-            })
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({question: question, note_content: noteContent})
         });
-
         const data = await response.json();
         document.getElementById('loading').remove();
-
         chatBox.innerHTML += `
             <div class="flex justify-start">
                 <div class="bg-white border border-gray-200 text-sm px-4 py-2 rounded-xl max-w-sm text-gray-800">${data.answer}</div>

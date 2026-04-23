@@ -138,10 +138,6 @@ def home(request):
 def pricing(request):
     return render(request, 'core/pricing.html')
 
-@premium_required
-def study_notes(request):
-    return render(request, 'core/study_notes.html')
-
 
 @login_required
 def dashboard(request):
@@ -193,6 +189,8 @@ def dashboard(request):
         'daily_data': daily_data,
         'unread_count': unread_count,
     })
+
+
 @login_required
 def progress_history(request):
     try:
@@ -633,10 +631,8 @@ def cancel_subscription(request, pk):
 
 
 @admin_required
-@admin_required
 def teacher_dashboard(request):
     from .models import UserProgress
-    from django.db.models import Count, Q
     from datetime import timedelta
     from django.utils import timezone
 
@@ -673,7 +669,6 @@ def teacher_dashboard(request):
 
     avg_accuracy = round(sum(accuracy_list) / len(accuracy_list), 1) if accuracy_list else 0
 
-    # Last 7 days class activity
     daily_data = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
@@ -739,6 +734,7 @@ def student_detail(request, pk):
         'history': history,
     })
 
+
 @admin_required
 def give_feedback(request, progress_pk):
     from .models import UserProgress, TeacherFeedback
@@ -767,9 +763,12 @@ def notifications(request):
         'feedbacks': feedbacks,
     })
 
+
+# -------- STUDY NOTES --------
+
 @premium_required
 def study_notes(request):
-    from .models import StudyNote
+    from .models import StudyNote, NoteBookmark
     notes = StudyNote.objects.filter(is_active=True).select_related('subject', 'class_obj', 'created_by')
     subjects = Subject.objects.filter(is_active=True)
     classes = Class.objects.all()
@@ -785,20 +784,40 @@ def study_notes(request):
     if search:
         notes = notes.filter(title__icontains=search) | notes.filter(chapter__icontains=search)
 
+    bookmarked_ids = set()
+    if request.user.is_authenticated:
+        bookmarked_ids = set(NoteBookmark.objects.filter(
+            user=request.user
+        ).values_list('note_id', flat=True))
+
     return render(request, 'core/study_notes.html', {
         'notes': notes,
         'subjects': subjects,
         'classes': classes,
         'search': search,
+        'bookmarked_ids': bookmarked_ids,
     })
 
 
 @premium_required
 def study_note_detail(request, pk):
-    from .models import StudyNote
+    from .models import StudyNote, NoteBookmark, NoteReadProgress
+
     note = get_object_or_404(StudyNote, pk=pk, is_active=True)
+
+    is_bookmarked = NoteBookmark.objects.filter(user=request.user, note=note).exists()
+
+    read_progress, _ = NoteReadProgress.objects.get_or_create(user=request.user, note=note)
+
+    related_notes = StudyNote.objects.filter(
+        subject=note.subject, is_active=True
+    ).exclude(pk=note.pk)[:3]
+
     return render(request, 'core/study_note_detail.html', {
         'note': note,
+        'is_bookmarked': is_bookmarked,
+        'read_progress': read_progress,
+        'related_notes': related_notes,
     })
 
 
@@ -826,58 +845,6 @@ def study_note_add(request):
 
 
 @admin_required
-def study_note_delete(request, pk):
-    from .models import StudyNote
-    note = get_object_or_404(StudyNote, pk=pk)
-    if request.method == 'POST':
-        note.delete()
-        messages.success(request, 'Note deleted!')
-    return redirect('study_notes')
-
-
-@login_required
-def ask_ai(request):
-    if request.method == 'POST':
-        import json
-        data = json.loads(request.body)
-        question = data.get('question', '')
-        note_content = data.get('note_content', '')
-
-        import urllib.request
-        import urllib.error
-
-        payload = json.dumps({
-            "model": "claude-sonnet-4-20250514",
-            "max_tokens": 1000,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": f"এই study note এর উপর ভিত্তি করে বাংলায় উত্তর দাও:\n\nNote:\n{note_content}\n\nQuestion: {question}"
-                }
-            ]
-        }).encode('utf-8')
-
-        req = urllib.request.Request(
-            'https://api.anthropic.com/v1/messages',
-            data=payload,
-            headers={
-                'Content-Type': 'application/json',
-                'anthropic-version': '2023-06-01',
-            },
-            method='POST'
-        )
-
-        try:
-            with urllib.request.urlopen(req) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                answer = result['content'][0]['text']
-                return JsonResponse({'answer': answer})
-        except Exception as e:
-            return JsonResponse({'answer': 'AI এর সাথে সংযোগ করতে পারছি না।'})
-
-    return JsonResponse({'error': 'Invalid request'})
-
-@admin_required
 def study_note_edit(request, pk):
     from .models import StudyNote
     note = get_object_or_404(StudyNote, pk=pk)
@@ -898,11 +865,49 @@ def study_note_edit(request, pk):
         'classes': classes,
     })
 
+
+@admin_required
+def study_note_delete(request, pk):
+    from .models import StudyNote
+    note = get_object_or_404(StudyNote, pk=pk)
+    if request.method == 'POST':
+        note.delete()
+        messages.success(request, 'Note deleted!')
+    return redirect('study_notes')
+
+
+@login_required
+def toggle_bookmark(request, pk):
+    from .models import StudyNote, NoteBookmark
+    note = get_object_or_404(StudyNote, pk=pk)
+    bookmark, created = NoteBookmark.objects.get_or_create(user=request.user, note=note)
+    if not created:
+        bookmark.delete()
+        return JsonResponse({'bookmarked': False})
+    return JsonResponse({'bookmarked': True})
+
+
+@login_required
+def update_read_progress(request, pk):
+    from .models import StudyNote, NoteReadProgress
+    if request.method == 'POST':
+        note = get_object_or_404(StudyNote, pk=pk)
+        data = json.loads(request.body)
+        scroll_percent = data.get('scroll_percent', 0)
+        progress, _ = NoteReadProgress.objects.get_or_create(user=request.user, note=note)
+        progress.scroll_percent = scroll_percent
+        if scroll_percent >= 90:
+            progress.is_completed = True
+        progress.save()
+        return JsonResponse({'status': 'ok'})
+    return JsonResponse({'status': 'error'})
+
+
 @login_required
 def ask_ai(request):
     if request.method == 'POST':
-        import json
         import urllib.request
+        import urllib.error
         data = json.loads(request.body)
         question = data.get('question', '')
         note_content = data.get('note_content', '')
@@ -924,7 +929,7 @@ def ask_ai(request):
             headers={
                 'Content-Type': 'application/json; charset=utf-8',
                 'anthropic-version': '2023-06-01',
-                'x-api-key': 'YOUR_KEY_HERE',
+                'x-api-key': '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',
             },
             method='POST'
         )

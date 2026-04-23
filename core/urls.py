@@ -47,6 +47,8 @@ path('study-notes/add/', views.study_note_add, name='study_note_add'),
 path('study-notes/<int:pk>/delete/', views.study_note_delete, name='study_note_delete'),
 path('study-notes/ask-ai/', views.ask_ai, name='ask_ai'),
 path('study-notes/<int:pk>/edit/', views.study_note_edit, name='study_note_edit'),
+path('study-notes/<int:pk>/bookmark/', views.toggle_bookmark, name='toggle_bookmark'),
+path('study-notes/<int:pk>/read-progress/', views.update_read_progress, name='update_read_progress'),
 
 
     ]

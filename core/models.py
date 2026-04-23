@@ -136,3 +136,25 @@ class StudyNote(models.Model):
         ordering = ['-created_at']
     def __str__(self):
         return self.title
+
+
+class NoteBookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
+    note = models.ForeignKey(StudyNote, on_delete=models.CASCADE, related_name='bookmarks')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ['user', 'note']
+    def __str__(self):
+        return f"{self.user.username} → {self.note.title}"
+
+
+class NoteReadProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note_progress')
+    note = models.ForeignKey(StudyNote, on_delete=models.CASCADE, related_name='read_progress')
+    scroll_percent = models.IntegerField(default=0)
+    is_completed = models.BooleanField(default=False)
+    last_read = models.DateTimeField(auto_now=True)
+    class Meta:
+        unique_together = ['user', 'note']
+    def __str__(self):
+        return f"{self.user.username} → {self.note.title} ({self.scroll_percent}%)"
