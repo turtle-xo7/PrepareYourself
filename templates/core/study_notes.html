@@ -9,10 +9,16 @@
             <p class="text-gray-500 mt-1">Chapter-wise গুরুত্বপূর্ণ নোট</p>
         </div>
         {% if is_admin %}
-        <a href="{% url 'study_note_add' %}"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
-            + Add Note
-        </a>
+        <div class="flex gap-2">
+            <a href="{% url 'generate_note_ai' %}"
+                class="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition">
+                🤖 AI Generate
+            </a>
+            <a href="{% url 'study_note_add' %}"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                + Add Note
+            </a>
+        </div>
         {% endif %}
     </div>
 
