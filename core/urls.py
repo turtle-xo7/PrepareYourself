@@ -98,4 +98,7 @@ urlpatterns = [
     path('syllabus/<int:pk>/', views.syllabus_detail, name='syllabus_detail'),
     path('syllabus/<int:pk>/edit/', views.syllabus_edit, name='syllabus_edit'),
     path('syllabus/<int:pk>/delete/', views.syllabus_delete, name='syllabus_delete'),
+
+    #admin database
+    path('superadmin/export/', views.export_excel, name='export_excel'),
 ]
