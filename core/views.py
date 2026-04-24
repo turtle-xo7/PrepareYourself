@@ -1350,3 +1350,76 @@ def profile_update(request):
     return render(request, 'core/profile.html', {
         'profile': request.user.profile,
     })
+
+# -------- SYLLABUS --------
+
+def syllabus_list(request):
+    from .models import Syllabus
+    syllabi = Syllabus.objects.filter(is_active=True).select_related('subject', 'class_obj', 'board')
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+    boards = Board.objects.filter(is_active=True)
+
+    subject_filter = request.GET.get('subject')
+    class_filter = request.GET.get('class_obj')
+    board_filter = request.GET.get('board')
+
+
+
+
+def syllabus_detail(request, pk):
+    from .models import Syllabus
+    syllabus = get_object_or_404(Syllabus, pk=pk, is_active=True)
+    return render(request, 'core/syllabus_detail.html', {
+        'syllabus': syllabus,
+    })
+
+
+@admin_required
+def syllabus_add(request):
+    from .models import Syllabus
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+    boards = Board.objects.filter(is_active=True)
+    if request.method == 'POST':
+        Syllabus.objects.create(
+            subject=get_object_or_404(Subject, pk=request.POST.get('subject')),
+            class_obj=get_object_or_404(Class, pk=request.POST.get('class_obj')),
+            board=get_object_or_404(Board, pk=request.POST.get('board')),
+            content=request.POST.get('content', ''),
+            is_active=True
+        )
+        messages.success(request, 'Syllabus added!')
+        return redirect('syllabus_list')
+    return render(request, 'core/syllabus_form.html', {
+        'subjects': subjects,
+        'classes': classes,
+        'boards': boards,
+        'action': 'Add',
+    })
+
+
+@admin_required
+def syllabus_edit(request, pk):
+    from .models import Syllabus
+    syllabus = get_object_or_404(Syllabus, pk=pk)
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+    boards = Board.objects.filter(is_active=True)
+    if request.method == 'POST':
+        syllabus.subject = get_object_or_404(Subject, pk=request.POST.get('subject'))
+        syllabus.class_obj = get_object_or_404(Class, pk=request.POST.get('class_obj'))
+        syllabus.board = get_object_or_404(Board, pk=request.POST.get('board'))
+        syllabus.content = request.POST.get('content', '')
+        syllabus.save()
+        messages.success(request, 'Syllabus updated!')
+        return redirect('syllabus_detail', pk=syllabus.pk)
+    return render(request, 'core/syllabus_form.html', {
+        'syllabus': syllabus,
+        'subjects': subjects,
+        'classes': classes,
+        'boards': boards,
+        'action': 'Edit',
+    })
+
+
