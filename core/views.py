@@ -1364,7 +1364,19 @@ def syllabus_list(request):
     class_filter = request.GET.get('class_obj')
     board_filter = request.GET.get('board')
 
+    if subject_filter:
+        syllabi = syllabi.filter(subject__slug=subject_filter)
+    if class_filter:
+        syllabi = syllabi.filter(class_obj__id=class_filter)
+    if board_filter:
+        syllabi = syllabi.filter(board__id=board_filter)
 
+    return render(request, 'core/syllabus_list.html', {
+        'syllabi': syllabi,
+        'subjects': subjects,
+        'classes': classes,
+        'boards': boards,
+    })
 
 
 def syllabus_detail(request, pk):
@@ -1423,3 +1435,11 @@ def syllabus_edit(request, pk):
     })
 
 
+@admin_required
+def syllabus_delete(request, pk):
+    from .models import Syllabus
+    syllabus = get_object_or_404(Syllabus, pk=pk)
+    if request.method == 'POST':
+        syllabus.delete()
+        messages.success(request, 'Syllabus deleted!')
+    return redirect('syllabus_list')
