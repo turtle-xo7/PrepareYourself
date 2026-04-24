@@ -158,3 +158,15 @@ class NoteReadProgress(models.Model):
         unique_together = ['user', 'note']
     def __str__(self):
         return f"{self.user.username} → {self.note.title} ({self.scroll_percent}%)"
+
+
+class NoteComment(models.Model):
+    note = models.ForeignKey(StudyNote, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note_comments')
+    comment = models.TextField()
+    is_approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+    def __str__(self):
+        return f"{self.user.username} → {self.note.title}"
