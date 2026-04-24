@@ -160,6 +160,20 @@ class NoteReadProgress(models.Model):
         return f"{self.user.username} → {self.note.title} ({self.scroll_percent}%)"
 
 
+class Syllabus(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='syllabi')
+    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='syllabi')
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='syllabi')
+
+
+    class Meta:
+        unique_together = ['subject', 'class_obj', 'board']
+        ordering = ['subject__name']
+
+    def __str__(self):
+        return f"{self.subject.name} - {self.class_obj.name} - {self.board.name}"
+
+
 class NoteComment(models.Model):
     note = models.ForeignKey(StudyNote, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note_comments')
