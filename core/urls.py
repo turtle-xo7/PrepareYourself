@@ -52,6 +52,8 @@ path('study-notes/<int:pk>/read-progress/', views.update_read_progress, name='up
 path('study-notes/<int:pk>/comment/', views.add_comment, name='add_comment'),
 path('study-notes/comment/<int:comment_pk>/approve/', views.approve_comment, name='approve_comment'),
 path('study-notes/comment/<int:comment_pk>/delete/', views.delete_comment, name='delete_comment'),
-
+path('study-notes/generate/', views.generate_note_ai, name='generate_note_ai'),
+path('study-notes/<int:pk>/generate-mcq/', views.generate_mcq, name='generate_mcq'),
+path('study-notes/<int:pk>/summarize/', views.summarize_note, name='summarize_note'),
 
     ]
