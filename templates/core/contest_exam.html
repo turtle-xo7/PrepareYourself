@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}{{ contest.title }} - Exam{% endblock %}
+{% block content %}
+
+<!-- Timer -->
+<div class="fixed top-0 left-0 w-full z-50 bg-red-600 text-white text-center py-2 font-bold text-lg">
+    ⏱ Time Left: <span id="timer">{{ contest.duration_minutes }}:00</span>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 py-16">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ contest.title }}</h1>
+    <p class="text-gray-500 text-sm mb-8">সব প্রশ্নের উত্তর দাও। সময় শেষ হলে auto submit হবে।</p>
+
+    <form method="post" action="{% url 'contest_submit' contest.pk %}" id="examForm">
+        {% csrf_token %}
+        <div class="space-y-6">
+            {% for q in questions %}
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="font-medium text-gray-900">{{ forloop.counter }}. {{ q.question_text }}</p>
+                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full ml-4">{{ q.marks }} marks</span>
+                </div>
+
+                {% if q.question_type == 'MCQ' %}
+                <div class="space-y-2">
+                    {% if q.option1 %}
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="q_{{ q.pk }}" value="1" class="text-blue-600">
+                        <span class="text-sm">{{ q.option1 }}</span>
+                    </label>
+                    {% endif %}
+                    {% if q.option2 %}
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="q_{{ q.pk }}" value="2" class="text-blue-600">
+                        <span class="text-sm">{{ q.option2 }}</span>
+                    </label>
+                    {% endif %}
+                    {% if q.option3 %}
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="q_{{ q.pk }}" value="3" class="text-blue-600">
+                        <span class="text-sm">{{ q.option3 }}</span>
+                    </label>
+                    {% endif %}
+                    {% if q.option4 %}
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="q_{{ q.pk }}" value="4" class="text-blue-600">
+                        <span class="text-sm">{{ q.option4 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                {% else %}
+                <textarea name="q_{{ q.pk }}" rows="4" placeholder="উত্তর লিখো..."
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit"
+            class="w-full mt-8 bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition">
+            Submit করো
+        </button>
+    </form>
+</div>
+
+<script>
+const durationSeconds = {{ contest.duration_minutes }} * 60;
+let timeLeft = durationSeconds;
+
+const timerEl = document.getElementById('timer');
+
+const interval = setInterval(() => {
+    timeLeft--;
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+    if (timeLeft <= 60) {
+        timerEl.parentElement.classList.add('bg-red-800');
+    }
+    if (timeLeft <= 0) {
+        clearInterval(interval);
+        document.getElementById('examForm').submit();
+    }
+}, 1000);
+</script>
+{% endblock %}
