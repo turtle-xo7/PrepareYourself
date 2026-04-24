@@ -85,3 +85,11 @@ LOGIN_URL = '/login/'
 TINYMCE_DEFAULT_CONFIG = {
     'promotion': False,
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'prepareyourselfsupport20226@gmail.com'
+EMAIL_HOST_PASSWORD = 'rtwf qmrd lacl vbeu'
+DEFAULT_FROM_EMAIL = 'Prepare Yourself <prepareyourselfsupport20226@gmail.com>'

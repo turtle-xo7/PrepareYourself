@@ -69,12 +69,22 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+
+        # Email দিয়ে login support
+        if '@' in username:
+            try:
+                from django.contrib.auth.models import User
+                user_obj = User.objects.get(email=username)
+                username = user_obj.username
+            except User.DoesNotExist:
+                pass
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             return redirect('home')
         else:
-            messages.error(request, 'Username বা Password ভুল।')
+            messages.error(request, 'Username/Email বা Password ভুল।')
     return render(request, 'core/login.html')
 
 
