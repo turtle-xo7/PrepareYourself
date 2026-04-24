@@ -1,10 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}{{ syllabus.subject.name }} Syllabus{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
 
-</body>
-</html>
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'syllabus_list' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
+            <div class="flex gap-2">
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ syllabus.subject.name }}</span>
+                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ syllabus.class_obj.name }}</span>
+                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">{{ syllabus.board.name }}</span>
+            </div>
+        </div>
+        {% if is_admin %}
+        <a href="{% url 'syllabus_edit' syllabus.pk %}"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+            ✏️ Edit
+        </a>
+        {% endif %}
+    </div>
+
+   class="prose max-w-none text-gray-700 leading-relaxed">
+            {{ syllabus.content|safe }}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
