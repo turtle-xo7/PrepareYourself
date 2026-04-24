@@ -49,6 +49,9 @@ path('study-notes/ask-ai/', views.ask_ai, name='ask_ai'),
 path('study-notes/<int:pk>/edit/', views.study_note_edit, name='study_note_edit'),
 path('study-notes/<int:pk>/bookmark/', views.toggle_bookmark, name='toggle_bookmark'),
 path('study-notes/<int:pk>/read-progress/', views.update_read_progress, name='update_read_progress'),
+path('study-notes/<int:pk>/comment/', views.add_comment, name='add_comment'),
+path('study-notes/comment/<int:comment_pk>/approve/', views.approve_comment, name='approve_comment'),
+path('study-notes/comment/<int:comment_pk>/delete/', views.delete_comment, name='delete_comment'),
 
 
     ]

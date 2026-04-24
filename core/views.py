@@ -801,23 +801,34 @@ def study_notes(request):
 
 @premium_required
 def study_note_detail(request, pk):
-    from .models import StudyNote, NoteBookmark, NoteReadProgress
+    from .models import StudyNote, NoteBookmark, NoteReadProgress, NoteComment
 
     note = get_object_or_404(StudyNote, pk=pk, is_active=True)
-
     is_bookmarked = NoteBookmark.objects.filter(user=request.user, note=note).exists()
-
     read_progress, _ = NoteReadProgress.objects.get_or_create(user=request.user, note=note)
-
     related_notes = StudyNote.objects.filter(
         subject=note.subject, is_active=True
     ).exclude(pk=note.pk)[:3]
+
+    approved_comments = NoteComment.objects.filter(note=note, is_approved=True).select_related('user')
+
+    try:
+        is_teacher = request.user.profile.role == 'ADMIN'
+    except:
+        is_teacher = False
+
+    pending_comments = NoteComment.objects.filter(
+        note=note, is_approved=False
+    ).select_related('user') if is_teacher else NoteComment.objects.none()
 
     return render(request, 'core/study_note_detail.html', {
         'note': note,
         'is_bookmarked': is_bookmarked,
         'read_progress': read_progress,
         'related_notes': related_notes,
+        'approved_comments': approved_comments,
+        'pending_comments': pending_comments,
+        'is_teacher': is_teacher,
     })
 
 
@@ -904,6 +915,44 @@ def update_read_progress(request, pk):
 
 
 @login_required
+def add_comment(request, pk):
+    from .models import StudyNote, NoteComment
+    note = get_object_or_404(StudyNote, pk=pk)
+    if request.method == 'POST':
+        comment_text = request.POST.get('comment', '').strip()
+        if comment_text:
+            is_approved = request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin
+            NoteComment.objects.create(
+                note=note,
+                user=request.user,
+                comment=comment_text,
+                is_approved=is_approved
+            )
+            messages.success(request, 'Comment posted!' if is_approved else 'Comment submitted for approval!')
+    return redirect('study_note_detail', pk=pk)
+
+
+@admin_required
+def approve_comment(request, comment_pk):
+    from .models import NoteComment
+    comment = get_object_or_404(NoteComment, pk=comment_pk)
+    if request.method == 'POST':
+        comment.is_approved = True
+        comment.save()
+    return redirect('study_note_detail', pk=comment.note.pk)
+
+
+@admin_required
+def delete_comment(request, comment_pk):
+    from .models import NoteComment
+    comment = get_object_or_404(NoteComment, pk=comment_pk)
+    note_pk = comment.note.pk
+    if request.method == 'POST':
+        comment.delete()
+    return redirect('study_note_detail', pk=note_pk)
+
+
+@login_required
 def ask_ai(request):
     if request.method == 'POST':
         import urllib.request
@@ -929,7 +978,7 @@ def ask_ai(request):
             headers={
                 'Content-Type': 'application/json; charset=utf-8',
                 'anthropic-version': '2023-06-01',
-                'x-api-key': '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',
+                'x-api-key': 'ENTER_API_KEY_HERE',
             },
             method='POST'
         )
