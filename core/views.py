@@ -952,6 +952,148 @@ def delete_comment(request, comment_pk):
     return redirect('study_note_detail', pk=note_pk)
 
 
+@admin_required
+def generate_note_ai(request):
+    if request.method == 'POST':
+        import urllib.request
+        import urllib.error
+        topic = request.POST.get('topic', '')
+        subject_id = request.POST.get('subject')
+        class_id = request.POST.get('class_obj')
+        chapter = request.POST.get('chapter', '')
+
+        payload = json.dumps({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 2000,
+            "messages": [{
+                "role": "user",
+                "content": f"এই topic এর উপর একটি সম্পূর্ণ study note বাংলায় লিখো। Note টি SSC/HSC students এর জন্য। Topic: {topic}, Chapter: {chapter}. Note এ heading, subheading, examples, এবং key points থাকবে। HTML format এ দাও।"
+            }]
+        }, ensure_ascii=False).encode('utf-8')
+
+        req = urllib.request.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=payload,
+            headers={
+                'Content-Type': 'application/json; charset=utf-8',
+                'anthropic-version': '2023-06-01',
+                'x-api-key': 'ENTER_API_KEY_HERE',
+            },
+            method='POST'
+        )
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                content = result['content'][0]['text']
+                from .models import StudyNote
+                note = StudyNote.objects.create(
+                    title=topic,
+                    subject=get_object_or_404(Subject, pk=subject_id),
+                    class_obj=get_object_or_404(Class, pk=class_id),
+                    chapter=chapter,
+                    content=content,
+                    created_by=request.user,
+                    is_active=True
+                )
+                messages.success(request, 'AI দিয়ে note তৈরি হয়েছে!')
+                return redirect('study_note_detail', pk=note.pk)
+        except Exception as e:
+            messages.error(request, f'AI error: {str(e)}')
+
+    subjects = Subject.objects.filter(is_active=True)
+    classes = Class.objects.all()
+    return render(request, 'core/generate_note.html', {
+        'subjects': subjects,
+        'classes': classes,
+    })
+
+
+@login_required
+def generate_mcq(request, pk):
+    if request.method == 'POST':
+        import urllib.request
+        import urllib.error
+        from .models import StudyNote
+
+        note = get_object_or_404(StudyNote, pk=pk)
+
+        payload = json.dumps({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 2000,
+            "messages": [{
+                "role": "user",
+                "content": f"এই study note থেকে ১০টি MCQ প্রশ্ন বাংলায় তৈরি করো। প্রতিটি প্রশ্নে ৪টি option এবং সঠিক উত্তর দাও। JSON format এ দাও এভাবে: {{\"mcqs\": [{{\"question\": \"...\", \"options\": [\"ক) ...\", \"খ) ...\", \"গ) ...\", \"ঘ) ...\"], \"answer\": \"ক\"}}]}}\n\nNote:\n{note.content[:3000]}"
+            }]
+        }, ensure_ascii=False).encode('utf-8')
+
+        req = urllib.request.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=payload,
+            headers={
+                'Content-Type': 'application/json; charset=utf-8',
+                'anthropic-version': '2023-06-01',
+                'x-api-key': 'ENTER_API_KEY_HERE',
+            },
+            method='POST'
+        )
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                text = result['content'][0]['text']
+                import re
+                json_match = re.search(r'\{.*\}', text, re.DOTALL)
+                if json_match:
+                    mcq_data = json.loads(json_match.group())
+                    return JsonResponse({'mcqs': mcq_data.get('mcqs', [])})
+                return JsonResponse({'mcqs': [], 'error': 'Could not parse MCQs'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
+
+    return JsonResponse({'error': 'Invalid request'})
+
+
+@login_required
+def summarize_note(request, pk):
+    if request.method == 'POST':
+        import urllib.request
+        import urllib.error
+        from .models import StudyNote
+
+        note = get_object_or_404(StudyNote, pk=pk)
+
+        payload = json.dumps({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 1000,
+            "messages": [{
+                "role": "user",
+                "content": f"এই study note টি সহজ বাংলায় সংক্ষেপ করো। Key points bullet points এ দাও। ৩-৫ টি main point এবং একটি summary paragraph লিখো।\n\nNote:\n{note.content[:3000]}"
+            }]
+        }, ensure_ascii=False).encode('utf-8')
+
+        req = urllib.request.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=payload,
+            headers={
+                'Content-Type': 'application/json; charset=utf-8',
+                'anthropic-version': '2023-06-01',
+                'x-api-key': 'ENTER_API_KEY_HERE',
+            },
+            method='POST'
+        )
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                summary = result['content'][0]['text']
+                return JsonResponse({'summary': summary})
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
+
+    return JsonResponse({'error': 'Invalid request'})
+
+
 @login_required
 def ask_ai(request):
     if request.method == 'POST':
