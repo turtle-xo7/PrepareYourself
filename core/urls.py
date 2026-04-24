@@ -62,4 +62,6 @@ path('contests/<int:pk>/join/', views.contest_join, name='contest_join'),
 path('contests/<int:pk>/submit/', views.contest_submit, name='contest_submit'),
 path('contests/<int:pk>/leaderboard/', views.contest_leaderboard, name='contest_leaderboard'),
 path('contests/<int:pk>/delete/', views.contest_delete, name='contest_delete'),
+path('profile/', views.profile_view, name='profile'),
+path('profile/update/', views.profile_update, name='profile_update'),
     ]

@@ -1329,3 +1329,24 @@ def contest_delete(request, pk):
         messages.success(request, 'Contest deleted!')
         return redirect('contest_list')
     return redirect('contest_detail', pk=pk)
+
+@login_required
+def profile_view(request):
+    return render(request, 'core/profile.html', {
+        'profile': request.user.profile,
+    })
+
+
+@login_required
+def profile_update(request):
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', '')
+        user.last_name = request.POST.get('last_name', '')
+        user.email = request.POST.get('email', '')
+        user.save()
+        messages.success(request, 'Profile updated!')
+        return redirect('profile')
+    return render(request, 'core/profile.html', {
+        'profile': request.user.profile,
+    })
