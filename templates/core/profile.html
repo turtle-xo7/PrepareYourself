@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+
+    <h1 class="text-2xl font-bold text-gray-900 mb-8">👤 My Profile</h1>
+
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {{ request.user.username|first|upper }}
+            </div>
+            <div>
+                <p class="font-semibold text-gray-900 text-lg">{{ request.user.username }}</p>
+                <div class="flex gap-2 mt-1">
+                    {% if profile.role == 'ADMIN' %}
+                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Teacher</span>
+                    {% else %}
+                    <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Student</span>
+                    {% endif %}
+                    {% if profile.plan == 'PREMIUM' %}
+                    <span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">Premium</span>
+                    {% elif profile.plan == 'BASIC' %}
+                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Basic</span>
+                    {% else %}
+                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">Free</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'profile_update' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <input type="text" name="first_name" value="{{ request.user.first_name }}"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input type="text" name="last_name" value="{{ request.user.last_name }}"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" name="email" value="{{ request.user.email }}"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input type="text" value="{{ request.user.username }}" disabled
+                    class="w-full border border-gray-100 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-400">
+                <p class="text-xs text-gray-400 mt-1">Username পরিবর্তন করা যাবে না।</p>
+            </div>
+            <button type="submit"
+                class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition">
+                Save Changes
+            </button>
+        </form>
+    </div>
+
+    <!-- Account Info -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Account Info</h2>
+        <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-500">Member since</span>
+                <span class="text-gray-900">{{ request.user.date_joined|date:"d M Y" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500">Plan</span>
+                <span class="text-gray-900">{{ profile.plan }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500">Role</span>
+                <span class="text-gray-900">{{ profile.get_role_display }}</span>
+            </div>
+        </div>
+        {% if profile.plan == 'FREE' %}
+        <a href="{% url 'pricing' %}"
+            class="mt-4 block text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-md transition">
+            Upgrade to Premium →
+        </a>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
