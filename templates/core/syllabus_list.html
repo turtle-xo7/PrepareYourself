@@ -16,7 +16,30 @@
         {% endif %}
     </div>
 
-
+    <!-- Filters -->
+    <form method="get" class="flex gap-3 mb-8 flex-wrap">
+        <select name="board" onchange="this.form.submit()"
+            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
+            <option value="">All Boards</option>
+            {% for b in boards %}
+            <option value="{{ b.id }}" {% if request.GET.board == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="subject" onchange="this.form.submit()"
+            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
+            <option value="">All Subjects</option>
+            {% for s in subjects %}
+            <option value="{{ s.slug }}" {% if request.GET.subject == s.slug %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="class_obj" onchange="this.form.submit()"
+            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
+            <option value="">All Classes</option>
+            {% for c in classes %}
+            <option value="{{ c.id }}" {% if request.GET.class_obj == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
 
     <!-- Syllabus Grid -->
     {% if syllabi %}
@@ -34,7 +57,15 @@
                     class="text-sm text-blue-600 hover:text-blue-700 font-medium">
                     View Syllabus →
                 </a>
-
+                {% if is_admin %}
+                <div class="flex gap-2">
+                    <a href="{% url 'syllabus_edit' s.pk %}"
+                        class="text-xs text-gray-500 hover:text-blue-600">✏️</a>
+                    <form method="post" action="{% url 'syllabus_delete' s.pk %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Delete?')"
+                            class="text-xs text-red-500 hover:text-red-700">🗑</button>
+                    </form>
                 </div>
                 {% endif %}
             </div>
