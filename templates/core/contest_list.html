@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Contests{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">🏆 Contests</h1>
+            <p class="text-gray-500 mt-1">Teacher এর দেওয়া contest এ অংশ নাও</p>
+        </div>
+        {% if is_admin %}
+        <a href="{% url 'contest_create' %}"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+            + Create Contest
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Active Contests -->
+    <h2 class="font-semibold text-gray-900 mb-4">🔴 Active Contests</h2>
+    {% if active_contests %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {% for contest in active_contests %}
+        <div class="bg-white rounded-2xl border border-green-200 p-6 hover:shadow-md transition">
+            <div class="flex justify-between items-start mb-3">
+                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">🟢 Active</span>
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ contest.duration_minutes }} min</span>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-1">{{ contest.title }}</h3>
+            <p class="text-sm text-gray-500 mb-1">{{ contest.subject.name }} • {{ contest.class_obj.name }}</p>
+            <p class="text-xs text-gray-400 mb-4">Ends: {{ contest.end_time|date:"d M Y H:i" }}</p>
+            <div class="flex gap-2">
+                <a href="{% url 'contest_join' contest.pk %}"
+                    class="flex-1 text-center bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition">
+                    Join Now →
+                </a>
+                <a href="{% url 'contest_leaderboard' contest.pk %}"
+                    class="text-center bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 transition">
+                    🏆
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-gray-50 rounded-2xl p-8 text-center text-gray-400 mb-8">
+        <p class="text-3xl mb-2">🏆</p>
+        <p>কোনো active contest নেই।</p>
+    </div>
+    {% endif %}
+
+    <!-- Past Contests -->
+    {% if past_contests %}
+    <h2 class="font-semibold text-gray-900 mb-4">⏰ Past Contests</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for contest in past_contests %}
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="flex justify-between items-start mb-3">
+                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">⏰ Ended</span>
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ contest.duration_minutes }} min</span>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-1">{{ contest.title }}</h3>
+            <p class="text-sm text-gray-500 mb-4">{{ contest.subject.name }} • {{ contest.class_obj.name }}</p>
+            <a href="{% url 'contest_leaderboard' contest.pk %}"
+                class="block text-center bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 transition">
+                🏆 Leaderboard দেখো
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

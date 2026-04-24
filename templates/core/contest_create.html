@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Create Contest{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'contest_list' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
+        <h1 class="text-2xl font-bold text-gray-900">🏆 Create Contest</h1>
+    </div>
+
+    <form method="post" id="contestForm">
+        {% csrf_token %}
+
+        <!-- Contest Info -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h2 class="font-semibold text-gray-900 mb-4">Contest Details</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input type="text" name="title" required
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                        <select name="subject" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none">
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}">{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                        <select name="class_obj" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none">
+                            {% for c in classes %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+                        <input type="number" name="duration_minutes" value="30" min="5" max="180" required
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                        <input type="datetime-local" name="start_time" required
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                        <input type="datetime-local" name="end_time" required
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold text-gray-900">Questions</h2>
+                <button type="button" onclick="addQuestion()"
+                    class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-700">
+                    + Add Question
+                </button>
+            </div>
+            <div id="questions-container" class="space-y-4"></div>
+        </div>
+
+        <button type="submit"
+            class="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition">
+            Create Contest
+        </button>
+    </form>
+</div>
+
+<script>
+let questionCount = 0;
+
+function addQuestion() {
+    questionCount++;
+    const container = document.getElementById('questions-container');
+    const div = document.createElement('div');
+    div.className = 'border border-gray-200 rounded-xl p-4 space-y-3';
+    div.id = `q_${questionCount}`;
+    div.innerHTML = `
+        <div class="flex justify-between items-center">
+            <span class="font-medium text-gray-700 text-sm">Question ${questionCount}</span>
+            <button type="button" onclick="removeQuestion(${questionCount})" class="text-red-500 text-xs hover:text-red-700">Remove</button>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+            <div class="col-span-2">
+                <textarea name="question_text" rows="2" required placeholder="Question লিখো..."
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div>
+                <select name="question_type" onchange="toggleOptions(this, ${questionCount})"
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none mb-2">
+                    <option value="MCQ">MCQ</option>
+                    <option value="CREATIVE">Creative</option>
+                </select>
+                <input type="number" name="marks" value="1" min="1" placeholder="Marks"
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none">
+            </div>
+        </div>
+        <div id="options_${questionCount}" class="grid grid-cols-2 gap-2">
+            <input type="text" name="option1" placeholder="Option 1"
+                class="border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none">
+            <input type="text" name="option2" placeholder="Option 2"
+                class="border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none">
+            <input type="text" name="option3" placeholder="Option 3"
+                class="border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none">
+            <input type="text" name="option4" placeholder="Option 4"
+                class="border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none">
+        </div>
+        <div id="correct_${questionCount}">
+            <select name="correct_option" class="border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none">
+                <option value="">Correct Option</option>
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+                <option value="3">Option 3</option>
+                <option value="4">Option 4</option>
+            </select>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeQuestion(n) {
+    document.getElementById(`q_${n}`)?.remove();
+}
+
+function toggleOptions(select, n) {
+    const opts = document.getElementById(`options_${n}`);
+    const correct = document.getElementById(`correct_${n}`);
+    if (select.value === 'CREATIVE') {
+        opts.style.display = 'none';
+        correct.style.display = 'none';
+    } else {
+        opts.style.display = 'grid';
+        correct.style.display = 'block';
+    }
+}
+
+// Add first question by default
+addQuestion();
+</script>
+{% endblock %}
