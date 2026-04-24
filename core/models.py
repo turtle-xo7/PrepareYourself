@@ -164,7 +164,10 @@ class Syllabus(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='syllabi')
     class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='syllabi')
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='syllabi')
-
+    content = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ['subject', 'class_obj', 'board']

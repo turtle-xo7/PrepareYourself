@@ -64,4 +64,9 @@ path('contests/<int:pk>/leaderboard/', views.contest_leaderboard, name='contest_
 path('contests/<int:pk>/delete/', views.contest_delete, name='contest_delete'),
 path('profile/', views.profile_view, name='profile'),
 path('profile/update/', views.profile_update, name='profile_update'),
+path('syllabus/', views.syllabus_list, name='syllabus_list'),
+path('syllabus/<int:pk>/', views.syllabus_detail, name='syllabus_detail'),
+path('syllabus/add/', views.syllabus_add, name='syllabus_add'),
+path('syllabus/<int:pk>/edit/', views.syllabus_edit, name='syllabus_edit'),
+path('syllabus/<int:pk>/delete/', views.syllabus_delete, name='syllabus_delete'),
     ]
