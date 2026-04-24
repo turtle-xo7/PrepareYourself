@@ -55,5 +55,11 @@ path('study-notes/comment/<int:comment_pk>/delete/', views.delete_comment, name=
 path('study-notes/generate/', views.generate_note_ai, name='generate_note_ai'),
 path('study-notes/<int:pk>/generate-mcq/', views.generate_mcq, name='generate_mcq'),
 path('study-notes/<int:pk>/summarize/', views.summarize_note, name='summarize_note'),
-
+path('contests/', views.contest_list, name='contest_list'),
+path('contests/create/', views.contest_create, name='contest_create'),
+path('contests/<int:pk>/', views.contest_detail, name='contest_detail'),
+path('contests/<int:pk>/join/', views.contest_join, name='contest_join'),
+path('contests/<int:pk>/submit/', views.contest_submit, name='contest_submit'),
+path('contests/<int:pk>/leaderboard/', views.contest_leaderboard, name='contest_leaderboard'),
+path('contests/<int:pk>/delete/', views.contest_delete, name='contest_delete'),
     ]
