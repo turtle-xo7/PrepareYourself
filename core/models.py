@@ -170,3 +170,60 @@ class NoteComment(models.Model):
         ordering = ['-created_at']
     def __str__(self):
         return f"{self.user.username} → {self.note.title}"
+
+
+class Contest(models.Model):
+    title = models.CharField(max_length=200)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contests')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='contests')
+    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='contests')
+    duration_minutes = models.IntegerField(default=30)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+    def __str__(self):
+        return self.title
+
+
+class ContestQuestion(models.Model):
+    QUESTION_TYPE = [('MCQ', 'MCQ'), ('CREATIVE', 'Creative/Written')]
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    question_type = models.CharField(max_length=10, choices=QUESTION_TYPE, default='MCQ')
+    option1 = models.CharField(max_length=500, blank=True)
+    option2 = models.CharField(max_length=500, blank=True)
+    option3 = models.CharField(max_length=500, blank=True)
+    option4 = models.CharField(max_length=500, blank=True)
+    correct_option = models.PositiveSmallIntegerField(null=True, blank=True)
+    marks = models.IntegerField(default=1)
+    def __str__(self):
+        return f"{self.contest.title} - Q{self.id}"
+
+
+class ContestSubmission(models.Model):
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name='submissions')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contest_submissions')
+    started_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    total_marks = models.IntegerField(default=0)
+    is_submitted = models.BooleanField(default=False)
+    duration_taken = models.IntegerField(default=0)
+    class Meta:
+        unique_together = ['contest', 'student']
+        ordering = ['-total_marks', 'duration_taken']
+    def __str__(self):
+        return f"{self.student.username} - {self.contest.title}"
+
+
+class ContestAnswer(models.Model):
+    submission = models.ForeignKey(ContestSubmission, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(ContestQuestion, on_delete=models.CASCADE)
+    mcq_answer = models.PositiveSmallIntegerField(null=True, blank=True)
+    creative_answer = models.TextField(blank=True)
+    is_correct = models.BooleanField(null=True, blank=True)
+    marks_obtained = models.IntegerField(default=0)
+    def __str__(self):
+        return f"{self.submission.student.username} - Q{self.question.id}"
