@@ -848,7 +848,7 @@ def study_note_add(request):
     subjects = Subject.objects.filter(is_active=True)
     classes = Class.objects.all()
     if request.method == 'POST':
-        StudyNote.objects.create(
+        note = StudyNote.objects.create(
             title=request.POST.get('title'),
             subject=get_object_or_404(Subject, pk=request.POST.get('subject')),
             class_obj=get_object_or_404(Class, pk=request.POST.get('class_obj')),
@@ -857,6 +857,9 @@ def study_note_add(request):
             created_by=request.user,
             is_active=True
         )
+        if request.FILES.get('pdf_file'):
+            note.pdf_file = request.FILES['pdf_file']
+            note.save()
         messages.success(request, 'Note added!')
         return redirect('study_notes')
     return render(request, 'core/study_note_add.html', {
@@ -877,6 +880,8 @@ def study_note_edit(request, pk):
         note.class_obj = get_object_or_404(Class, pk=request.POST.get('class_obj'))
         note.chapter = request.POST.get('chapter')
         note.content = request.POST.get('content', '')
+        if request.FILES.get('pdf_file'):
+            note.pdf_file = request.FILES['pdf_file']
         note.save()
         messages.success(request, 'Note updated!')
         return redirect('study_note_detail', pk=note.pk)
@@ -1182,7 +1187,6 @@ def contest_create(request):
             end_time=request.POST.get('end_time'),
             is_active=True
         )
-        # Questions
         question_texts = request.POST.getlist('question_text')
         question_types = request.POST.getlist('question_type')
         marks_list = request.POST.getlist('marks')
@@ -1340,6 +1344,7 @@ def contest_delete(request, pk):
         return redirect('contest_list')
     return redirect('contest_detail', pk=pk)
 
+
 @login_required
 def profile_view(request):
     return render(request, 'core/profile.html', {
@@ -1360,6 +1365,7 @@ def profile_update(request):
     return render(request, 'core/profile.html', {
         'profile': request.user.profile,
     })
+
 
 # -------- SYLLABUS --------
 
@@ -1454,6 +1460,7 @@ def syllabus_delete(request, pk):
         messages.success(request, 'Syllabus deleted!')
     return redirect('syllabus_list')
 
+
 @superadmin_required
 def export_excel(request):
     import openpyxl
@@ -1463,7 +1470,6 @@ def export_excel(request):
 
     wb = openpyxl.Workbook()
 
-    # -------- Header Style --------
     header_font = Font(bold=True, color='FFFFFF')
     header_fill = PatternFill(start_color='1D4ED8', end_color='1D4ED8', fill_type='solid')
 
@@ -1475,7 +1481,6 @@ def export_excel(request):
             cell.alignment = Alignment(horizontal='center')
             ws.column_dimensions[cell.column_letter].width = max(len(header) + 5, 15)
 
-    # -------- Sheet 1: Users --------
     ws1 = wb.active
     ws1.title = 'Users'
     headers = ['Username', 'Email', 'Role', 'Plan', 'Is Superadmin', 'Joined']
@@ -1490,107 +1495,80 @@ def export_excel(request):
             profile.user.date_joined.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 2: Questions --------
     ws2 = wb.create_sheet('Questions')
     headers2 = ['Board', 'Subject', 'Class', 'Year', 'Chapter', 'Question', 'Type', 'Difficulty', 'Correct Option', 'Answer Hint']
     style_header(ws2, headers2)
     for q in Question.objects.select_related('board', 'subject', 'class_obj').filter(is_active=True):
         ws2.append([
-            q.board.name,
-            q.subject.name,
-            q.class_obj.name,
-            q.year,
-            q.chapter,
-            q.question_text,
-            q.question_type,
-            q.difficulty,
-            q.correct_option,
-            q.answer_hint,
+            q.board.name, q.subject.name, q.class_obj.name, q.year,
+            q.chapter, q.question_text, q.question_type, q.difficulty,
+            q.correct_option, q.answer_hint,
         ])
 
-    # -------- Sheet 3: User Progress --------
     ws3 = wb.create_sheet('Progress')
     headers3 = ['Student', 'Question', 'Subject', 'Correct', 'Answered At']
     style_header(ws3, headers3)
     for p in UserProgress.objects.select_related('user', 'question', 'question__subject').all():
         ws3.append([
-            p.user.username,
-            p.question.question_text[:50],
-            p.question.subject.name,
-            'Yes' if p.is_correct else 'No',
+            p.user.username, p.question.question_text[:50],
+            p.question.subject.name, 'Yes' if p.is_correct else 'No',
             p.answered_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 4: Study Notes --------
     ws4 = wb.create_sheet('Study Notes')
     headers4 = ['Title', 'Subject', 'Class', 'Chapter', 'Created By', 'Created At']
     style_header(ws4, headers4)
     for note in StudyNote.objects.select_related('subject', 'class_obj', 'created_by').all():
         ws4.append([
-            note.title,
-            note.subject.name,
-            note.class_obj.name,
-            note.chapter,
-            note.created_by.username,
+            note.title, note.subject.name, note.class_obj.name,
+            note.chapter, note.created_by.username,
             note.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 5: Contests --------
     ws5 = wb.create_sheet('Contests')
     headers5 = ['Title', 'Subject', 'Class', 'Created By', 'Duration', 'Start', 'End', 'Submissions']
     style_header(ws5, headers5)
     for c in Contest.objects.select_related('subject', 'class_obj', 'created_by').all():
         ws5.append([
-            c.title,
-            c.subject.name,
-            c.class_obj.name,
-            c.created_by.username,
+            c.title, c.subject.name, c.class_obj.name, c.created_by.username,
             f"{c.duration_minutes} min",
             c.start_time.strftime('%d-%m-%Y %H:%M'),
             c.end_time.strftime('%d-%m-%Y %H:%M'),
             c.submissions.filter(is_submitted=True).count(),
         ])
 
-    # -------- Sheet 6: Contest Results --------
     ws6 = wb.create_sheet('Contest Results')
     headers6 = ['Contest', 'Student', 'Total Marks', 'Duration (s)', 'Submitted At']
     style_header(ws6, headers6)
     for sub in ContestSubmission.objects.select_related('contest', 'student').filter(is_submitted=True):
         ws6.append([
-            sub.contest.title,
-            sub.student.username,
-            sub.total_marks,
+            sub.contest.title, sub.student.username, sub.total_marks,
             sub.duration_taken,
             sub.submitted_at.strftime('%d-%m-%Y %H:%M') if sub.submitted_at else '',
         ])
 
-    # -------- Sheet 7: Teacher Feedback --------
     ws7 = wb.create_sheet('Teacher Feedback')
     headers7 = ['Teacher', 'Student', 'Comment', 'Is Read', 'Created At']
     style_header(ws7, headers7)
     for fb in TeacherFeedback.objects.select_related('teacher', 'student').all():
         ws7.append([
-            fb.teacher.username,
-            fb.student.username,
-            fb.comment,
+            fb.teacher.username, fb.student.username, fb.comment,
             'Yes' if fb.is_read else 'No',
             fb.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 8: Bookmarks --------
     ws8 = wb.create_sheet('Bookmarks')
     headers8 = ['Student', 'Note Title', 'Bookmarked At']
     style_header(ws8, headers8)
     for bm in NoteBookmark.objects.select_related('user', 'note').all():
         ws8.append([
-            bm.user.username,
-            bm.note.title,
+            bm.user.username, bm.note.title,
             bm.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Response --------
     from django.utils import timezone
     filename = f"PrepareYourself_Data_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    from django.http import HttpResponse
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
