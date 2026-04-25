@@ -129,6 +129,7 @@ class StudyNote(models.Model):
     class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='notes')
     chapter = models.CharField(max_length=200)
     content = models.TextField(blank=True)
+    pdf_file = models.FileField(upload_to='notes/pdfs/', blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -168,11 +169,9 @@ class Syllabus(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
     class Meta:
         unique_together = ['subject', 'class_obj', 'board']
         ordering = ['subject__name']
-
     def __str__(self):
         return f"{self.subject.name} - {self.class_obj.name} - {self.board.name}"
 
