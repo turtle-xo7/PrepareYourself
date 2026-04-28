@@ -6,5 +6,5 @@ class Profile(models.Model):
     bio = models.TextField(blank=True)
     phone = models.CharField(max_length=15, blank=True)
 
-    def str(self):
+    def __str__(self):
         return self.user.username

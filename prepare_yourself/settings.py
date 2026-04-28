@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-c!s1zjij8*lyj2g#6+r+u_r3$%o@ddp)%(gv4y!z(a$a(q*$=r'
 DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ANTHROPIC_API_KEY = 'ENTER_API_KEY_HERE'
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -79,7 +80,7 @@ STATICFILES_DIRS = [_STATIC_DIR] if _STATIC_DIR.exists() else []
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ✅ Test environment fix
+#  Test environment fix
 if 'test' in sys.argv:
     STATICFILES_DIRS = []
     STATIC_ROOT = BASE_DIR / 'staticfiles'

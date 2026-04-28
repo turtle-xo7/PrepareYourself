@@ -1,10 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}Payment Failed{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-16">
+    <div class="max-w-md w-full">
+        <div class="bg-white rounded-2xl border border-red-200 p-8 shadow-sm text-center">
+            <!-- Error Icon -->
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+
+            <!-- Heading -->
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment Failed</h1>
+
+            <!-- Message -->
+            <p class="text-gray-600 mb-8">
+                Your payment could not be processed. No charges were made.
+            </p>
+
+            <!-- Error Details (if provided) -->
+            {% if error_message %}
+            <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
+                <p class="text-sm text-red-700">{{ error_message }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Buttons -->
+            <div class="flex flex-col gap-3">
+                <a href="{% url 'checkout' %}"
+                   class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                    Try Again
+                </a>
+                <a href="{% url 'home' %}"
+                   class="w-full border border-gray-300 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50 transition">
+                    Go Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
