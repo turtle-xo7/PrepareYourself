@@ -149,6 +149,45 @@ def pricing(request):
     return render(request, 'core/pricing.html')
 
 
+SUBJECT_COLOR_HEX = {
+    'blue': '#3b82f6', 'red': '#ef4444', 'green': '#22c55e',
+    'purple': '#a855f7', 'orange': '#f97316', 'yellow': '#eab308',
+    'pink': '#ec4899', 'teal': '#14b8a6', 'indigo': '#6366f1',
+    'cyan': '#06b6d4', 'emerald': '#10b981',
+}
+
+
+def _streak_from_dates(active_dates, today):
+    """Walk backwards from today (or yesterday) and count consecutive active days."""
+    from datetime import timedelta
+    if today in active_dates:
+        day = today
+    elif (today - timedelta(days=1)) in active_dates:
+        day = today - timedelta(days=1)
+    else:
+        return 0
+    count = 0
+    while day in active_dates:
+        count += 1
+        day = day - timedelta(days=1)
+    return count
+
+
+def _longest_streak(active_dates):
+    from datetime import timedelta
+    if not active_dates:
+        return 0
+    sorted_dates = sorted(active_dates)
+    longest = run = 1
+    for i in range(1, len(sorted_dates)):
+        if (sorted_dates[i] - sorted_dates[i - 1]).days == 1:
+            run += 1
+            longest = max(longest, run)
+        else:
+            run = 1
+    return max(longest, run)
+
+
 @login_required
 def dashboard(request):
     try:
@@ -166,37 +205,242 @@ def dashboard(request):
 
     from .models import UserProgress, TeacherFeedback
     from django.db.models import Count, Q
+    from django.db.models.functions import TruncDate
     from datetime import timedelta
     from django.utils import timezone
+    from collections import defaultdict, Counter
 
     user = request.user
-    progress = UserProgress.objects.filter(user=user)
+    progress = UserProgress.objects.filter(user=user).select_related(
+        'question', 'question__subject'
+    )
+
+    # ----- Headline stats -----
     total_answered = progress.count()
     total_correct = progress.filter(is_correct=True).count()
     total_wrong = total_answered - total_correct
-    accuracy = round((total_correct / total_answered * 100), 1) if total_answered > 0 else 0
+    accuracy = round((total_correct / total_answered * 100), 1) if total_answered else 0
 
-    subject_progress = progress.values('question__subject__name').annotate(
-        total=Count('id'),
-        correct=Count('id', filter=Q(is_correct=True))
-    ).order_by('-total')[:5]
-
+    # ----- This week vs last week (for trend arrows) -----
     today = timezone.now().date()
+    week_start = today - timedelta(days=6)
+    last_week_start = today - timedelta(days=13)
+    last_week_end = today - timedelta(days=7)
+
+    this_week_qs = progress.filter(answered_at__date__gte=week_start)
+    last_week_qs = progress.filter(answered_at__date__range=(last_week_start, last_week_end))
+    this_week_count = this_week_qs.count()
+    last_week_count = last_week_qs.count()
+    this_week_correct = this_week_qs.filter(is_correct=True).count()
+    last_week_correct = last_week_qs.filter(is_correct=True).count()
+
+    this_week_acc = round((this_week_correct / this_week_count * 100), 1) if this_week_count else 0
+    last_week_acc = round((last_week_correct / last_week_count * 100), 1) if last_week_count else 0
+    accuracy_delta = round(this_week_acc - last_week_acc, 1)
+
+    if last_week_count == 0:
+        volume_delta_pct = None
+    else:
+        volume_delta_pct = round(((this_week_count - last_week_count) / last_week_count) * 100, 1)
+
+    # ----- Streak -----
+    active_dates = set(
+        progress.annotate(d=TruncDate('answered_at'))
+                .values_list('d', flat=True).distinct()
+    )
+    current_streak = _streak_from_dates(active_dates, today)
+    longest_streak = _longest_streak(active_dates)
+
+    daily_goal = 10
+    today_count = progress.filter(answered_at__date=today).count()
+    goal_progress = min(round((today_count / daily_goal) * 100), 100) if daily_goal else 0
+
+    if current_streak >= 30:
+        streak_msg = "🔥 দারুণ! তুমি প্রায় unstoppable — keep the fire alive!"
+    elif current_streak >= 7:
+        streak_msg = "এক সপ্তাহ ধরে চালিয়ে যাচ্ছ। Consistency জেতে — keep going!"
+    elif current_streak >= 3:
+        streak_msg = "ভালো streak তৈরি হচ্ছে। আজ আরও কয়েকটা প্রশ্ন practice করো।"
+    elif current_streak >= 1:
+        streak_msg = "শুরু হয়েছে! আগামীকালও log in করে streak ধরে রাখো।"
+    else:
+        streak_msg = "আজই শুরু করো — একটাই প্রশ্ন answer করো, streak শুরু হবে।"
+
+    # ----- 30-day heatmap -----
+    counts_30 = dict(
+        progress.filter(answered_at__date__gte=today - timedelta(days=29))
+                .annotate(d=TruncDate('answered_at'))
+                .values_list('d')
+                .annotate(c=Count('id'))
+                .values_list('d', 'c')
+    )
+    heatmap = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        c = counts_30.get(day, 0)
+        if c == 0:
+            lvl = 0
+        elif c < 5:
+            lvl = 1
+        elif c < 15:
+            lvl = 2
+        elif c < 30:
+            lvl = 3
+        else:
+            lvl = 4
+        heatmap.append({
+            'date': day.strftime('%Y-%m-%d'),
+            'label': day.strftime('%d %b'),
+            'count': c,
+            'level': lvl,
+        })
+
+    # ----- 7-day daily activity -----
     daily_data = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
-        count = progress.filter(answered_at__date=day).count()
-        daily_data.append({'day': day.strftime('%a'), 'count': count})
+        c = progress.filter(answered_at__date=day).count()
+        cc = progress.filter(answered_at__date=day, is_correct=True).count()
+        daily_data.append({'day': day.strftime('%a'), 'count': c, 'correct': cc})
 
+    # ----- 30-day accuracy trend -----
+    by_day = {}
+    rows_30 = (
+        progress.filter(answered_at__date__gte=today - timedelta(days=29))
+                .annotate(d=TruncDate('answered_at'))
+                .values('d')
+                .annotate(total=Count('id'), correct=Count('id', filter=Q(is_correct=True)))
+    )
+    for r in rows_30:
+        by_day[r['d']] = (r['total'], r['correct'])
+    accuracy_trend = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        t, c = by_day.get(day, (0, 0))
+        accuracy_trend.append({
+            'day': day.strftime('%d %b'),
+            'accuracy': round((c / t * 100), 1) if t else None,
+        })
+
+    # ----- Subjects (collapsible cards + pie) -----
+    subj_agg = list(
+        progress.values(
+            'question__subject__id',
+            'question__subject__name',
+            'question__subject__icon',
+            'question__subject__color',
+        ).annotate(
+            total=Count('id'),
+            correct=Count('id', filter=Q(is_correct=True)),
+        ).order_by('-total')
+    )
+    diff_rows = list(
+        progress.values('question__subject__id', 'question__difficulty')
+                .annotate(c=Count('id'))
+    )
+    diff_map = defaultdict(lambda: {'Easy': 0, 'Medium': 0, 'Hard': 0})
+    for r in diff_rows:
+        diff_map[r['question__subject__id']][r['question__difficulty']] = r['c']
+
+    week_rows = list(
+        this_week_qs.annotate(d=TruncDate('answered_at'))
+                    .values('question__subject__id', 'd')
+                    .annotate(c=Count('id'))
+    )
+    week_map = defaultdict(dict)
+    for r in week_rows:
+        week_map[r['question__subject__id']][r['d']] = r['c']
+
+    subjects_data = []
+    for s in subj_agg:
+        sid = s['question__subject__id']
+        total = s['total']
+        correct = s['correct']
+        wrong = total - correct
+        acc = round((correct / total * 100), 1) if total else 0
+        weekly = []
+        max_in_week = 0
+        for i in range(6, -1, -1):
+            day = today - timedelta(days=i)
+            c = week_map.get(sid, {}).get(day, 0)
+            max_in_week = max(max_in_week, c)
+            weekly.append({'day': day.strftime('%a'), 'count': c})
+        for w in weekly:
+            w['height'] = round((w['count'] / max_in_week) * 100) if max_in_week else 0
+        color_name = s['question__subject__color'] or 'blue'
+        subjects_data.append({
+            'id': sid,
+            'name': s['question__subject__name'],
+            'icon': s['question__subject__icon'] or '📚',
+            'color': color_name,
+            'hex': SUBJECT_COLOR_HEX.get(color_name, '#3b82f6'),
+            'total': total,
+            'correct': correct,
+            'wrong': wrong,
+            'accuracy': acc,
+            'difficulty': diff_map[sid],
+            'weekly': weekly,
+        })
+
+    # ----- Insights -----
+    weekday_total = Counter()
+    for ts in progress.values_list('answered_at', flat=True):
+        weekday_total[ts.strftime('%A')] += 1
+    best_day = max(weekday_total, key=weekday_total.get) if weekday_total else None
+
+    weakest = None
+    for s in subjects_data:
+        if s['total'] >= 5:
+            if weakest is None or s['accuracy'] < weakest['accuracy']:
+                weakest = s
+
+    # ----- Rank (among students) by total correct answers -----
+    rank = User.objects.filter(profile__role='STUDENT').annotate(
+        cc=Count('progress', filter=Q(progress__is_correct=True))
+    ).filter(cc__gt=total_correct).count() + 1
+    total_students = User.objects.filter(profile__role='STUDENT').count() or 1
+
+    # ----- Teacher feedback -----
+    feedbacks = list(
+        TeacherFeedback.objects.filter(student=user)
+                                .select_related('teacher', 'progress__question__subject')
+                                .order_by('-created_at')[:3]
+    )
     unread_count = TeacherFeedback.objects.filter(student=user, is_read=False).count()
 
     return render(request, 'core/dashboard.html', {
+        # headline
         'total_answered': total_answered,
         'total_correct': total_correct,
         'total_wrong': total_wrong,
         'accuracy': accuracy,
-        'subject_progress': list(subject_progress),
+        # trends
+        'this_week_count': this_week_count,
+        'last_week_count': last_week_count,
+        'volume_delta_pct': volume_delta_pct,
+        'this_week_acc': this_week_acc,
+        'accuracy_delta': accuracy_delta,
+        # streak
+        'current_streak': current_streak,
+        'longest_streak': longest_streak,
+        'today_count': today_count,
+        'daily_goal': daily_goal,
+        'goal_progress': goal_progress,
+        'streak_msg': streak_msg,
+        'heatmap': heatmap,
+        # charts
         'daily_data': daily_data,
+        'accuracy_trend': accuracy_trend,
+        # subjects
+        'subjects_data': subjects_data,
+        # insights
+        'best_day': best_day,
+        'weakest': weakest,
+        # rank
+        'rank': rank,
+        'total_students': total_students,
+        # feedback
+        'feedbacks': feedbacks,
         'unread_count': unread_count,
     })
 
@@ -218,44 +462,92 @@ def progress_history(request):
 
     from .models import UserProgress
     from django.db.models import Count, Q
-    from datetime import timedelta
+    from django.db.models.functions import TruncDate
+    from datetime import timedelta, datetime as dt
     from django.utils import timezone
+    from django.core.paginator import Paginator
 
     user = request.user
-    progress = UserProgress.objects.filter(user=user).select_related('question', 'question__subject')
+    base = UserProgress.objects.filter(user=user).select_related(
+        'question', 'question__subject', 'question__board'
+    )
 
-    total_answered = progress.count()
-    total_correct = progress.filter(is_correct=True).count()
-    total_wrong = total_answered - total_correct
-    accuracy = round((total_correct / total_answered * 100), 1) if total_answered > 0 else 0
+    # Filters
+    subject_filter = request.GET.get('subject') or ''
+    result_filter = request.GET.get('result') or ''
+    difficulty_filter = request.GET.get('difficulty') or ''
+    date_from = request.GET.get('from') or ''
+    date_to = request.GET.get('to') or ''
 
-    subject_progress = progress.values('question__subject__name').annotate(
-        total=Count('id'),
-        correct=Count('id', filter=Q(is_correct=True))
-    ).order_by('-total')
+    qs = base
+    if subject_filter:
+        qs = qs.filter(question__subject_id=subject_filter)
+    if result_filter == 'correct':
+        qs = qs.filter(is_correct=True)
+    elif result_filter == 'wrong':
+        qs = qs.filter(is_correct=False)
+    if difficulty_filter in ('Easy', 'Medium', 'Hard'):
+        qs = qs.filter(question__difficulty=difficulty_filter)
+    if date_from:
+        try:
+            qs = qs.filter(answered_at__date__gte=dt.strptime(date_from, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            qs = qs.filter(answered_at__date__lte=dt.strptime(date_to, '%Y-%m-%d').date())
+        except ValueError:
+            pass
 
+    qs = qs.order_by('-answered_at')
+
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    filtered_count = paginator.count
+
+    # Summary stats — over user's full history (not the filter)
     today = timezone.now().date()
-    daily_data = []
-    for i in range(29, -1, -1):
-        day = today - timedelta(days=i)
-        count = progress.filter(answered_at__date=day).count()
-        correct = progress.filter(answered_at__date=day, is_correct=True).count()
-        daily_data.append({
-            'day': day.strftime('%d %b'),
-            'count': count,
-            'correct': correct
-        })
+    week_start = today - timedelta(days=6)
+    week_qs = base.filter(answered_at__date__gte=week_start)
+    week_total = week_qs.count()
+    week_correct = week_qs.filter(is_correct=True).count()
+    week_accuracy = round((week_correct / week_total * 100), 1) if week_total else 0
 
-    history = progress.order_by('-answered_at')[:50]
+    active_dates = set(
+        base.annotate(d=TruncDate('answered_at')).values_list('d', flat=True).distinct()
+    )
+    current_streak = _streak_from_dates(active_dates, today)
+
+    total_all = base.count()
+    correct_all = base.filter(is_correct=True).count()
+    accuracy_all = round((correct_all / total_all * 100), 1) if total_all else 0
+
+    subjects = Subject.objects.filter(is_active=True).order_by('name')
+
+    params = request.GET.copy()
+    params.pop('page', None)
+    qs_string = params.urlencode()
+
+    has_filters = any([subject_filter, result_filter, difficulty_filter, date_from, date_to])
 
     return render(request, 'core/progress_history.html', {
-        'total_answered': total_answered,
-        'total_correct': total_correct,
-        'total_wrong': total_wrong,
-        'accuracy': accuracy,
-        'subject_progress': list(subject_progress),
-        'daily_data': daily_data,
-        'history': history,
+        'page_obj': page_obj,
+        'filtered_count': filtered_count,
+        'subjects': subjects,
+        'subject_filter': subject_filter,
+        'result_filter': result_filter,
+        'difficulty_filter': difficulty_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'has_filters': has_filters,
+        'qs_string': qs_string,
+        # summary
+        'current_streak': current_streak,
+        'week_total': week_total,
+        'week_correct': week_correct,
+        'week_accuracy': week_accuracy,
+        'total_all': total_all,
+        'accuracy_all': accuracy_all,
     })
 
 
@@ -848,7 +1140,7 @@ def study_note_add(request):
     subjects = Subject.objects.filter(is_active=True)
     classes = Class.objects.all()
     if request.method == 'POST':
-        StudyNote.objects.create(
+        note = StudyNote.objects.create(
             title=request.POST.get('title'),
             subject=get_object_or_404(Subject, pk=request.POST.get('subject')),
             class_obj=get_object_or_404(Class, pk=request.POST.get('class_obj')),
@@ -857,6 +1149,9 @@ def study_note_add(request):
             created_by=request.user,
             is_active=True
         )
+        if request.FILES.get('pdf_file'):
+            note.pdf_file = request.FILES['pdf_file']
+            note.save()
         messages.success(request, 'Note added!')
         return redirect('study_notes')
     return render(request, 'core/study_note_add.html', {
@@ -877,6 +1172,8 @@ def study_note_edit(request, pk):
         note.class_obj = get_object_or_404(Class, pk=request.POST.get('class_obj'))
         note.chapter = request.POST.get('chapter')
         note.content = request.POST.get('content', '')
+        if request.FILES.get('pdf_file'):
+            note.pdf_file = request.FILES['pdf_file']
         note.save()
         messages.success(request, 'Note updated!')
         return redirect('study_note_detail', pk=note.pk)
@@ -977,7 +1274,7 @@ def generate_note_ai(request):
             "max_tokens": 2000,
             "messages": [{
                 "role": "user",
-                "content": f"এই topic এর উপর একটি সম্পূর্ণ study note বাংলায় লিখো। Note টি SSC/HSC students এর জন্য। Topic: {topic}, Chapter: {chapter}. Note এ heading, subheading, examples, এবং key points থাকবে। HTML format এ দাও।"
+                "content": f"এই topic এর উপর একটি সম্পূর্ণ study note বাংলায় লিখো। Note টি SSC/HSC students এর জন্য। Topic: {topic}, Chapter: {chapter}. Note এ heading, subheading, examples, এবং key points থাকবে। HTML format এ দাও। Math/chemistry equation এর জন্য LaTeX delimiter use করো: inline math এর জন্য $...$ এবং display equation এর জন্য $$...$$ (যেমন: $E=mc^2$ অথবা $$\\int_0^1 x\\,dx$$)।"
             }]
         }, ensure_ascii=False).encode('utf-8')
 
@@ -1033,7 +1330,7 @@ def generate_mcq(request, pk):
             "max_tokens": 2000,
             "messages": [{
                 "role": "user",
-                "content": f"এই study note থেকে ১০টি MCQ প্রশ্ন বাংলায় তৈরি করো। প্রতিটি প্রশ্নে ৪টি option এবং সঠিক উত্তর দাও। JSON format এ দাও এভাবে: {{\"mcqs\": [{{\"question\": \"...\", \"options\": [\"ক) ...\", \"খ) ...\", \"গ) ...\", \"ঘ) ...\"], \"answer\": \"ক\"}}]}}\n\nNote:\n{note.content[:3000]}"
+                "content": f"এই study note থেকে ১০টি MCQ প্রশ্ন বাংলায় তৈরি করো। প্রতিটি প্রশ্নে ৪টি option এবং সঠিক উত্তর দাও। Math/chemistry equation এর জন্য LaTeX delimiter use করো ($...$ inline এর জন্য, $$...$$ display এর জন্য)। JSON format এ দাও এভাবে: {{\"mcqs\": [{{\"question\": \"...\", \"options\": [\"ক) ...\", \"খ) ...\", \"গ) ...\", \"ঘ) ...\"], \"answer\": \"ক\"}}]}}\n\nNote:\n{note.content[:3000]}"
             }]
         }, ensure_ascii=False).encode('utf-8')
 
@@ -1078,7 +1375,7 @@ def summarize_note(request, pk):
             "max_tokens": 1000,
             "messages": [{
                 "role": "user",
-                "content": f"এই study note টি সহজ বাংলায় সংক্ষেপ করো। Key points bullet points এ দাও। ৩-৫ টি main point এবং একটি summary paragraph লিখো।\n\nNote:\n{note.content[:3000]}"
+                "content": f"এই study note টি সহজ বাংলায় সংক্ষেপ করো। Key points bullet points এ দাও। ৩-৫ টি main point এবং একটি summary paragraph লিখো। Math/chemistry equation এর জন্য LaTeX delimiter use করো ($...$ inline, $$...$$ display)।\n\nNote:\n{note.content[:3000]}"
             }]
         }, ensure_ascii=False).encode('utf-8')
 
@@ -1119,7 +1416,7 @@ def ask_ai(request):
             "messages": [
                 {
                     "role": "user",
-                    "content": f"Based on this study note, answer in Bengali:\n\nNote:\n{note_content}\n\nQuestion: {question}\n\nPlease respond in Bengali."
+                    "content": f"Based on this study note, answer in Bengali:\n\nNote:\n{note_content}\n\nQuestion: {question}\n\nPlease respond in Bengali. For any math or chemistry equations, wrap them in LaTeX delimiters: $...$ for inline, $$...$$ for display equations."
                 }
             ]
         }, ensure_ascii=False).encode('utf-8')
@@ -1182,7 +1479,6 @@ def contest_create(request):
             end_time=request.POST.get('end_time'),
             is_active=True
         )
-        # Questions
         question_texts = request.POST.getlist('question_text')
         question_types = request.POST.getlist('question_type')
         marks_list = request.POST.getlist('marks')
@@ -1340,6 +1636,7 @@ def contest_delete(request, pk):
         return redirect('contest_list')
     return redirect('contest_detail', pk=pk)
 
+
 @login_required
 def profile_view(request):
     return render(request, 'core/profile.html', {
@@ -1360,6 +1657,7 @@ def profile_update(request):
     return render(request, 'core/profile.html', {
         'profile': request.user.profile,
     })
+
 
 # -------- SYLLABUS --------
 
@@ -1454,6 +1752,7 @@ def syllabus_delete(request, pk):
         messages.success(request, 'Syllabus deleted!')
     return redirect('syllabus_list')
 
+
 @superadmin_required
 def export_excel(request):
     import openpyxl
@@ -1463,7 +1762,6 @@ def export_excel(request):
 
     wb = openpyxl.Workbook()
 
-    # -------- Header Style --------
     header_font = Font(bold=True, color='FFFFFF')
     header_fill = PatternFill(start_color='1D4ED8', end_color='1D4ED8', fill_type='solid')
 
@@ -1475,7 +1773,6 @@ def export_excel(request):
             cell.alignment = Alignment(horizontal='center')
             ws.column_dimensions[cell.column_letter].width = max(len(header) + 5, 15)
 
-    # -------- Sheet 1: Users --------
     ws1 = wb.active
     ws1.title = 'Users'
     headers = ['Username', 'Email', 'Role', 'Plan', 'Is Superadmin', 'Joined']
@@ -1490,107 +1787,80 @@ def export_excel(request):
             profile.user.date_joined.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 2: Questions --------
     ws2 = wb.create_sheet('Questions')
     headers2 = ['Board', 'Subject', 'Class', 'Year', 'Chapter', 'Question', 'Type', 'Difficulty', 'Correct Option', 'Answer Hint']
     style_header(ws2, headers2)
     for q in Question.objects.select_related('board', 'subject', 'class_obj').filter(is_active=True):
         ws2.append([
-            q.board.name,
-            q.subject.name,
-            q.class_obj.name,
-            q.year,
-            q.chapter,
-            q.question_text,
-            q.question_type,
-            q.difficulty,
-            q.correct_option,
-            q.answer_hint,
+            q.board.name, q.subject.name, q.class_obj.name, q.year,
+            q.chapter, q.question_text, q.question_type, q.difficulty,
+            q.correct_option, q.answer_hint,
         ])
 
-    # -------- Sheet 3: User Progress --------
     ws3 = wb.create_sheet('Progress')
     headers3 = ['Student', 'Question', 'Subject', 'Correct', 'Answered At']
     style_header(ws3, headers3)
     for p in UserProgress.objects.select_related('user', 'question', 'question__subject').all():
         ws3.append([
-            p.user.username,
-            p.question.question_text[:50],
-            p.question.subject.name,
-            'Yes' if p.is_correct else 'No',
+            p.user.username, p.question.question_text[:50],
+            p.question.subject.name, 'Yes' if p.is_correct else 'No',
             p.answered_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 4: Study Notes --------
     ws4 = wb.create_sheet('Study Notes')
     headers4 = ['Title', 'Subject', 'Class', 'Chapter', 'Created By', 'Created At']
     style_header(ws4, headers4)
     for note in StudyNote.objects.select_related('subject', 'class_obj', 'created_by').all():
         ws4.append([
-            note.title,
-            note.subject.name,
-            note.class_obj.name,
-            note.chapter,
-            note.created_by.username,
+            note.title, note.subject.name, note.class_obj.name,
+            note.chapter, note.created_by.username,
             note.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 5: Contests --------
     ws5 = wb.create_sheet('Contests')
     headers5 = ['Title', 'Subject', 'Class', 'Created By', 'Duration', 'Start', 'End', 'Submissions']
     style_header(ws5, headers5)
     for c in Contest.objects.select_related('subject', 'class_obj', 'created_by').all():
         ws5.append([
-            c.title,
-            c.subject.name,
-            c.class_obj.name,
-            c.created_by.username,
+            c.title, c.subject.name, c.class_obj.name, c.created_by.username,
             f"{c.duration_minutes} min",
             c.start_time.strftime('%d-%m-%Y %H:%M'),
             c.end_time.strftime('%d-%m-%Y %H:%M'),
             c.submissions.filter(is_submitted=True).count(),
         ])
 
-    # -------- Sheet 6: Contest Results --------
     ws6 = wb.create_sheet('Contest Results')
     headers6 = ['Contest', 'Student', 'Total Marks', 'Duration (s)', 'Submitted At']
     style_header(ws6, headers6)
     for sub in ContestSubmission.objects.select_related('contest', 'student').filter(is_submitted=True):
         ws6.append([
-            sub.contest.title,
-            sub.student.username,
-            sub.total_marks,
+            sub.contest.title, sub.student.username, sub.total_marks,
             sub.duration_taken,
             sub.submitted_at.strftime('%d-%m-%Y %H:%M') if sub.submitted_at else '',
         ])
 
-    # -------- Sheet 7: Teacher Feedback --------
     ws7 = wb.create_sheet('Teacher Feedback')
     headers7 = ['Teacher', 'Student', 'Comment', 'Is Read', 'Created At']
     style_header(ws7, headers7)
     for fb in TeacherFeedback.objects.select_related('teacher', 'student').all():
         ws7.append([
-            fb.teacher.username,
-            fb.student.username,
-            fb.comment,
+            fb.teacher.username, fb.student.username, fb.comment,
             'Yes' if fb.is_read else 'No',
             fb.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Sheet 8: Bookmarks --------
     ws8 = wb.create_sheet('Bookmarks')
     headers8 = ['Student', 'Note Title', 'Bookmarked At']
     style_header(ws8, headers8)
     for bm in NoteBookmark.objects.select_related('user', 'note').all():
         ws8.append([
-            bm.user.username,
-            bm.note.title,
+            bm.user.username, bm.note.title,
             bm.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
-    # -------- Response --------
     from django.utils import timezone
     filename = f"PrepareYourself_Data_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    from django.http import HttpResponse
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )

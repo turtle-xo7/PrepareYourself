@@ -60,6 +60,7 @@ urlpatterns = [
     path('superadmin/user/<int:pk>/update/', views.update_user, name='update_user'),
     path('superadmin/user/<int:pk>/delete/', views.delete_user, name='delete_user'),
     path('superadmin/user/<int:pk>/cancel-subscription/', views.cancel_subscription, name='cancel_subscription'),
+    path('superadmin/export/', views.export_excel, name='export_excel'),
 
     # Teacher
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
@@ -98,7 +99,8 @@ urlpatterns = [
     path('syllabus/<int:pk>/', views.syllabus_detail, name='syllabus_detail'),
     path('syllabus/<int:pk>/edit/', views.syllabus_edit, name='syllabus_edit'),
     path('syllabus/<int:pk>/delete/', views.syllabus_delete, name='syllabus_delete'),
-
-    #admin database
-    path('superadmin/export/', views.export_excel, name='export_excel'),
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,102 +1,526 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Card base + entrance */
+    .dash-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        opacity: 0;
+        transform: translateY(8px);
+        animation: card-rise .5s cubic-bezier(.2,.7,.3,1) forwards;
+    }
+    .dash-card:hover {
+        box-shadow: 0 8px 24px -8px rgba(15, 23, 42, .12);
+    }
+    .dash-card-flat {
+        transition: box-shadow .2s ease, transform .2s ease;
+    }
+    @keyframes card-rise {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Stagger by index */
+    .stagger > * { animation-delay: calc(var(--i, 0) * 60ms); }
+
+    /* Heatmap */
+    .hm-cell {
+        aspect-ratio: 1 / 1;
+        border-radius: 4px;
+        transition: transform .15s ease;
+    }
+    .hm-cell:hover { transform: scale(1.25); }
+    .hm-0 { background: #f1f5f9; }
+    .hm-1 { background: #bbf7d0; }
+    .hm-2 { background: #4ade80; }
+    .hm-3 { background: #16a34a; }
+    .hm-4 { background: #14532d; }
+
+    /* Accordion */
+    .acc-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .35s ease;
+    }
+    .acc-arrow { transition: transform .25s ease; }
+    .acc-row.open .acc-arrow { transform: rotate(180deg); }
+    .acc-row.open { background: #f8fafc; }
+
+    /* Mini accuracy ring */
+    .ring {
+        --p: 0;
+        --c: #3b82f6;
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        background:
+            conic-gradient(var(--c) calc(var(--p) * 1%), #e5e7eb 0);
+        display: grid; place-items: center;
+        position: relative;
+    }
+    .ring::after {
+        content: '';
+        position: absolute;
+        inset: 5px;
+        background: #fff;
+        border-radius: 50%;
+    }
+    .ring > span {
+        position: relative;
+        z-index: 1;
+        font-size: 12px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* Trend chip */
+    .trend-up { color: #16a34a; }
+    .trend-down { color: #dc2626; }
+    .trend-flat { color: #64748b; }
+
+    /* Mini bar (per-subject weekly) */
+    .mini-bar {
+        background: #e5e7eb;
+        width: 8px;
+        border-radius: 2px;
+        position: relative;
+    }
+    .mini-bar > span {
+        display: block;
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: var(--c, #3b82f6);
+        border-radius: 2px;
+        transition: height .6s cubic-bezier(.2,.7,.3,1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">📊 My Progress</h1>
-        <p class="text-gray-500 text-sm mt-1">স্বাগতম, {{ request.user.username }}!</p>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-2xl border border-gray-200 p-5">
-            <p class="text-xs text-gray-500 mb-1">Total Answered</p>
-            <p class="text-3xl font-bold text-gray-900">{{ total_answered }}</p>
+    <!-- ========== Header ========== -->
+    <div class="dash-card dash-card-flat p-6 flex flex-wrap items-end justify-between gap-4" style="--i: 0;">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+                Welcome back, {{ request.user.username }} <span class="inline-block">👋</span>
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">{{ streak_msg }}</p>
         </div>
-        <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
-            <p class="text-xs text-green-600 mb-1">Correct ✓</p>
-            <p class="text-3xl font-bold text-green-700">{{ total_correct }}</p>
-        </div>
-        <div class="bg-red-50 rounded-2xl border border-red-200 p-5">
-            <p class="text-xs text-red-500 mb-1">Wrong ✗</p>
-            <p class="text-3xl font-bold text-red-600">{{ total_wrong }}</p>
-        </div>
-        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
-            <p class="text-xs text-blue-500 mb-1">Accuracy</p>
-            <p class="text-3xl font-bold text-blue-700">{{ accuracy }}%</p>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'progress_history' %}"
+               class="text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition">
+                Full history →
+            </a>
+            <a href="{% url 'question_bank' %}"
+               class="bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-800 transition shadow-sm">
+                📚 Practice now
+            </a>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-
-        <!-- Accuracy Chart -->
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 class="font-semibold text-gray-900 mb-4">Correct vs Wrong</h2>
-            <canvas id="accuracyChart" height="200"></canvas>
+    <!-- ========== Step 6: Quick Stats Bar ========== -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger">
+        <!-- Total -->
+        <div class="dash-card p-5" style="--i: 1;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Total Answered</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1 counter" data-target="{{ total_answered }}">0</p>
+            <div class="mt-2 text-xs flex items-center gap-1">
+                {% if volume_delta_pct is None %}
+                    <span class="trend-flat">— no comparison yet</span>
+                {% elif volume_delta_pct > 0 %}
+                    <span class="trend-up">▲ {{ volume_delta_pct }}%</span>
+                    <span class="text-gray-400">vs last week</span>
+                {% elif volume_delta_pct < 0 %}
+                    <span class="trend-down">▼ {{ volume_delta_pct }}%</span>
+                    <span class="text-gray-400">vs last week</span>
+                {% else %}
+                    <span class="trend-flat">▬ same as last week</span>
+                {% endif %}
+            </div>
         </div>
 
-        <!-- Daily Activity -->
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 class="font-semibold text-gray-900 mb-4">Last 7 Days Activity</h2>
-            <canvas id="dailyChart" height="200"></canvas>
+        <!-- Accuracy -->
+        <div class="dash-card p-5" style="--i: 2;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Accuracy</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">
+                <span class="counter" data-target="{{ accuracy }}" data-decimals="1">0</span>%
+            </p>
+            <div class="mt-2 text-xs flex items-center gap-1">
+                {% if accuracy_delta > 0 %}
+                    <span class="trend-up">▲ {{ accuracy_delta }} pts</span>
+                {% elif accuracy_delta < 0 %}
+                    <span class="trend-down">▼ {{ accuracy_delta }} pts</span>
+                {% else %}
+                    <span class="trend-flat">▬ flat</span>
+                {% endif %}
+                <span class="text-gray-400">this week</span>
+            </div>
+        </div>
+
+        <!-- Streak -->
+        <div class="dash-card p-5" style="--i: 3;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Streak</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">
+                <span class="counter" data-target="{{ current_streak }}">0</span>
+                <span class="text-base font-medium text-gray-500">days</span>
+                <span class="ml-0.5">🔥</span>
+            </p>
+            <p class="mt-2 text-xs text-gray-400">Best: {{ longest_streak }} days</p>
+        </div>
+
+        <!-- Rank -->
+        <div class="dash-card p-5" style="--i: 4;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Your Rank</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">
+                #<span class="counter" data-target="{{ rank }}">0</span>
+            </p>
+            <p class="mt-2 text-xs text-gray-400">of {{ total_students }} students</p>
         </div>
     </div>
 
-    <!-- Subject Progress -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-        <h2 class="font-semibold text-gray-900 mb-4">Subject wise Progress</h2>
-        {% if subject_progress %}
-        <div class="space-y-4">
-            {% for sp in subject_progress %}
-            <div>
-                <div class="flex justify-between text-sm mb-1">
-                    <span class="font-medium text-gray-700">{{ sp.question__subject__name }}</span>
-                    <span class="text-gray-500">{{ sp.correct }}/{{ sp.total }} correct</span>
+    <!-- ========== Step 4: Streak + Step 5 part 1: Accuracy Trend ========== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Streak Widget -->
+        <div class="dash-card p-6 lg:col-span-1" style="--i: 5;">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-semibold text-gray-900">Daily Streak</h2>
+                <span class="text-2xl">🔥</span>
+            </div>
+
+            <div class="flex items-end gap-1 mb-1">
+                <span class="text-5xl font-bold text-gray-900 leading-none">{{ current_streak }}</span>
+                <span class="text-sm text-gray-500 mb-1">days in a row</span>
+            </div>
+            <p class="text-xs text-gray-400">Personal best: <span class="font-medium text-gray-600">{{ longest_streak }} days</span></p>
+
+            <!-- Daily goal -->
+            <div class="mt-5">
+                <div class="flex items-center justify-between text-xs text-gray-600 mb-1.5">
+                    <span class="font-medium">Today's goal</span>
+                    <span>{{ today_count }} / {{ daily_goal }}</span>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-2">
-                    <div class="bg-blue-600 h-2 rounded-full"
-                        style="width: {% widthratio sp.correct sp.total 100 %}%">
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-orange-400 to-pink-500 rounded-full transition-all duration-700"
+                         style="width: {{ goal_progress }}%"></div>
+                </div>
+                {% if today_count >= daily_goal %}
+                    <p class="text-xs text-green-600 mt-2 font-medium">✓ Today's goal complete!</p>
+                {% endif %}
+            </div>
+
+            <!-- 30-day heatmap -->
+            <div class="mt-6">
+                <p class="text-xs font-medium text-gray-600 mb-2">Last 30 days</p>
+                <div class="grid gap-1.5" style="grid-template-columns: repeat(15, minmax(0, 1fr));">
+                    {% for d in heatmap %}
+                    <div class="hm-cell hm-{{ d.level }}"
+                         title="{{ d.label }} — {{ d.count }} answered"></div>
+                    {% endfor %}
+                </div>
+                <div class="flex items-center justify-end gap-1 mt-3 text-[10px] text-gray-400">
+                    <span>less</span>
+                    <span class="hm-cell hm-0 w-2.5 h-2.5"></span>
+                    <span class="hm-cell hm-1 w-2.5 h-2.5"></span>
+                    <span class="hm-cell hm-2 w-2.5 h-2.5"></span>
+                    <span class="hm-cell hm-3 w-2.5 h-2.5"></span>
+                    <span class="hm-cell hm-4 w-2.5 h-2.5"></span>
+                    <span>more</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accuracy Trend Chart -->
+        <div class="dash-card p-6 lg:col-span-2" style="--i: 6;">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-base font-semibold text-gray-900">Accuracy Trend</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Last 30 days</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-gray-900">{{ this_week_acc }}%</p>
+                    <p class="text-xs text-gray-500">this week</p>
+                </div>
+            </div>
+            <div class="h-56"><canvas id="accuracyTrendChart"></canvas></div>
+
+            <!-- Insights -->
+            <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3 pt-5 border-t border-gray-100">
+                {% if best_day %}
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                    <div class="text-xl">⭐</div>
+                    <div class="flex-1">
+                        <p class="text-xs text-amber-700 font-medium uppercase tracking-wider">Best day</p>
+                        <p class="text-sm text-gray-800 mt-0.5">You're most active on <span class="font-semibold">{{ best_day }}</span>.</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <div class="text-xl">📊</div>
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Best day</p>
+                        <p class="text-sm text-gray-600 mt-0.5">Answer more questions to unlock insights.</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if weakest %}
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-rose-50 border border-rose-100">
+                    <div class="text-xl">🎯</div>
+                    <div class="flex-1">
+                        <p class="text-xs text-rose-700 font-medium uppercase tracking-wider">Weakest subject</p>
+                        <p class="text-sm text-gray-800 mt-0.5">
+                            <span class="font-semibold">{{ weakest.name }}</span> at {{ weakest.accuracy }}% —
+                            <a href="{% url 'question_bank' %}?subject={{ weakest.id }}"
+                               class="text-rose-700 underline hover:no-underline font-medium">practice</a>.
+                        </p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <div class="text-xl">🎯</div>
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Weakest subject</p>
+                        <p class="text-sm text-gray-600 mt-0.5">Need 5+ attempts in a subject to identify.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Step 5 part 2: Bar + Pie ========== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="dash-card p-6 lg:col-span-2" style="--i: 7;">
+            <h2 class="text-base font-semibold text-gray-900 mb-4">This Week's Activity</h2>
+            <div class="h-56"><canvas id="weeklyChart"></canvas></div>
+        </div>
+        <div class="dash-card p-6 lg:col-span-1" style="--i: 8;">
+            <h2 class="text-base font-semibold text-gray-900 mb-4">Subject Distribution</h2>
+            {% if subjects_data %}
+            <div class="h-56"><canvas id="subjectPie"></canvas></div>
+            {% else %}
+            <div class="h-56 flex items-center justify-center text-sm text-gray-400">No data yet</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ========== Step 2: Subject Progress (collapsible) ========== -->
+    <div class="dash-card p-6" style="--i: 9;">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-900">Subject Progress</h2>
+            <p class="text-xs text-gray-400">Click any subject for details</p>
+        </div>
+
+        {% if subjects_data %}
+        <div class="divide-y divide-gray-100 -mx-2">
+            {% for s in subjects_data %}
+            <div class="acc-row" id="acc-row-{{ s.id }}">
+                <button type="button"
+                        class="acc-toggle w-full flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                        data-target="acc-content-{{ s.id }}"
+                        data-row="acc-row-{{ s.id }}">
+                    <!-- Icon -->
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+                         style="background: {{ s.hex }}1a; color: {{ s.hex }};">
+                        {{ s.icon }}
+                    </div>
+                    <!-- Name + bar -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <span class="font-semibold text-gray-900 truncate">{{ s.name }}</span>
+                            <span class="text-xs text-gray-500 whitespace-nowrap">{{ s.correct }} / {{ s.total }} correct</span>
+                        </div>
+                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-700"
+                                 style="width: {{ s.accuracy }}%; background: {{ s.hex }};"></div>
+                        </div>
+                    </div>
+                    <!-- Ring -->
+                    <div class="ring flex-shrink-0"
+                         style="--p: {{ s.accuracy }}; --c: {{ s.hex }};">
+                        <span>{{ s.accuracy }}%</span>
+                    </div>
+                    <!-- Arrow -->
+                    <svg class="acc-arrow w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <div id="acc-content-{{ s.id }}" class="acc-content">
+                    <div class="px-3 pb-5 pt-1">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                            <!-- Stats -->
+                            <div class="md:col-span-1 grid grid-cols-3 md:grid-cols-1 gap-3">
+                                <div class="rounded-xl border border-gray-100 p-3">
+                                    <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Total</p>
+                                    <p class="text-xl font-bold text-gray-900 mt-0.5">{{ s.total }}</p>
+                                </div>
+                                <div class="rounded-xl border border-green-100 bg-green-50/50 p-3">
+                                    <p class="text-[10px] uppercase tracking-wider text-green-700 font-medium">Correct</p>
+                                    <p class="text-xl font-bold text-green-700 mt-0.5">{{ s.correct }}</p>
+                                </div>
+                                <div class="rounded-xl border border-red-100 bg-red-50/50 p-3">
+                                    <p class="text-[10px] uppercase tracking-wider text-red-700 font-medium">Wrong</p>
+                                    <p class="text-xl font-bold text-red-700 mt-0.5">{{ s.wrong }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Difficulty -->
+                            <div class="md:col-span-1 rounded-xl border border-gray-100 p-4">
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">Difficulty breakdown</p>
+                                <div class="space-y-2.5">
+                                    <div>
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="text-gray-700">Easy</span>
+                                            <span class="text-gray-500">{{ s.difficulty.Easy }}</span>
+                                        </div>
+                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-green-400 rounded-full"
+                                                 style="width: {% if s.total %}{% widthratio s.difficulty.Easy s.total 100 %}{% else %}0{% endif %}%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="text-gray-700">Medium</span>
+                                            <span class="text-gray-500">{{ s.difficulty.Medium }}</span>
+                                        </div>
+                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-yellow-400 rounded-full"
+                                                 style="width: {% if s.total %}{% widthratio s.difficulty.Medium s.total 100 %}{% else %}0{% endif %}%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="text-gray-700">Hard</span>
+                                            <span class="text-gray-500">{{ s.difficulty.Hard }}</span>
+                                        </div>
+                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-red-400 rounded-full"
+                                                 style="width: {% if s.total %}{% widthratio s.difficulty.Hard s.total 100 %}{% else %}0{% endif %}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Last 7 days -->
+                            <div class="md:col-span-1 rounded-xl border border-gray-100 p-4">
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">Last 7 days</p>
+                                <div class="flex items-end justify-between gap-1.5 h-16">
+                                    {% for w in s.weekly %}
+                                    <div class="flex-1 flex flex-col items-center gap-1">
+                                        <div class="mini-bar flex-1 w-full max-w-[10px]"
+                                             style="--c: {{ s.hex }};"
+                                             title="{{ w.day }} — {{ w.count }}">
+                                            <span style="height: {{ w.height }}%;"></span>
+                                        </div>
+                                        <span class="text-[10px] text-gray-400">{{ w.day|slice:":1" }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'question_bank' %}?subject={{ s.id }}"
+                           class="inline-flex items-center gap-1.5 mt-4 text-sm font-medium px-4 py-2 rounded-lg transition"
+                           style="background: {{ s.hex }}; color: white;">
+                            Practice More
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-400 text-sm">এখনো কোনো question answer করোনি।</p>
+        <div class="text-center py-12">
+            <p class="text-4xl mb-2">🌱</p>
+            <p class="text-gray-500 text-sm">এখনো কোনো subject এ progress নেই।</p>
+            <a href="{% url 'question_bank' %}" class="inline-block mt-3 text-sm font-medium text-blue-600 hover:text-blue-700">
+                Start practicing →
+            </a>
+        </div>
         {% endif %}
     </div>
 
-    <!-- Quick Links -->
-    <div class="flex justify-end mb-4">
-    <a href="{% url 'progress_history' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-        View Full Progress History →
-    </a>
-</div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <a href="{% url 'question_bank' %}" class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition">
+    <!-- ========== Step 7: Teacher Feedback ========== -->
+    <div class="dash-card p-6" style="--i: 10;">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <h2 class="text-base font-semibold text-gray-900">Teacher Feedback</h2>
+                {% if unread_count %}
+                <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {{ unread_count }} new
+                </span>
+                {% endif %}
+            </div>
+            <a href="{% url 'notifications' %}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                View all →
+            </a>
+        </div>
+
+        {% if feedbacks %}
+        <div class="space-y-3">
+            {% for f in feedbacks %}
+            <div class="rounded-xl border {% if not f.is_read %}border-blue-200 bg-blue-50/40{% else %}border-gray-100{% endif %} p-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 flex-shrink-0">
+                            {{ f.teacher.username|slice:":1"|upper }}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 truncate">{{ f.teacher.username }}</p>
+                            <p class="text-[11px] text-gray-400">{{ f.created_at|timesince }} ago</p>
+                        </div>
+                    </div>
+                    {% if f.progress.question.subject %}
+                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium flex-shrink-0">
+                        {{ f.progress.question.subject.name }}
+                    </span>
+                    {% endif %}
+                </div>
+                <p class="text-sm text-gray-700 mt-3 leading-relaxed">{{ f.comment }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10 text-gray-400">
+            <p class="text-3xl mb-2">💬</p>
+            <p class="text-sm">কোনো feedback পাওনি এখনো।</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ========== Quick Links ========== -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="{% url 'question_bank' %}" class="dash-card p-6 group" style="--i: 11;">
             <p class="text-2xl mb-2">📚</p>
             <p class="font-semibold text-gray-900">Question Bank</p>
-            <p class="text-sm text-gray-500 mt-1">সব board এর questions</p>
+            <p class="text-sm text-gray-500 mt-1 group-hover:text-gray-700 transition">সব board এর questions</p>
         </a>
-        <a href="{% url 'practical_videos' %}" class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition">
+        <a href="{% url 'practical_videos' %}" class="dash-card p-6 group" style="--i: 12;">
             <p class="text-2xl mb-2">🎬</p>
             <p class="font-semibold text-gray-900">Practical Videos</p>
-            <p class="text-sm text-gray-500 mt-1">Subject wise videos</p>
+            <p class="text-sm text-gray-500 mt-1 group-hover:text-gray-700 transition">Subject wise videos</p>
         </a>
-        <a href="{% url 'study_notes' %}" class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition">
+        <a href="{% url 'study_notes' %}" class="dash-card p-6 group" style="--i: 13;">
             <p class="text-2xl mb-2">📝</p>
             <p class="font-semibold text-gray-900">Study Notes</p>
-            <p class="text-sm text-gray-500 mt-1">Important notes</p>
+            <p class="text-sm text-gray-500 mt-1 group-hover:text-gray-700 transition">Important notes</p>
         </a>
     </div>
 
     {% if not request.user.profile.is_premium %}
-    <div class="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
-        <h2 class="font-bold text-lg mb-1">Premium এ Upgrade করো</h2>
+    <div class="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8 text-white shadow-lg">
+        <h2 class="font-bold text-xl mb-1">Unlock Premium</h2>
         <p class="text-sm opacity-90 mb-4">সব questions, videos আর study notes access করো</p>
-        <a href="{% url 'pricing' %}" class="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:shadow-md transition">
-            Plans দেখো →
+        <a href="{% url 'pricing' %}" class="inline-block bg-white text-blue-700 px-5 py-2 rounded-lg text-sm font-semibold hover:shadow-md transition">
+            See Plans →
         </a>
     </div>
     {% endif %}
@@ -105,46 +529,176 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Accuracy Chart
-    const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
-    new Chart(accuracyCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Correct', 'Wrong'],
-            datasets: [{
-                data: [{{ total_correct }}, {{ total_wrong }}],
-                backgroundColor: ['#22c55e', '#ef4444'],
-                borderWidth: 0,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+(function () {
+    /* ---------- Animated counters ---------- */
+    function animateCounter(el) {
+        const target = parseFloat(el.dataset.target || '0');
+        const decimals = parseInt(el.dataset.decimals || '0', 10);
+        const duration = 900;
+        const start = performance.now();
+        function tick(now) {
+            const t = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const v = target * eased;
+            el.textContent = decimals ? v.toFixed(decimals) : Math.round(v).toLocaleString();
+            if (t < 1) requestAnimationFrame(tick);
+            else el.textContent = decimals ? target.toFixed(decimals) : Math.round(target).toLocaleString();
         }
+        requestAnimationFrame(tick);
+    }
+    document.querySelectorAll('.counter').forEach(animateCounter);
+
+    /* ---------- Accordion ---------- */
+    document.querySelectorAll('.acc-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const target = document.getElementById(btn.dataset.target);
+            const row = document.getElementById(btn.dataset.row);
+            if (!target) return;
+            const isOpen = row.classList.contains('open');
+            if (isOpen) {
+                target.style.maxHeight = target.scrollHeight + 'px';
+                requestAnimationFrame(function () {
+                    target.style.maxHeight = '0px';
+                });
+                row.classList.remove('open');
+            } else {
+                target.style.maxHeight = target.scrollHeight + 'px';
+                row.classList.add('open');
+                target.addEventListener('transitionend', function fix() {
+                    if (row.classList.contains('open')) target.style.maxHeight = 'none';
+                    target.removeEventListener('transitionend', fix);
+                });
+            }
+        });
     });
 
-    // Daily Activity Chart
-    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-    new Chart(dailyCtx, {
-        type: 'bar',
-        data: {
-            labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
-            datasets: [{
-                label: 'Questions Answered',
-                data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
-                backgroundColor: '#3b82f6',
-                borderRadius: 6,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+    /* ---------- Charts ---------- */
+    const chartFontFamily = "ui-sans-serif, system-ui, -apple-system, sans-serif";
+    Chart.defaults.font.family = chartFontFamily;
+    Chart.defaults.color = '#64748b';
+
+    // Accuracy trend (line, 30 days)
+    const trendLabels = [{% for d in accuracy_trend %}'{{ d.day }}',{% endfor %}];
+    const trendData = [{% for d in accuracy_trend %}{% if d.accuracy is None %}null{% else %}{{ d.accuracy }}{% endif %},{% endfor %}];
+    const trendCtx = document.getElementById('accuracyTrendChart');
+    if (trendCtx) {
+        const grad = trendCtx.getContext('2d').createLinearGradient(0, 0, 0, 220);
+        grad.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+        grad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    label: 'Accuracy %',
+                    data: trendData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: grad,
+                    fill: true,
+                    tension: 0.35,
+                    spanGaps: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#3b82f6',
+                    borderWidth: 2.5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        padding: 10,
+                        callbacks: {
+                            label: function (ctx) {
+                                return ctx.parsed.y == null ? 'No data' : ctx.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 8, font: { size: 10 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { stepSize: 25, font: { size: 10 }, callback: v => v + '%' },
+                        grid: { color: '#f1f5f9' }
+                    }
+                }
             }
-        }
-    });
+        });
+    }
+
+    // Weekly bar chart
+    const weeklyCtx = document.getElementById('weeklyChart');
+    if (weeklyCtx) {
+        new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
+                datasets: [
+                    {
+                        label: 'Total',
+                        data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
+                        backgroundColor: '#dbeafe',
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Correct',
+                        data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+                    tooltip: { backgroundColor: '#0f172a', padding: 10 }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: '#f1f5f9' } }
+                }
+            }
+        });
+    }
+
+    // Subject pie
+    const pieCtx = document.getElementById('subjectPie');
+    if (pieCtx) {
+        const labels = [{% for s in subjects_data %}'{{ s.name|escapejs }}',{% endfor %}];
+        const data = [{% for s in subjects_data %}{{ s.total }},{% endfor %}];
+        const colors = [{% for s in subjects_data %}'{{ s.hex }}',{% endfor %}];
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 8 } },
+                    tooltip: { backgroundColor: '#0f172a', padding: 10 }
+                }
+            }
+        });
+    }
+})();
 </script>
 {% endblock %}

@@ -1,130 +1,289 @@
 {% extends 'base.html' %}
 {% block title %}Progress History{% endblock %}
+
+{% block extra_head %}
+<style>
+    .ph-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    }
+    .ph-fade {
+        opacity: 0;
+        transform: translateY(6px);
+        animation: ph-rise .4s cubic-bezier(.2,.7,.3,1) forwards;
+    }
+    @keyframes ph-rise { to { opacity: 1; transform: translateY(0); } }
+    .stagger > * { animation-delay: calc(var(--i, 0) * 30ms); }
+
+    .timeline-line {
+        position: absolute;
+        left: 19px;
+        top: 0; bottom: 0;
+        width: 2px;
+        background: #e5e7eb;
+    }
+    .timeline-dot {
+        position: absolute;
+        left: 12px;
+        top: 22px;
+        width: 16px; height: 16px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 1px #e5e7eb;
+    }
+
+    @media print {
+        nav, footer, .no-print { display: none !important; }
+        body { background: #fff !important; }
+        .ph-card { box-shadow: none !important; border-color: #d1d5db !important; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-    <div class="flex items-center gap-4 mb-8">
-        <a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">📈 Full Progress History</h1>
-            <p class="text-gray-500 text-sm mt-1">তোমার সব progress এখানে</p>
-        </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-2xl border border-gray-200 p-5">
-            <p class="text-xs text-gray-500 mb-1">Total Answered</p>
-            <p class="text-3xl font-bold text-gray-900">{{ total_answered }}</p>
-        </div>
-        <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
-            <p class="text-xs text-green-600 mb-1">Correct ✓</p>
-            <p class="text-3xl font-bold text-green-700">{{ total_correct }}</p>
-        </div>
-        <div class="bg-red-50 rounded-2xl border border-red-200 p-5">
-            <p class="text-xs text-red-500 mb-1">Wrong ✗</p>
-            <p class="text-3xl font-bold text-red-600">{{ total_wrong }}</p>
-        </div>
-        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
-            <p class="text-xs text-blue-500 mb-1">Accuracy</p>
-            <p class="text-3xl font-bold text-blue-700">{{ accuracy }}%</p>
-        </div>
-    </div>
-
-    <!-- Last 30 Days Chart -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-        <h2 class="font-semibold text-gray-900 mb-4">Last 30 Days Activity</h2>
-        <canvas id="dailyChart" height="100"></canvas>
-    </div>
-
-    <!-- Subject Progress -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-        <h2 class="font-semibold text-gray-900 mb-4">Subject wise Progress</h2>
-        {% if subject_progress %}
-        <div class="space-y-4">
-            {% for sp in subject_progress %}
+    <!-- Header -->
+    <div class="ph-fade flex flex-wrap items-end justify-between gap-4" style="--i: 0;">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'dashboard' %}"
+               class="text-gray-400 hover:text-gray-700 text-sm flex items-center gap-1 no-print">
+                ← Back
+            </a>
             <div>
-                <div class="flex justify-between text-sm mb-1">
-                    <span class="font-medium text-gray-700">{{ sp.question__subject__name }}</span>
-                    <span class="text-gray-500">{{ sp.correct }}/{{ sp.total }} correct</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2.5">
-                    <div class="bg-blue-600 h-2.5 rounded-full"
-                        style="width: {% widthratio sp.correct sp.total 100 %}%">
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900">Progress History</h1>
+                <p class="text-sm text-gray-500 mt-0.5">তোমার সব practice activity timeline-এ</p>
+            </div>
+        </div>
+        <button onclick="window.print()"
+                class="no-print bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition flex items-center gap-2 shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            Export PDF
+        </button>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 stagger">
+        <div class="ph-card ph-fade p-5" style="--i: 1;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Streak</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ current_streak }} <span class="text-base font-medium text-gray-500">days</span> 🔥</p>
+        </div>
+        <div class="ph-card ph-fade p-5" style="--i: 2;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">This Week</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ week_total }} <span class="text-base font-medium text-gray-500">answered</span></p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ week_correct }} correct</p>
+        </div>
+        <div class="ph-card ph-fade p-5" style="--i: 3;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Week Accuracy</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ week_accuracy }}%</p>
+        </div>
+        <div class="ph-card ph-fade p-5" style="--i: 4;">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">All-time Accuracy</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ accuracy_all }}%</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ total_all }} total answered</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="ph-card ph-fade p-5 no-print" style="--i: 5;">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div>
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">Subject</label>
+                <select name="subject"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="">All</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}" {% if subject_filter == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">Result</label>
+                <select name="result"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="">All</option>
+                    <option value="correct" {% if result_filter == 'correct' %}selected{% endif %}>✓ Correct</option>
+                    <option value="wrong" {% if result_filter == 'wrong' %}selected{% endif %}>✗ Wrong</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">Difficulty</label>
+                <select name="difficulty"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="">All</option>
+                    <option value="Easy" {% if difficulty_filter == 'Easy' %}selected{% endif %}>Easy</option>
+                    <option value="Medium" {% if difficulty_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="Hard" {% if difficulty_filter == 'Hard' %}selected{% endif %}>Hard</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">From</label>
+                <input type="date" name="from" value="{{ date_from }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+            <div>
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">To</label>
+                <input type="date" name="to" value="{{ date_to }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+        </div>
+        <div class="flex items-center justify-between mt-4">
+            <p class="text-xs text-gray-500">
+                {% if has_filters %}
+                Showing <span class="font-semibold text-gray-900">{{ filtered_count }}</span> filtered result{{ filtered_count|pluralize }}
+                {% else %}
+                Showing all <span class="font-semibold text-gray-900">{{ filtered_count }}</span> entr{{ filtered_count|pluralize:"y,ies" }}
+                {% endif %}
+            </p>
+            <div class="flex items-center gap-2">
+                {% if has_filters %}
+                <a href="{% url 'progress_history' %}"
+                   class="text-sm text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition">
+                    Clear
+                </a>
+                {% endif %}
+                <button type="submit"
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Timeline -->
+    {% if page_obj.object_list %}
+    <div class="ph-card ph-fade p-5 sm:p-6" style="--i: 6;">
+        <h2 class="text-base font-semibold text-gray-900 mb-5">Timeline</h2>
+        <div class="relative">
+            <div class="timeline-line"></div>
+            <div class="space-y-3">
+                {% for p in page_obj.object_list %}
+                <div class="relative pl-12">
+                    <div class="timeline-dot" style="background: {% if p.is_correct %}#22c55e{% else %}#ef4444{% endif %};"></div>
+                    <div class="rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition p-4 bg-white">
+                        <div class="flex flex-wrap items-start gap-3 justify-between">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm text-gray-800 font-medium leading-snug">
+                                    {{ p.question.question_text|truncatechars:80 }}
+                                </p>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                                        {{ p.question.subject.name }}
+                                    </span>
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                                        {{ p.question.board.name }}
+                                    </span>
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                                        {{ p.question.year }}
+                                    </span>
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full
+                                        {% if p.question.difficulty == 'Easy' %}bg-green-50 text-green-700
+                                        {% elif p.question.difficulty == 'Medium' %}bg-yellow-50 text-yellow-700
+                                        {% else %}bg-red-50 text-red-700{% endif %} font-medium">
+                                        {{ p.question.difficulty }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+                                {% if p.is_correct %}
+                                <span class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">✓ Correct</span>
+                                {% else %}
+                                <span class="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">✗ Wrong</span>
+                                {% endif %}
+                                <span class="text-[11px] text-gray-400">{{ p.answered_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between no-print">
+                            <span class="text-[11px] text-gray-400">{{ p.answered_at|date:"d M Y · H:i" }}</span>
+                            <a href="{% url 'question_bank' %}?subject={{ p.question.subject.id }}#q-{{ p.question.id }}"
+                               class="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                                Review Question →
+                            </a>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
-        {% else %}
-        <p class="text-gray-400 text-sm">কোনো progress নেই।</p>
+
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="flex items-center justify-between mt-6 pt-5 border-t border-gray-100 no-print">
+            <p class="text-xs text-gray-500">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                · {{ page_obj.paginator.count }} total
+            </p>
+            <div class="flex items-center gap-1">
+                {% if page_obj.has_previous %}
+                <a href="?{% if qs_string %}{{ qs_string }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                   class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                    ← Prev
+                </a>
+                {% else %}
+                <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300">← Prev</span>
+                {% endif %}
+
+                {% for n in page_obj.paginator.page_range %}
+                    {% if n == page_obj.number %}
+                        <span class="px-3 py-1.5 text-sm rounded-lg bg-gray-900 text-white font-medium">{{ n }}</span>
+                    {% elif n == 1 or n == page_obj.paginator.num_pages or n|add:"-2" <= page_obj.number and n|add:"2" >= page_obj.number %}
+                        <a href="?{% if qs_string %}{{ qs_string }}&{% endif %}page={{ n }}"
+                           class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition">{{ n }}</a>
+                    {% elif n == 2 or n|add:"1" == page_obj.paginator.num_pages %}
+                        <span class="px-2 text-gray-400">…</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?{% if qs_string %}{{ qs_string }}&{% endif %}page={{ page_obj.next_page_number }}"
+                   class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                    Next →
+                </a>
+                {% else %}
+                <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300">Next →</span>
+                {% endif %}
+            </div>
+        </div>
         {% endif %}
     </div>
 
-    <!-- Question History -->
-    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-900">Recent Question History</h2>
+    {% else %}
+    <!-- Empty state -->
+    <div class="ph-card ph-fade p-12" style="--i: 6;">
+        <div class="text-center max-w-md mx-auto">
+            <svg class="mx-auto w-24 h-24 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                {% if has_filters %}No matches{% else %}Nothing here yet{% endif %}
+            </h3>
+            <p class="text-sm text-gray-500 mb-5">
+                {% if has_filters %}
+                    এই filter এর জন্য কিছু পাইনি। অন্য filter try করো অথবা clear করে দেখো।
+                {% else %}
+                    Question bank-এ গিয়ে কয়েকটা প্রশ্ন practice করে আসো — এখানে timeline তৈরি হবে।
+                {% endif %}
+            </p>
+            {% if has_filters %}
+            <a href="{% url 'progress_history' %}"
+               class="inline-block bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-800 transition">
+                Clear filters
+            </a>
+            {% else %}
+            <a href="{% url 'question_bank' %}"
+               class="inline-block bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+                Start practicing →
+            </a>
+            {% endif %}
         </div>
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Question</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Subject</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Result</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Date</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for p in history %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-3 text-gray-700">{{ p.question.question_text|truncatechars:50 }}</td>
-                    <td class="px-6 py-3 text-gray-500">{{ p.question.subject.name }}</td>
-                    <td class="px-6 py-3">
-                        {% if p.is_correct %}
-                        <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">✓ Correct</span>
-                        {% else %}
-                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs">✗ Wrong</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-6 py-3 text-gray-500">{{ p.answered_at|date:"d M Y H:i" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
+    {% endif %}
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-    new Chart(dailyCtx, {
-        type: 'bar',
-        data: {
-            labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
-            datasets: [
-                {
-                    label: 'Total',
-                    data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
-                    backgroundColor: '#93c5fd',
-                    borderRadius: 4,
-                },
-                {
-                    label: 'Correct',
-                    data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
-                    backgroundColor: '#22c55e',
-                    borderRadius: 4,
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            }
-        }
-    });
-</script>
 {% endblock %}
