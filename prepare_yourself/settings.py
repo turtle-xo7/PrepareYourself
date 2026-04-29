@@ -1,10 +1,12 @@
 from pathlib import Path
+import os
+import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-c!s1zjij8*lyj2g#6+r+u_r3$%o@ddp)%(gv4y!z(a$a(q*$=r'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -63,14 +65,37 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Dhaka'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+_STATIC_DIR = BASE_DIR / 'static'
+STATICFILES_DIRS = [_STATIC_DIR] if _STATIC_DIR.exists() else []
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ✅ Test environment fix
+if 'test' in sys.argv:
+    STATICFILES_DIRS = []
+    STATIC_ROOT = str(BASE_DIR / 'staticfiles')
+    MEDIA_ROOT = str(BASE_DIR / 'media')
+    # Static files dummy directory ensure
+    os.makedirs(STATIC_ROOT, exist_ok=True)
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+
+LOGIN_URL = '/login/'
 
 JAZZMIN_SETTINGS = {
     "site_title": "Prepare Yourself Admin",
@@ -78,12 +103,6 @@ JAZZMIN_SETTINGS = {
     "site_brand": "PY Admin",
     "welcome_sign": "Welcome to Prepare Yourself",
     "copyright": "Prepare Yourself 2026",
-}
-
-LOGIN_URL = '/login/'
-
-TINYMCE_DEFAULT_CONFIG = {
-    'promotion': False,
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
