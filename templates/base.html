@@ -12,6 +12,20 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
+    <!-- KaTeX (math rendering) -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+          integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
+          crossorigin="anonymous">
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+            integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg"
+            crossorigin="anonymous"></script>
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+            integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMofbd/ugpvmd2Vved"
+            crossorigin="anonymous"></script>
+
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-50 font-sans antialiased">
@@ -23,6 +37,31 @@
     </main>
 
     {% include 'includes/footer.html' %}
+
+    <script>
+    // KaTeX auto-render: scans an element for $...$, $$...$$, \(...\), \[...\] and replaces with rendered math.
+    // Pages can call window.renderMath(el) after injecting dynamic content (e.g., AI chat responses).
+    (function () {
+        var KATEX_OPTS = {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '\\[', right: '\\]', display: true },
+                { left: '$',  right: '$',  display: false },
+                { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            ignoredClasses: ['no-math']
+        };
+        window.renderMath = function (el) {
+            if (window.renderMathInElement) {
+                window.renderMathInElement(el || document.body, KATEX_OPTS);
+            }
+        };
+        // Run once after KaTeX's deferred scripts finish loading.
+        window.addEventListener('load', function () { window.renderMath(); });
+    })();
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>
