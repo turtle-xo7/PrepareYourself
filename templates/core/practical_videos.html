@@ -38,13 +38,19 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for video in videos %}
         <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-md transition">
-            <div class="aspect-video">
-                <iframe
-                    src="https://www.youtube.com/embed/{{ video.youtube_url }}"
-                    class="w-full h-full"
-                    frameborder="0"
-                    allowfullscreen>
-                </iframe>
+            <div class="aspect-video relative bg-black yt-thumb cursor-pointer"
+                 data-video-id="{{ video.video_id }}">
+                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}"
+                     class="w-full h-full object-cover"
+                     onerror="this.src='https://img.youtube.com/vi/{{ video.video_id }}/0.jpg'"
+                     loading="lazy">
+                <div class="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition">
+                    <div class="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-lg">
+                        <svg class="w-7 h-7 text-white ml-1" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
             <div class="p-4">
                 <h3 class="font-semibold text-gray-900 mb-1">{{ video.title }}</h3>
@@ -76,4 +82,23 @@
     {% endif %}
 
 </div>
+<script>
+document.querySelectorAll('.yt-thumb').forEach(function (el) {
+    el.addEventListener('click', function () {
+        var id = el.dataset.videoId;
+        if (!id) return;
+        var iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube-nocookie.com/embed/' + id
+            + '?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+        iframe.className = 'w-full h-full';
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+        iframe.setAttribute('allow',
+            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+        iframe.setAttribute('allowfullscreen', '');
+        el.replaceChildren(iframe);
+        el.classList.remove('cursor-pointer');
+    });
+});
+</script>
 {% endblock %}
