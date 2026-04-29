@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.conf import settings
 from .models import Board, Subject, Class, Question, UserProfile
 from datetime import datetime
 import json
@@ -143,7 +144,9 @@ def checkout(request):
 # -------- FRONTEND VIEWS --------
 
 def home(request):
-    return render(request, 'core/home.html')
+    from .models import Board
+    boards = Board.objects.filter(is_active=True)
+    return render(request, 'core/home.html', {'boards': boards})
 
 def pricing(request):
     return render(request, 'core/pricing.html')
@@ -1284,7 +1287,7 @@ def generate_note_ai(request):
             headers={
                 'Content-Type': 'application/json; charset=utf-8',
                 'anthropic-version': '2023-06-01',
-                'x-api-key': 'ENTER_API_KEY_HERE',
+                'x-api-key': settings.ANTHROPIC_API_KEY,
             },
             method='POST'
         )
@@ -1340,7 +1343,7 @@ def generate_mcq(request, pk):
             headers={
                 'Content-Type': 'application/json; charset=utf-8',
                 'anthropic-version': '2023-06-01',
-                'x-api-key': 'ENTER_API_KEY_HERE',
+                'x-api-key': settings.ANTHROPIC_API_KEY,
             },
             method='POST'
         )
@@ -1385,7 +1388,7 @@ def summarize_note(request, pk):
             headers={
                 'Content-Type': 'application/json; charset=utf-8',
                 'anthropic-version': '2023-06-01',
-                'x-api-key': 'ENTER_API_KEY_HERE',
+                'x-api-key': settings.ANTHROPIC_API_KEY,
             },
             method='POST'
         )
@@ -1427,7 +1430,7 @@ def ask_ai(request):
             headers={
                 'Content-Type': 'application/json; charset=utf-8',
                 'anthropic-version': '2023-06-01',
-                'x-api-key': 'ENTER_API_KEY_HERE',
+                'x-api-key': settings.ANTHROPIC_API_KEY,
             },
             method='POST'
         )
