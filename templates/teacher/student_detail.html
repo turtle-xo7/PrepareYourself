@@ -1,155 +1,374 @@
 {% extends 'base.html' %}
-{% block title %}{{ profile.user.username }} - Progress{% endblock %}
+{% block title %}{{ profile.user.username }} — Student Profile{% endblock %}
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
 
-    <div class="flex items-center gap-4 mb-8">
-        <a href="{% url 'teacher_dashboard' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
+  <!-- Profile Header -->
+  <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+    <div class="flex items-start justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-4">
+        <a href="{% url 'teacher_dashboard' %}" class="text-gray-400 hover:text-gray-600 text-sm">← Back</a>
+        <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-600">
+          {{ profile.user.username|first|upper }}
+        </div>
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ profile.user.username }} এর Progress</h1>
-            <p class="text-gray-500 text-sm mt-1">
-                {% if profile.plan == 'PREMIUM' %}
-                <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">Premium</span>
-                {% elif profile.plan == 'BASIC' %}
-                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">Basic</span>
-                {% else %}
-                <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">Free</span>
-                {% endif %}
-            </p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl font-bold text-gray-900">{{ profile.user.username }}</h1>
+            {% if profile.plan == 'PREMIUM' %}
+            <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">Premium</span>
+            {% elif profile.plan == 'BASIC' %}
+            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">Basic</span>
+            {% else %}
+            <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">Free</span>
+            {% endif %}
+            {% if is_at_risk %}
+            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-semibold">At-Risk</span>
+            {% endif %}
+          </div>
+          <p class="text-gray-500 text-sm mt-1">{{ profile.user.email }}</p>
+          <p class="text-gray-400 text-xs mt-0.5">সদস্য হয়েছেন: {{ profile.user.date_joined|date:"d M Y" }}</p>
         </div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <button onclick="document.getElementById('feedbackModal').classList.remove('hidden')"
+            class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
+          Feedback পাঠান
+        </button>
+        <a href="{% url 'contest_create' %}" class="border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50">
+          Practice Assign
+        </a>
+      </div>
     </div>
+  </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-2xl border border-gray-200 p-5">
-            <p class="text-xs text-gray-500 mb-1">Total Answered</p>
-            <p class="text-3xl font-bold text-gray-900">{{ total_answered }}</p>
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <p class="text-xs text-gray-500 mb-1">মোট প্রশ্ন</p>
+      <p class="text-3xl font-bold text-gray-900">{{ total_answered }}</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <p class="text-xs text-gray-500 mb-1">Accuracy</p>
+      <p class="text-3xl font-bold {% if accuracy >= 70 %}text-green-600{% elif accuracy >= 50 %}text-yellow-600{% else %}text-red-500{% endif %}">{{ accuracy }}%</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <p class="text-xs text-gray-500 mb-1">Current Streak</p>
+      <p class="text-3xl font-bold text-orange-500">{{ streak }} দিন</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <p class="text-xs text-gray-500 mb-1">Class Rank</p>
+      <p class="text-3xl font-bold text-blue-600">
+        {% if class_rank %}#{{ class_rank }}/{{ total_students }}{% else %}—{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b border-gray-200 mb-6">
+    <nav class="flex gap-0 -mb-px">
+      <button onclick="showTab('overview')" id="tab-overview"
+          class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600">
+        Overview
+      </button>
+      <button onclick="showTab('history')" id="tab-history"
+          class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+        প্রশ্নের ইতিহাস
+      </button>
+      <button onclick="showTab('feedbacks')" id="tab-feedbacks"
+          class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+        আমার Feedback <span class="ml-1 bg-blue-100 text-blue-600 text-xs px-1.5 rounded-full">{{ teacher_feedbacks|length }}</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Overview Tab -->
+  <div id="pane-overview">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+      <!-- Subject Accuracy -->
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Subject-wise Accuracy</h2>
+        {% if subject_progress %}
+        <div class="space-y-4">
+          {% for sp in subject_progress %}
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-medium text-gray-700">{{ sp.question__subject__name }}</span>
+              <span class="{% if sp.accuracy >= 70 %}text-green-600{% elif sp.accuracy >= 50 %}text-yellow-600{% else %}text-red-500{% endif %} font-semibold">
+                {{ sp.correct }}/{{ sp.total }} ({{ sp.accuracy }}%)
+              </span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5">
+              <div class="h-2.5 rounded-full {% if sp.accuracy >= 70 %}bg-green-500{% elif sp.accuracy >= 50 %}bg-yellow-400{% else %}bg-red-500{% endif %}"
+                  style="width: {{ sp.accuracy }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
-        <div class="bg-green-50 rounded-2xl border border-green-200 p-5">
-            <p class="text-xs text-green-600 mb-1">Correct ✓</p>
-            <p class="text-3xl font-bold text-green-700">{{ total_correct }}</p>
+        {% else %}
+        <p class="text-gray-400 text-sm text-center py-6">কোনো progress নেই।</p>
+        {% endif %}
+      </div>
+
+      <!-- Difficulty Breakdown -->
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Difficulty Breakdown</h2>
+        <div class="space-y-5">
+
+          <!-- Easy -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
+                <span class="text-sm font-medium text-gray-700">Easy</span>
+              </div>
+              <span class="text-sm {% if difficulty_data.Easy.accuracy >= 70 %}text-green-600{% elif difficulty_data.Easy.accuracy >= 50 %}text-yellow-600{% else %}text-red-500{% endif %} font-semibold">
+                {{ difficulty_data.Easy.correct }}/{{ difficulty_data.Easy.total }}
+                {% if difficulty_data.Easy.total > 0 %}({{ difficulty_data.Easy.accuracy }}%){% else %}—{% endif %}
+              </span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="h-2 rounded-full bg-green-400" style="width: {{ difficulty_data.Easy.accuracy }}%"></div>
+            </div>
+          </div>
+
+          <!-- Medium -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
+                <span class="text-sm font-medium text-gray-700">Medium</span>
+              </div>
+              <span class="text-sm {% if difficulty_data.Medium.accuracy >= 70 %}text-green-600{% elif difficulty_data.Medium.accuracy >= 50 %}text-yellow-600{% else %}text-red-500{% endif %} font-semibold">
+                {{ difficulty_data.Medium.correct }}/{{ difficulty_data.Medium.total }}
+                {% if difficulty_data.Medium.total > 0 %}({{ difficulty_data.Medium.accuracy }}%){% else %}—{% endif %}
+              </span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="h-2 rounded-full bg-yellow-400" style="width: {{ difficulty_data.Medium.accuracy }}%"></div>
+            </div>
+          </div>
+
+          <!-- Hard -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                <span class="text-sm font-medium text-gray-700">Hard</span>
+              </div>
+              <span class="text-sm {% if difficulty_data.Hard.accuracy >= 70 %}text-green-600{% elif difficulty_data.Hard.accuracy >= 50 %}text-yellow-600{% else %}text-red-500{% endif %} font-semibold">
+                {{ difficulty_data.Hard.correct }}/{{ difficulty_data.Hard.total }}
+                {% if difficulty_data.Hard.total > 0 %}({{ difficulty_data.Hard.accuracy }}%){% else %}—{% endif %}
+              </span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="h-2 rounded-full bg-red-400" style="width: {{ difficulty_data.Hard.accuracy }}%"></div>
+            </div>
+          </div>
         </div>
-        <div class="bg-red-50 rounded-2xl border border-red-200 p-5">
-            <p class="text-xs text-red-500 mb-1">Wrong ✗</p>
-            <p class="text-3xl font-bold text-red-600">{{ total_wrong }}</p>
-        </div>
-        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5">
-            <p class="text-xs text-blue-500 mb-1">Accuracy</p>
-            <p class="text-3xl font-bold text-blue-700">{{ accuracy }}%</p>
-        </div>
+      </div>
     </div>
 
     <!-- Activity Chart -->
     <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-        <h2 class="font-semibold text-gray-900 mb-4">Last 14 Days Activity</h2>
-        <canvas id="dailyChart" height="100"></canvas>
+      <h2 class="font-semibold text-gray-900 mb-4">Last 14 Days Activity</h2>
+      <canvas id="dailyChart" height="90"></canvas>
     </div>
 
-    <!-- Subject Progress -->
+    <!-- 30-Day Heatmap -->
     <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-        <h2 class="font-semibold text-gray-900 mb-4">Subject wise Progress</h2>
-        {% if subject_progress %}
-        <div class="space-y-4">
-            {% for sp in subject_progress %}
-            <div>
-                <div class="flex justify-between text-sm mb-1">
-                    <span class="font-medium text-gray-700">{{ sp.question__subject__name }}</span>
-                    <span class="text-gray-500">{{ sp.correct }}/{{ sp.total }} correct</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2.5">
-                    <div class="bg-blue-600 h-2.5 rounded-full"
-                        style="width: {% widthratio sp.correct sp.total 100 %}%">
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+      <h2 class="font-semibold text-gray-900 mb-4">Activity Heatmap — গত ৩০ দিন</h2>
+      <div class="flex gap-1 flex-wrap">
+        {% for day in heatmap_days %}
+        {% if day.count == 0 %}
+          <div class="w-7 h-7 rounded bg-gray-100 group relative cursor-default">
+            <span class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">{{ day.date }}: {{ day.count }}</span>
+          </div>
+        {% elif day.count <= 3 %}
+          <div class="w-7 h-7 rounded bg-green-200 group relative cursor-default">
+            <span class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">{{ day.date }}: {{ day.count }}</span>
+          </div>
+        {% elif day.count <= 7 %}
+          <div class="w-7 h-7 rounded bg-green-400 group relative cursor-default">
+            <span class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">{{ day.date }}: {{ day.count }}</span>
+          </div>
+        {% elif day.count <= 15 %}
+          <div class="w-7 h-7 rounded bg-green-500 group relative cursor-default">
+            <span class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">{{ day.date }}: {{ day.count }}</span>
+          </div>
         {% else %}
-        <p class="text-gray-400 text-sm">কোনো progress নেই।</p>
+          <div class="w-7 h-7 rounded bg-green-700 group relative cursor-default">
+            <span class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">{{ day.date }}: {{ day.count }}</span>
+          </div>
         {% endif %}
+        {% endfor %}
+      </div>
+      <div class="flex items-center gap-2 mt-3 text-xs text-gray-400">
+        <span>কম</span>
+        <div class="w-4 h-4 rounded bg-gray-100"></div>
+        <div class="w-4 h-4 rounded bg-green-200"></div>
+        <div class="w-4 h-4 rounded bg-green-400"></div>
+        <div class="w-4 h-4 rounded bg-green-500"></div>
+        <div class="w-4 h-4 rounded bg-green-700"></div>
+        <span>বেশি</span>
+      </div>
     </div>
 
-    <!-- Question History with Feedback -->
+    <!-- AI Insights -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+      <h2 class="font-semibold text-gray-900 mb-4">AI Insights</h2>
+      <div class="space-y-3">
+        {% for insight in insights %}
+        <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">{{ insight }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Question History Tab -->
+  <div id="pane-history" class="hidden">
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-900">Recent Question History & Feedback</h2>
-        </div>
-        <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Question</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Subject</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Result</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Date</th>
-                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Feedback</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for p in history %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-3 text-gray-700">{{ p.question.question_text|truncatechars:50 }}</td>
-                    <td class="px-6 py-3 text-gray-500">{{ p.question.subject.name }}</td>
-                    <td class="px-6 py-3">
-                        {% if p.is_correct %}
-                        <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">✓ Correct</span>
-                        {% else %}
-                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs">✗ Wrong</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-6 py-3 text-gray-500">{{ p.answered_at|date:"d M Y H:i" }}</td>
-                    <td class="px-6 py-3">
-                        <form method="post" action="{% url 'give_feedback' p.pk %}" class="flex gap-2">
-                            {% csrf_token %}
-                            <input type="text" name="comment" placeholder="Feedback লিখো..."
-                                class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none w-36 focus:ring-1 focus:ring-blue-500">
-                            <button type="submit"
-                                class="text-xs bg-blue-600 text-white px-2 py-1 rounded-lg hover:bg-blue-700 whitespace-nowrap">
-                                Send
-                            </button>
-                        </form>
-                        {% for fb in p.feedbacks.all %}
-                        <div class="mt-1 text-xs text-blue-600 bg-blue-50 rounded px-2 py-1">
-                            💬 {{ fb.comment|truncatechars:40 }}
-                        </div>
-                        {% endfor %}
-                    </td>
-                </tr>
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900">সাম্প্রতিক প্রশ্নের ইতিহাস (সর্বশেষ ৩০টি)</h2>
+      </div>
+      <div class="divide-y divide-gray-50">
+        {% for p in history %}
+        <div class="px-6 py-4 hover:bg-gray-50">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                {% if p.is_correct %}
+                <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">✓ সঠিক</span>
+                {% else %}
+                <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-medium">✗ ভুল</span>
+                {% endif %}
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ p.question.subject.name }}</span>
+                <span class="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full border border-gray-200">{{ p.question.difficulty }}</span>
+              </div>
+              <p class="text-sm text-gray-700">{{ p.question.question_text|truncatechars:80 }}</p>
+              <p class="text-xs text-gray-400 mt-1">{{ p.answered_at|date:"d M Y, H:i" }}</p>
+              {% if p.feedbacks.all %}
+              <div class="mt-2 space-y-1">
+                {% for fb in p.feedbacks.all %}
+                <div class="flex items-start gap-2 bg-blue-50 rounded-lg px-3 py-1.5">
+                  <span class="text-blue-500 text-xs mt-0.5">💬</span>
+                  <p class="text-xs text-blue-700">{{ fb.comment }}</p>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+              </div>
+              {% endif %}
+            </div>
+            <div class="flex-shrink-0">
+              <form method="post" action="{% url 'give_feedback' p.pk %}" class="flex gap-1.5">
+                {% csrf_token %}
+                <input type="text" name="comment" placeholder="Feedback লিখুন..."
+                    class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none w-32 focus:ring-1 focus:ring-blue-500">
+                <button type="submit"
+                    class="text-xs bg-blue-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-blue-700 whitespace-nowrap">
+                  Send
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
+        {% empty %}
+        <div class="px-6 py-8 text-center text-gray-400">কোনো প্রশ্ন করা হয়নি।</div>
+        {% endfor %}
+      </div>
     </div>
+  </div>
 
+  <!-- My Feedbacks Tab -->
+  <div id="pane-feedbacks" class="hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900">{{ profile.user.username }}-কে পাঠানো সব Feedback</h2>
+      </div>
+      <div class="divide-y divide-gray-50">
+        {% for fb in teacher_feedbacks %}
+        <div class="px-6 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-gray-800">{{ fb.comment }}</p>
+              <p class="text-xs text-gray-400 mt-1">
+                বিষয়: {{ fb.progress.question.question_text|truncatechars:50 }}
+              </p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="text-xs text-gray-400">{{ fb.created_at|date:"d M Y, H:i" }}</p>
+              {% if fb.is_read %}
+              <span class="text-xs text-green-500">পড়া হয়েছে ✓</span>
+              {% else %}
+              <span class="text-xs text-blue-500 font-medium">অপঠিত</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="px-6 py-8 text-center text-gray-400">এখনো কোনো feedback পাঠানো হয়নি।</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-semibold text-gray-900">{{ profile.user.username }}-কে Feedback পাঠান</h3>
+      <button onclick="document.getElementById('feedbackModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <form method="post" action="{% url 'send_general_feedback' profile.pk %}">
+      {% csrf_token %}
+      <textarea name="comment" rows="4" placeholder="Feedback লিখুন..."
+          class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" required></textarea>
+      <div class="flex gap-3 mt-4">
+        <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700">পাঠান</button>
+        <button type="button" onclick="document.getElementById('feedbackModal').classList.add('hidden')"
+            class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">বাতিল</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-    new Chart(dailyCtx, {
-        type: 'bar',
-        data: {
-            labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
-            datasets: [
-                {
-                    label: 'Total',
-                    data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
-                    backgroundColor: '#93c5fd',
-                    borderRadius: 4,
-                },
-                {
-                    label: 'Correct',
-                    data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
-                    backgroundColor: '#22c55e',
-                    borderRadius: 4,
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-        }
+  new Chart(document.getElementById('dailyChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
+      datasets: [{
+        label: 'মোট',
+        data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
+        backgroundColor: '#93c5fd',
+        borderRadius: 4,
+      }, {
+        label: 'সঠিক',
+        data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
+        backgroundColor: '#22c55e',
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+  });
+
+  function showTab(name) {
+    ['overview', 'history', 'feedbacks'].forEach(t => {
+      document.getElementById('pane-' + t).classList.add('hidden');
+      const btn = document.getElementById('tab-' + t);
+      btn.classList.remove('border-blue-600', 'text-blue-600');
+      btn.classList.add('border-transparent', 'text-gray-500');
     });
+    document.getElementById('pane-' + name).classList.remove('hidden');
+    const active = document.getElementById('tab-' + name);
+    active.classList.add('border-blue-600', 'text-blue-600');
+    active.classList.remove('border-transparent', 'text-gray-500');
+  }
 </script>
 {% endblock %}

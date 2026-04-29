@@ -66,6 +66,7 @@ urlpatterns = [
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
     path('teacher/student/<int:pk>/', views.student_detail, name='student_detail'),
     path('teacher/feedback/<int:progress_pk>/', views.give_feedback, name='give_feedback'),
+    path('teacher/student/<int:student_pk>/send-feedback/', views.send_general_feedback, name='send_general_feedback'),
     path('student/notifications/', views.notifications, name='notifications'),
 
     # Study Notes
@@ -87,10 +88,13 @@ urlpatterns = [
     # Contests
     path('contests/', views.contest_list, name='contest_list'),
     path('contests/create/', views.contest_create, name='contest_create'),
+    path('contests/bank-questions/', views.contest_bank_questions, name='contest_bank_questions'),
     path('contests/<int:pk>/', views.contest_detail, name='contest_detail'),
     path('contests/<int:pk>/join/', views.contest_join, name='contest_join'),
     path('contests/<int:pk>/submit/', views.contest_submit, name='contest_submit'),
+    path('contests/<int:pk>/result/', views.contest_result, name='contest_result'),
     path('contests/<int:pk>/leaderboard/', views.contest_leaderboard, name='contest_leaderboard'),
+    path('contests/<int:pk>/stats/', views.contest_stats, name='contest_stats'),
     path('contests/<int:pk>/delete/', views.contest_delete, name='contest_delete'),
 
     # Syllabus

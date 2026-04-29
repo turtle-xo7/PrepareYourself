@@ -937,15 +937,31 @@ def cancel_subscription(request, pk):
 
 @admin_required
 def teacher_dashboard(request):
-    from .models import UserProgress
+    from .models import UserProgress, TeacherFeedback, Contest
     from datetime import timedelta
     from django.utils import timezone
+    from django.db.models import Count, Q
 
     today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
 
     students = UserProfile.objects.filter(
         role='STUDENT', is_superadmin=False
     ).select_related('user').order_by('-user__date_joined')
+
+    all_progress = UserProgress.objects.filter(
+        user__profile__role='STUDENT',
+        user__profile__is_superadmin=False
+    )
+
+    stat_map = {s['user_id']: s for s in all_progress.values('user_id').annotate(
+        total=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+    )}
+    today_map = {s['user_id']: s['count'] for s in all_progress.filter(
+        answered_at__date=today).values('user_id').annotate(count=Count('id'))}
+    week_map = {s['user_id']: s for s in all_progress.filter(
+        answered_at__date__gte=week_ago).values('user_id').annotate(
+        total=Count('id'), correct=Count('id', filter=Q(is_correct=True)))}
 
     student_data = []
     total_answered_all = 0
@@ -953,11 +969,14 @@ def teacher_dashboard(request):
     accuracy_list = []
 
     for s in students:
-        progress = UserProgress.objects.filter(user=s.user)
-        total = progress.count()
-        correct = progress.filter(is_correct=True).count()
-        today_count = progress.filter(answered_at__date=today).count()
-        accuracy = round((correct / total * 100), 1) if total > 0 else 0
+        uid = s.user.id
+        st = stat_map.get(uid, {'total': 0, 'correct': 0})
+        total, correct = st['total'], st['correct']
+        today_count = today_map.get(uid, 0)
+        wk = week_map.get(uid, {'total': 0, 'correct': 0})
+        week_total, week_correct = wk['total'], wk['correct']
+        accuracy = round(correct / total * 100, 1) if total > 0 else 0
+        week_accuracy = round(week_correct / week_total * 100, 1) if week_total > 0 else 0
         total_answered_all += total
         if today_count > 0:
             active_today += 1
@@ -970,20 +989,71 @@ def teacher_dashboard(request):
             'wrong': total - correct,
             'accuracy': accuracy,
             'today_count': today_count,
+            'week_total': week_total,
+            'week_accuracy': week_accuracy,
         })
 
     avg_accuracy = round(sum(accuracy_list) / len(accuracy_list), 1) if accuracy_list else 0
 
+    at_risk = sorted(
+        [s for s in student_data if s['week_total'] >= 3 and s['week_accuracy'] < 50],
+        key=lambda x: x['week_accuracy']
+    )[:5]
+
+    top_performers = sorted(
+        [s for s in student_data if s['total'] >= 5],
+        key=lambda x: (-x['accuracy'], -x['total'])
+    )[:5]
+
+    subject_perf = all_progress.values('question__subject__name').annotate(
+        total=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+    ).filter(total__gt=0).order_by('-total')
+    subject_performance = [
+        {'name': sp['question__subject__name'], 'total': sp['total'],
+         'correct': sp['correct'],
+         'accuracy': round(sp['correct'] / sp['total'] * 100, 1) if sp['total'] > 0 else 0}
+        for sp in subject_perf
+    ]
+
+    recent_feedbacks = TeacherFeedback.objects.filter(
+        teacher=request.user
+    ).select_related('student', 'progress__question').order_by('-created_at')[:8]
+    feedbacks_this_week = TeacherFeedback.objects.filter(
+        teacher=request.user, created_at__date__gte=week_ago).count()
+    questions_set = Contest.objects.filter(created_by=request.user).count()
+
     daily_data = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
-        count = UserProgress.objects.filter(answered_at__date=day).count()
-        correct = UserProgress.objects.filter(answered_at__date=day, is_correct=True).count()
         daily_data.append({
             'day': day.strftime('%a'),
-            'count': count,
-            'correct': correct,
+            'count': all_progress.filter(answered_at__date=day).count(),
+            'correct': all_progress.filter(answered_at__date=day, is_correct=True).count(),
         })
+
+    heatmap_days = []
+    max_count = 1
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        cnt = all_progress.filter(answered_at__date=day).count()
+        heatmap_days.append({'date': day.strftime('%d %b'), 'count': cnt})
+        if cnt > max_count:
+            max_count = cnt
+
+    insights = []
+    inactive_count = sum(1 for s in student_data if s['week_total'] == 0)
+    if inactive_count:
+        insights.append(f"⚠️ {inactive_count} জন student গত সপ্তাহে একটিও প্রশ্ন করেননি।")
+    if subject_performance:
+        weakest = min(subject_performance, key=lambda x: x['accuracy'])
+        if weakest['accuracy'] < 60:
+            insights.append(f"📚 {weakest['name']}-এ class-এর গড় accuracy মাত্র {weakest['accuracy']}% — revision দরকার।")
+    if at_risk:
+        insights.append(f"🔴 {len(at_risk)} জন student এই সপ্তাহে ৫০%-এর নিচে — তাদের সাথে কথা বলুন।")
+    if len(students) > 0 and active_today < len(students) * 0.3:
+        insights.append(f"📉 আজ মাত্র {active_today} জন active — engagement বাড়ানো দরকার।")
+    if not insights:
+        insights.append("✅ সব ঠিকঠাক আছে। Class ভালো perform করছে!")
 
     return render(request, 'teacher/dashboard.html', {
         'student_data': student_data,
@@ -991,12 +1061,22 @@ def teacher_dashboard(request):
         'active_today': active_today,
         'avg_accuracy': avg_accuracy,
         'daily_data': daily_data,
+        'at_risk': at_risk,
+        'at_risk_count': len(at_risk),
+        'top_performers': top_performers,
+        'subject_performance': subject_performance,
+        'recent_feedbacks': recent_feedbacks,
+        'feedbacks_this_week': feedbacks_this_week,
+        'questions_set': questions_set,
+        'heatmap_days': heatmap_days,
+        'max_heatmap': max_count,
+        'insights': insights,
     })
 
 
 @admin_required
 def student_detail(request, pk):
-    from .models import UserProgress
+    from .models import UserProgress, TeacherFeedback
     from django.db.models import Count, Q
     from datetime import timedelta
     from django.utils import timezone
@@ -1007,26 +1087,98 @@ def student_detail(request, pk):
     total_answered = progress.count()
     total_correct = progress.filter(is_correct=True).count()
     total_wrong = total_answered - total_correct
-    accuracy = round((total_correct / total_answered * 100), 1) if total_answered > 0 else 0
+    accuracy = round(total_correct / total_answered * 100, 1) if total_answered > 0 else 0
 
-    subject_progress = progress.values('question__subject__name').annotate(
-        total=Count('id'),
-        correct=Count('id', filter=Q(is_correct=True))
-    ).order_by('-total')
+    subject_progress = list(progress.values('question__subject__name').annotate(
+        total=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+    ).order_by('-total'))
+    for sp in subject_progress:
+        sp['accuracy'] = round(sp['correct'] / sp['total'] * 100, 1) if sp['total'] > 0 else 0
+
+    difficulty_data = {}
+    for diff in ['Easy', 'Medium', 'Hard']:
+        dq = progress.filter(question__difficulty=diff)
+        d_total = dq.count()
+        d_correct = dq.filter(is_correct=True).count()
+        difficulty_data[diff] = {
+            'total': d_total,
+            'correct': d_correct,
+            'accuracy': round(d_correct / d_total * 100, 1) if d_total > 0 else 0,
+        }
 
     today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+
     daily_data = []
     for i in range(13, -1, -1):
         day = today - timedelta(days=i)
-        count = progress.filter(answered_at__date=day).count()
-        correct = progress.filter(answered_at__date=day, is_correct=True).count()
         daily_data.append({
             'day': day.strftime('%d %b'),
-            'count': count,
-            'correct': correct
+            'count': progress.filter(answered_at__date=day).count(),
+            'correct': progress.filter(answered_at__date=day, is_correct=True).count(),
         })
 
-    history = progress.order_by('-answered_at')[:30]
+    heatmap_days = []
+    max_count = 1
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        cnt = progress.filter(answered_at__date=day).count()
+        heatmap_days.append({'date': day.strftime('%d %b'), 'count': cnt})
+        if cnt > max_count:
+            max_count = cnt
+
+    streak = 0
+    check_day = today
+    while progress.filter(answered_at__date=check_day).exists():
+        streak += 1
+        check_day -= timedelta(days=1)
+
+    all_stats = list(UserProgress.objects.filter(
+        user__profile__role='STUDENT', user__profile__is_superadmin=False
+    ).values('user_id').annotate(
+        total=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+    ))
+    ranked = sorted(
+        [(s['user_id'], round(s['correct'] / s['total'] * 100, 1) if s['total'] > 0 else 0)
+         for s in all_stats], key=lambda x: -x[1]
+    )
+    class_rank = next((i + 1 for i, (uid, _) in enumerate(ranked) if uid == profile.user.id), None)
+    total_students = UserProfile.objects.filter(role='STUDENT', is_superadmin=False).count()
+
+    week_progress = progress.filter(answered_at__date__gte=week_ago)
+    week_total = week_progress.count()
+    week_correct = week_progress.filter(is_correct=True).count()
+    week_accuracy = round(week_correct / week_total * 100, 1) if week_total > 0 else 0
+    is_at_risk = week_total >= 3 and week_accuracy < 50
+
+    insights = []
+    if subject_progress:
+        weakest = min(subject_progress, key=lambda x: x['accuracy'])
+        if weakest['total'] >= 3 and weakest['accuracy'] < 60:
+            insights.append(f"⚠️ {weakest['question__subject__name']}-এ মাত্র {weakest['accuracy']}% accuracy — এই বিষয়ে বিশেষ মনোযোগ দরকার।")
+    easy_acc = difficulty_data['Easy']['accuracy']
+    hard_acc = difficulty_data['Hard']['accuracy']
+    if difficulty_data['Hard']['total'] >= 3 and difficulty_data['Easy']['total'] >= 3:
+        if easy_acc >= 70 and hard_acc < 50:
+            insights.append(f"সহজ প্রশ্নে ভালো ({easy_acc}%) কিন্তু কঠিনে দুর্বল ({hard_acc}%) — Medium থেকে Hard-এ নিয়ে যান।")
+    recent_7 = sum(d['count'] for d in daily_data[-7:])
+    prev_7 = sum(d['count'] for d in daily_data[:7])
+    if prev_7 > 0 and recent_7 < prev_7 * 0.5:
+        insights.append("📉 এই সপ্তাহে engagement উল্লেখযোগ্যভাবে কমেছে — motivational feedback পাঠান।")
+    elif recent_7 > prev_7 * 1.5 and recent_7 > 0:
+        insights.append("📈 এই সপ্তাহে দারুণ active! উৎসাহ দিতে ভুলবেন না।")
+    if streak == 0:
+        insights.append("❌ আজ কোনো প্রশ্ন করেনি। Reminder পাঠানো যেতে পারে।")
+    elif streak >= 7:
+        insights.append(f"🔥 {streak} দিনের দারুণ streak! এটা acknowledge করুন।")
+    if not insights:
+        insights.append("📊 সব ঠিকঠাক আছে। Regular feedback দিতে থাকুন।")
+
+    teacher_feedbacks = TeacherFeedback.objects.filter(
+        teacher=request.user, student=profile.user
+    ).select_related('progress__question').order_by('-created_at')[:20]
+
+    history = progress.prefetch_related('feedbacks__teacher').order_by('-answered_at')[:30]
 
     return render(request, 'teacher/student_detail.html', {
         'profile': profile,
@@ -1034,8 +1186,19 @@ def student_detail(request, pk):
         'total_correct': total_correct,
         'total_wrong': total_wrong,
         'accuracy': accuracy,
-        'subject_progress': list(subject_progress),
+        'subject_progress': subject_progress,
+        'difficulty_data': difficulty_data,
         'daily_data': daily_data,
+        'heatmap_days': heatmap_days,
+        'max_heatmap': max_count,
+        'streak': streak,
+        'class_rank': class_rank,
+        'total_students': total_students,
+        'is_at_risk': is_at_risk,
+        'week_accuracy': week_accuracy,
+        'week_total': week_total,
+        'insights': insights,
+        'teacher_feedbacks': teacher_feedbacks,
         'history': history,
     })
 
@@ -1053,8 +1216,29 @@ def give_feedback(request, progress_pk):
                 progress=progress,
                 comment=comment
             )
-            messages.success(request, 'Feedback sent!')
+            messages.success(request, 'Feedback পাঠানো হয়েছে!')
     return redirect('student_detail', pk=progress.user.profile.pk)
+
+
+@admin_required
+def send_general_feedback(request, student_pk):
+    from .models import UserProgress, TeacherFeedback
+    profile = get_object_or_404(UserProfile, pk=student_pk)
+    if request.method == 'POST':
+        comment = request.POST.get('comment', '').strip()
+        if comment:
+            latest = UserProgress.objects.filter(user=profile.user).order_by('-answered_at').first()
+            if latest:
+                TeacherFeedback.objects.create(
+                    teacher=request.user,
+                    student=profile.user,
+                    progress=latest,
+                    comment=comment
+                )
+                messages.success(request, 'Feedback পাঠানো হয়েছে!')
+            else:
+                messages.warning(request, 'Student এখনো কোনো প্রশ্ন করেননি।')
+    return redirect('student_detail', pk=student_pk)
 
 
 @login_required
@@ -1453,14 +1637,27 @@ def ask_ai(request):
 
 @login_required
 def contest_list(request):
-    from .models import Contest
+    from .models import Contest, ContestSubmission
     from django.utils import timezone
+    from django.db.models import Count
     now = timezone.now()
     active_contests = Contest.objects.filter(is_active=True, end_time__gte=now).select_related('subject', 'class_obj', 'created_by')
-    past_contests = Contest.objects.filter(is_active=True, end_time__lt=now).select_related('subject', 'class_obj')[:10]
+    past_contests = Contest.objects.filter(is_active=True, end_time__lt=now).select_related('subject', 'class_obj')[:12]
+
+    my_submissions = set(ContestSubmission.objects.filter(
+        student=request.user, is_submitted=True
+    ).values_list('contest_id', flat=True))
+
+    participant_counts = {
+        c['contest_id']: c['cnt']
+        for c in ContestSubmission.objects.filter(is_submitted=True).values('contest_id').annotate(cnt=Count('id'))
+    }
+
     return render(request, 'core/contest_list.html', {
         'active_contests': active_contests,
         'past_contests': past_contests,
+        'my_submissions': my_submissions,
+        'participant_counts': participant_counts,
     })
 
 
@@ -1607,26 +1804,120 @@ def contest_submit(request, pk):
     submission.save()
 
     messages.success(request, f'Submit হয়েছে! তোমার marks: {total_marks}')
-    return redirect('contest_leaderboard', pk=pk)
+    return redirect('contest_result', pk=pk)
+
+
+@login_required
+def contest_result(request, pk):
+    from .models import Contest, ContestSubmission, ContestAnswer
+    from django.db.models import Sum
+    contest = get_object_or_404(Contest, pk=pk)
+    submission = get_object_or_404(ContestSubmission, contest=contest, student=request.user, is_submitted=True)
+    answers = ContestAnswer.objects.filter(submission=submission).select_related('question')
+    max_marks = contest.questions.aggregate(total=Sum('marks'))['total'] or 0
+    correct_count = answers.filter(is_correct=True).count()
+    percentage = round(submission.total_marks / max_marks * 100, 1) if max_marks > 0 else 0
+    all_subs = list(ContestSubmission.objects.filter(
+        contest=contest, is_submitted=True
+    ).order_by('-total_marks', 'duration_taken').values_list('student_id', flat=True))
+    rank = next((i + 1 for i, uid in enumerate(all_subs) if uid == request.user.id), None)
+    return render(request, 'core/contest_result.html', {
+        'contest': contest,
+        'submission': submission,
+        'answers': answers,
+        'correct_count': correct_count,
+        'max_marks': max_marks,
+        'percentage': percentage,
+        'rank': rank,
+        'total_participants': len(all_subs),
+    })
 
 
 @login_required
 def contest_leaderboard(request, pk):
     from .models import Contest, ContestSubmission
+    from django.db.models import Sum
+    from django.utils import timezone
     contest = get_object_or_404(Contest, pk=pk)
+    now = timezone.now()
     submissions = ContestSubmission.objects.filter(
         contest=contest, is_submitted=True
     ).select_related('student').order_by('-total_marks', 'duration_taken')
-
     my_submission = ContestSubmission.objects.filter(
         contest=contest, student=request.user, is_submitted=True
     ).first()
-
+    max_marks = contest.questions.aggregate(total=Sum('marks'))['total'] or 0
     return render(request, 'core/contest_leaderboard.html', {
         'contest': contest,
         'submissions': submissions,
         'my_submission': my_submission,
+        'now': now,
+        'max_marks': max_marks,
     })
+
+
+@admin_required
+def contest_stats(request, pk):
+    from .models import Contest, ContestSubmission, ContestAnswer
+    from django.db.models import Sum, Count, Q
+    contest = get_object_or_404(Contest, pk=pk)
+    submissions = ContestSubmission.objects.filter(contest=contest, is_submitted=True).select_related('student')
+    total_participants = submissions.count()
+    max_possible = contest.questions.aggregate(total=Sum('marks'))['total'] or 0
+
+    if total_participants > 0:
+        marks_list = list(submissions.values_list('total_marks', flat=True))
+        avg_marks = round(sum(marks_list) / len(marks_list), 1)
+        highest = max(marks_list)
+        lowest = min(marks_list)
+        pass_count = sum(1 for m in marks_list if m >= max_possible * 0.5)
+        pass_rate = round(pass_count / total_participants * 100, 1)
+    else:
+        avg_marks = highest = lowest = pass_count = pass_rate = 0
+
+    question_stats = []
+    for q in contest.questions.all():
+        ans = ContestAnswer.objects.filter(submission__in=submissions, question=q)
+        t = ans.count()
+        c = ans.filter(is_correct=True).count()
+        question_stats.append({
+            'question': q,
+            'total': t,
+            'correct': c,
+            'accuracy': round(c / t * 100, 1) if t > 0 else 0,
+        })
+    question_stats.sort(key=lambda x: x['accuracy'])
+
+    return render(request, 'core/contest_stats.html', {
+        'contest': contest,
+        'total_participants': total_participants,
+        'avg_marks': avg_marks,
+        'highest': highest,
+        'lowest': lowest,
+        'max_possible': max_possible,
+        'pass_rate': pass_rate,
+        'pass_count': pass_count,
+        'question_stats': question_stats,
+        'top_submissions': submissions.order_by('-total_marks', 'duration_taken')[:10],
+    })
+
+
+@admin_required
+def contest_bank_questions(request):
+    from .models import Question
+    from django.http import JsonResponse
+    subject_id = request.GET.get('subject')
+    class_id = request.GET.get('class_obj')
+    qs = Question.objects.filter(is_active=True, question_type='MCQ')
+    if subject_id:
+        qs = qs.filter(subject_id=subject_id)
+    if class_id:
+        qs = qs.filter(class_obj_id=class_id)
+    data = [{'id': q.id, 'text': q.question_text[:120], 'difficulty': q.difficulty,
+              'option1': q.option1, 'option2': q.option2, 'option3': q.option3,
+              'option4': q.option4, 'correct_option': q.correct_option}
+            for q in qs[:60]]
+    return JsonResponse({'questions': data})
 
 
 @admin_required
@@ -1754,8 +2045,6 @@ def syllabus_delete(request, pk):
         syllabus.delete()
         messages.success(request, 'Syllabus deleted!')
     return redirect('syllabus_list')
-
-
 @superadmin_required
 def export_excel(request):
     import openpyxl
