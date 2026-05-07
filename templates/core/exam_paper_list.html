@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% block title %}Exam Papers{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <!-- Header -->
+  <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">📋 Exam Papers</h1>
+      <p class="text-gray-500 mt-1">বোর্ড পরীক্ষার আদলে MCQ + CQ দুই পর্বে পরীক্ষা দিন</p>
+    </div>
+    <div class="flex items-center gap-3 flex-wrap">
+      {% if is_admin or request.user.is_staff or is_superadmin %}
+      <a href="{% url 'create_exam_paper' %}"
+         class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2.5 rounded-xl font-medium transition flex items-center gap-1.5">
+        + নতুন Exam Paper
+      </a>
+      {% endif %}
+      <div class="flex items-center gap-3 text-sm text-gray-500 bg-gray-50 rounded-xl px-4 py-2">
+        <span>📝 MCQ — ৩০ মিনিট</span>
+        <span class="text-gray-300">|</span>
+        <span>✍️ CQ — ২.৫ ঘণ্টা</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="flex flex-wrap gap-3 mb-6" id="filter-bar">
+    <button onclick="filterCards('all', this)"
+            class="filter-btn active px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white">
+      সব
+    </button>
+    {% for subj in subjects %}
+    <button onclick="filterCards('subj-{{ subj|slugify }}', this)"
+            class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">
+      {{ subj }}
+    </button>
+    {% endfor %}
+    {% for cls in classes %}
+    <button onclick="filterCards('cls-{{ cls|slugify }}', this)"
+            class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">
+      Class {{ cls }}
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- Cards grid -->
+  {% if paper_data %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="cards-grid">
+    {% for item in paper_data %}
+    {% with paper=item.paper attempt=item.attempt %}
+    <div class="card-item bg-white rounded-2xl border border-gray-200 hover:shadow-lg transition overflow-hidden flex flex-col"
+         data-subj="{{ paper.subject.name|slugify }}"
+         data-cls="{{ paper.class_obj.name|slugify }}">
+
+      <!-- Card top color strip based on attempt status -->
+      <div class="h-1.5 {% if not attempt %}bg-indigo-400{% elif attempt.status == 'GRADED' %}bg-green-500{% elif attempt.status == 'CQ_PENDING' %}bg-yellow-400{% else %}bg-blue-400{% endif %}"></div>
+
+      <div class="p-5 flex flex-col flex-1">
+
+        <!-- Badges -->
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">{{ paper.subject.name }}</span>
+          <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ paper.class_obj.name }}</span>
+          <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ paper.year }} সন</span>
+          {% if paper.board %}<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ paper.board.name }}</span>{% endif %}
+        </div>
+
+        <!-- Title -->
+        <h3 class="font-bold text-gray-800 text-base leading-snug mb-3">{{ paper.title }}</h3>
+
+        <!-- Stats row -->
+        <div class="flex gap-4 text-sm text-gray-500 mb-4">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            MCQ: <strong class="text-gray-700">{{ item.mcq_count }}</strong>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+            CQ: <strong class="text-gray-700">{{ item.cq_count }}</strong>
+          </div>
+          <div class="flex items-center gap-1.5 ml-auto">
+            <span class="w-2 h-2 rounded-full bg-gray-300"></span>
+            <span>১০০ নম্বর</span>
+          </div>
+        </div>
+
+        <!-- Attempt status badge -->
+        {% if attempt %}
+        <div class="mb-4">
+          {% if attempt.status == 'GRADED' %}
+          <span class="inline-flex items-center gap-1.5 text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full font-medium">
+            ✅ সম্পন্ন
+          </span>
+          {% elif attempt.status == 'CQ_PENDING' %}
+          <span class="inline-flex items-center gap-1.5 text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-3 py-1 rounded-full font-medium">
+            ⏳ Grading চলছে
+          </span>
+          {% elif attempt.status == 'CQ_PHASE' or attempt.status == 'MCQ_DONE' %}
+          <span class="inline-flex items-center gap-1.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-full font-medium">
+            ✍️ CQ পর্ব বাকি
+          </span>
+          {% elif attempt.status == 'MCQ_PHASE' %}
+          <span class="inline-flex items-center gap-1.5 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full font-medium">
+            📝 MCQ চলছে
+          </span>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Spacer -->
+        <div class="flex-1"></div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-2 mt-2 flex-wrap">
+          <a href="{% url 'exam_paper_detail' paper.pk %}"
+             class="flex-1 text-center py-2 rounded-xl text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
+            বিস্তারিত
+          </a>
+
+          {% if not attempt %}
+          <a href="{% url 'start_exam' paper.pk %}"
+             class="flex-1 text-center py-2 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition">
+            Start Exam →
+          </a>
+          {% elif attempt.status == 'MCQ_PHASE' %}
+          <a href="{% url 'start_exam' paper.pk %}"
+             class="flex-1 text-center py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition">
+            Resume MCQ →
+          </a>
+          {% elif attempt.status == 'MCQ_DONE' or attempt.status == 'CQ_PHASE' %}
+          <a href="{% url 'exam_cq_phase' attempt.id %}"
+             class="flex-1 text-center py-2 rounded-xl text-sm font-bold bg-purple-600 hover:bg-purple-700 text-white transition">
+            Resume CQ →
+          </a>
+          {% elif attempt.status == 'CQ_PENDING' %}
+          <a href="{% url 'exam_results' attempt.id %}"
+             class="flex-1 text-center py-2 rounded-xl text-sm font-medium bg-yellow-500 hover:bg-yellow-600 text-white transition">
+            Results দেখুন
+          </a>
+          {% elif attempt.status == 'GRADED' %}
+          <a href="{% url 'exam_results' attempt.id %}"
+             class="flex-1 text-center py-2 rounded-xl text-sm font-bold bg-green-600 hover:bg-green-700 text-white transition">
+            Full Results →
+          </a>
+          {% endif %}
+        </div>
+
+        {% if is_admin or is_superadmin or request.user.is_staff %}
+        <div class="flex gap-1.5 mt-2">
+          <a href="{% url 'edit_exam_paper' paper.pk %}"
+             title="সম্পাদনা"
+             class="flex-1 text-center py-1.5 rounded-lg text-xs font-medium bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 transition">
+            ✏️ Edit
+          </a>
+          <form method="post" action="{% url 'delete_exam_paper' paper.pk %}" class="flex-1"
+                onsubmit="return confirm('এই Exam Paper মুছে ফেলবেন?')">
+            {% csrf_token %}
+            <button type="submit"
+                    class="w-full py-1.5 rounded-lg text-xs font-medium bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 transition">
+              🗑️ Delete
+            </button>
+          </form>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="text-center py-24">
+    <div class="text-6xl mb-4">📄</div>
+    <h3 class="text-xl font-bold text-gray-700 mb-2">কোনো Exam Paper নেই</h3>
+    <p class="text-gray-400">Teacher এখনো কোনো exam paper তৈরি করেননি।</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+function filterCards(key, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('bg-indigo-600', 'text-white');
+    b.classList.add('bg-gray-100', 'text-gray-600');
+  });
+  btn.classList.remove('bg-gray-100', 'text-gray-600');
+  btn.classList.add('bg-indigo-600', 'text-white');
+
+  document.querySelectorAll('.card-item').forEach(card => {
+    if (key === 'all') {
+      card.style.display = '';
+    } else if (key.startsWith('subj-')) {
+      card.style.display = (card.dataset.subj === key.slice(5)) ? '' : 'none';
+    } else if (key.startsWith('cls-')) {
+      card.style.display = (card.dataset.cls === key.slice(4)) ? '' : 'none';
+    }
+  });
+}
+</script>
+{% endblock %}

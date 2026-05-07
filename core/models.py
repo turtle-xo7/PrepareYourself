@@ -261,3 +261,115 @@ class ContestAnswer(models.Model):
     marks_obtained = models.IntegerField(default=0)
     def __str__(self):
         return f"{self.submission.student.username} - Q{self.question.id}"
+
+
+# -------- EXAM MODE MODELS --------
+
+class ExamPaper(models.Model):
+    title = models.CharField(max_length=200)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='exam_papers')
+    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='exam_papers')
+    board = models.ForeignKey(Board, on_delete=models.SET_NULL, null=True, blank=True, related_name='exam_papers')
+    year = models.IntegerField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='exam_papers')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+    def __str__(self):
+        return self.title
+
+
+class ExamPaperMCQ(models.Model):
+    exam_paper = models.ForeignKey(ExamPaper, on_delete=models.CASCADE, related_name='mcqs')
+    question_text = models.TextField()
+    option1 = models.CharField(max_length=500)
+    option2 = models.CharField(max_length=500)
+    option3 = models.CharField(max_length=500)
+    option4 = models.CharField(max_length=500)
+    correct_option = models.PositiveSmallIntegerField()
+    marks = models.IntegerField(default=1)
+    order = models.IntegerField(default=0)
+    class Meta:
+        ordering = ['order', 'id']
+    def __str__(self):
+        return f"{self.exam_paper.title} - MCQ {self.id}"
+
+
+class CQQuestion(models.Model):
+    exam_paper = models.ForeignKey(ExamPaper, on_delete=models.CASCADE, related_name='cqs')
+    question_text = models.TextField()
+    part_a = models.TextField(blank=True)
+    part_b = models.TextField(blank=True)
+    part_c = models.TextField(blank=True)
+    part_d = models.TextField(blank=True)
+    marks_a = models.IntegerField(default=1)
+    marks_b = models.IntegerField(default=2)
+    marks_c = models.IntegerField(default=3)
+    marks_d = models.IntegerField(default=4)
+    order = models.IntegerField(default=0)
+    class Meta:
+        ordering = ['order', 'id']
+    def __str__(self):
+        return f"{self.exam_paper.title} - CQ {self.id}"
+
+
+class ExamAttempt(models.Model):
+    STATUS_CHOICES = [
+        ('MCQ_PHASE', 'MCQ Phase'),
+        ('MCQ_DONE', 'MCQ Done'),
+        ('CQ_PHASE', 'CQ Phase'),
+        ('CQ_PENDING', 'Pending Review'),
+        ('GRADED', 'Graded'),
+    ]
+    exam_paper = models.ForeignKey(ExamPaper, on_delete=models.CASCADE, related_name='attempts')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='exam_attempts')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='MCQ_PHASE')
+    started_at = models.DateTimeField(auto_now_add=True)
+    mcq_submitted_at = models.DateTimeField(null=True, blank=True)
+    cq_started_at = models.DateTimeField(null=True, blank=True)
+    cq_submitted_at = models.DateTimeField(null=True, blank=True)
+    mcq_score = models.IntegerField(default=0)
+    cq_score = models.IntegerField(null=True, blank=True)
+    total_score = models.IntegerField(null=True, blank=True)
+    grade = models.CharField(max_length=5, blank=True)
+    mcq_answers = models.JSONField(default=dict)
+    selected_cqs = models.JSONField(default=list)
+    graded_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='graded_attempts')
+    graded_at = models.DateTimeField(null=True, blank=True)
+    class Meta:
+        unique_together = ['exam_paper', 'student']
+        ordering = ['-started_at']
+    def __str__(self):
+        return f"{self.student.username} - {self.exam_paper.title}"
+
+    @property
+    def mcq_seconds_remaining(self):
+        from django.utils import timezone
+        elapsed = (timezone.now() - self.started_at).total_seconds()
+        return max(0, int(1800 - elapsed))
+
+    @property
+    def cq_seconds_remaining(self):
+        from django.utils import timezone
+        if not self.cq_started_at:
+            return 9000
+        elapsed = (timezone.now() - self.cq_started_at).total_seconds()
+        return max(0, int(9000 - elapsed))
+
+
+class CQSubmission(models.Model):
+    attempt = models.ForeignKey(ExamAttempt, on_delete=models.CASCADE, related_name='cq_submissions')
+    cq_question = models.ForeignKey(CQQuestion, on_delete=models.CASCADE, related_name='submissions')
+    photo = models.ImageField(upload_to='exam/cq_answers/', blank=True, null=True)
+    photo_a = models.ImageField(upload_to='exam/cq_answers/', blank=True, null=True)
+    photo_b = models.ImageField(upload_to='exam/cq_answers/', blank=True, null=True)
+    photo_c = models.ImageField(upload_to='exam/cq_answers/', blank=True, null=True)
+    photo_d = models.ImageField(upload_to='exam/cq_answers/', blank=True, null=True)
+    marks_given = models.IntegerField(null=True, blank=True)
+    teacher_comment = models.TextField(blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ['attempt', 'cq_question']
+    def __str__(self):
+        return f"{self.attempt.student.username} - CQ{self.cq_question.id}"

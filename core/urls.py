@@ -97,6 +97,20 @@ urlpatterns = [
     path('contests/<int:pk>/stats/', views.contest_stats, name='contest_stats'),
     path('contests/<int:pk>/delete/', views.contest_delete, name='contest_delete'),
 
+    # Exam Mode
+    path('exam-papers/', views.exam_paper_list, name='exam_paper_list'),
+    path('exam-papers/<int:pk>/', views.exam_paper_detail, name='exam_paper_detail'),
+    path('exam-papers/<int:pk>/exam/', views.start_exam, name='start_exam'),
+    path('exam/submit-mcq/', views.submit_mcq, name='submit_mcq'),
+    path('exam/<int:attempt_id>/cq/', views.exam_cq_phase, name='exam_cq_phase'),
+    path('exam/<int:attempt_id>/cq/submit/', views.submit_cq, name='submit_cq'),
+    path('exam/<int:attempt_id>/results/', views.exam_results, name='exam_results'),
+    path('manage/grade-queue/', views.manage_grade_list, name='manage_grade_list'),
+    path('manage/grade-cq/<int:attempt_id>/', views.grade_cq_submission, name='grade_cq_submission'),
+    path('manage/exam-paper/create/', views.create_exam_paper, name='create_exam_paper'),
+    path('manage/exam-paper/<int:pk>/edit/', views.edit_exam_paper, name='edit_exam_paper'),
+    path('manage/exam-paper/<int:pk>/delete/', views.delete_exam_paper, name='delete_exam_paper'),
+
     # Syllabus
     path('syllabus/', views.syllabus_list, name='syllabus_list'),
     path('syllabus/add/', views.syllabus_add, name='syllabus_add'),

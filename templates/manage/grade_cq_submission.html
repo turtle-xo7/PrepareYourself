@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">CQ মূল্যায়ন</h1>
+      <p class="text-gray-500 text-sm">{{ attempt.student.get_full_name|default:attempt.student.username }} • {{ attempt.exam_paper.title }}</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="bg-blue-50 rounded-xl px-4 py-2 text-center">
+        <div class="text-xs text-gray-400">MCQ স্কোর</div>
+        <div class="text-2xl font-bold text-blue-700">{{ attempt.mcq_score }}<span class="text-sm text-gray-400 font-normal">/30</span></div>
+      </div>
+      <a href="{% url 'manage_grade_list' %}" class="text-sm text-gray-500 hover:text-gray-700">← Grade Queue</a>
+    </div>
+  </div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="mb-4 p-3 rounded-xl {% if msg.tags == 'success' %}bg-green-50 text-green-700{% else %}bg-red-50 text-red-700{% endif %} text-sm font-medium">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post">
+  {% csrf_token %}
+
+  <div class="flex gap-6">
+
+    <!-- LEFT PANEL: Student Photos -->
+    <div class="flex-1 space-y-6">
+      <h2 class="font-semibold text-gray-700 text-lg border-b pb-2">📷 শিক্ষার্থীর উত্তরের ছবি</h2>
+
+      {% if cq_submissions %}
+      {% for sub in cq_submissions %}
+      <div class="bg-white rounded-2xl shadow p-5" id="photo-panel-{{ sub.id }}">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-gray-700">CQ {{ forloop.counter }}</h3>
+          <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+            মোট: {{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }} নম্বর
+          </span>
+        </div>
+
+        <!-- Question text -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-gray-700">
+          <p class="font-medium text-amber-700 text-xs mb-1">উদ্দীপক</p>
+          {{ sub.cq_question.question_text }}
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
+          {% if sub.cq_question.part_a %}<div class="bg-gray-50 p-2 rounded">(ক) {{ sub.cq_question.part_a }} [{{ sub.cq_question.marks_a }}]</div>{% endif %}
+          {% if sub.cq_question.part_b %}<div class="bg-gray-50 p-2 rounded">(খ) {{ sub.cq_question.part_b }} [{{ sub.cq_question.marks_b }}]</div>{% endif %}
+          {% if sub.cq_question.part_c %}<div class="bg-gray-50 p-2 rounded">(গ) {{ sub.cq_question.part_c }} [{{ sub.cq_question.marks_c }}]</div>{% endif %}
+          {% if sub.cq_question.part_d %}<div class="bg-gray-50 p-2 rounded">(ঘ) {{ sub.cq_question.part_d }} [{{ sub.cq_question.marks_d }}]</div>{% endif %}
+        </div>
+
+        <!-- Photos -->
+        <div class="space-y-3">
+          {% if sub.photo %}
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-1.5">সম্পূর্ণ উত্তর</p>
+            <a href="{{ sub.photo.url }}" target="_blank">
+              <img src="{{ sub.photo.url }}" alt="উত্তর" class="max-h-96 w-full object-contain rounded-xl border border-gray-200 hover:opacity-90 transition cursor-zoom-in">
+            </a>
+          </div>
+          {% endif %}
+          <div class="grid grid-cols-2 gap-2">
+            {% if sub.photo_a %}
+            <div>
+              <p class="text-xs font-medium text-gray-400 mb-1">(ক) অংশ</p>
+              <a href="{{ sub.photo_a.url }}" target="_blank"><img src="{{ sub.photo_a.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
+            </div>
+            {% endif %}
+            {% if sub.photo_b %}
+            <div>
+              <p class="text-xs font-medium text-gray-400 mb-1">(খ) অংশ</p>
+              <a href="{{ sub.photo_b.url }}" target="_blank"><img src="{{ sub.photo_b.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
+            </div>
+            {% endif %}
+            {% if sub.photo_c %}
+            <div>
+              <p class="text-xs font-medium text-gray-400 mb-1">(গ) অংশ</p>
+              <a href="{{ sub.photo_c.url }}" target="_blank"><img src="{{ sub.photo_c.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
+            </div>
+            {% endif %}
+            {% if sub.photo_d %}
+            <div>
+              <p class="text-xs font-medium text-gray-400 mb-1">(ঘ) অংশ</p>
+              <a href="{{ sub.photo_d.url }}" target="_blank"><img src="{{ sub.photo_d.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
+            </div>
+            {% endif %}
+          </div>
+          {% if not sub.photo and not sub.photo_a and not sub.photo_b and not sub.photo_c and not sub.photo_d %}
+          <p class="text-gray-400 text-sm italic text-center py-4">কোনো ছবি আপলোড করা হয়নি</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="bg-white rounded-2xl shadow p-10 text-center text-gray-400">
+        <p>কোনো CQ submission পাওয়া যায়নি।</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- RIGHT PANEL: Scoring Form -->
+    <div class="w-80 shrink-0">
+      <div class="sticky top-20">
+        <h2 class="font-semibold text-gray-700 text-lg border-b pb-2 mb-4">✏️ নম্বর দিন</h2>
+
+        <div class="space-y-4">
+          {% for sub in cq_submissions %}
+          <div class="bg-white rounded-xl shadow p-4">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-sm font-semibold text-gray-700">CQ {{ forloop.counter }}</label>
+              <span class="text-xs text-gray-400">
+                সর্বোচ্চ {{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }}
+              </span>
+            </div>
+            <input
+              type="number"
+              name="marks_{{ sub.id }}"
+              min="0"
+              max="{{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }}"
+              value="{{ sub.marks_given|default:'' }}"
+              placeholder="নম্বর লিখুন"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 mb-2"
+              oninput="updateTotal()">
+            <textarea
+              name="comment_{{ sub.id }}"
+              placeholder="মন্তব্য (ঐচ্ছিক)"
+              rows="2"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none">{{ sub.teacher_comment }}</textarea>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Total Preview -->
+        <div class="mt-4 bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <div class="flex justify-between text-sm text-gray-600 mb-1">
+            <span>MCQ স্কোর</span><span class="font-bold">{{ attempt.mcq_score }}</span>
+          </div>
+          <div class="flex justify-between text-sm text-gray-600 mb-1">
+            <span>CQ স্কোর</span><span class="font-bold" id="cq-total">0</span>
+          </div>
+          <div class="flex justify-between text-base font-bold text-gray-800 border-t pt-2 mt-2">
+            <span>মোট</span><span id="grand-total">{{ attempt.mcq_score }}</span>
+          </div>
+          <div class="mt-1 text-center">
+            <span class="text-lg font-extrabold" id="grade-preview">—</span>
+          </div>
+        </div>
+
+        <button type="submit"
+                class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-sm transition">
+          মূল্যায়ন সম্পন্ন করুন ✓
+        </button>
+        <a href="{% url 'manage_grade_list' %}"
+           class="mt-2 block text-center text-sm text-gray-400 hover:text-gray-600">বাতিল করুন</a>
+      </div>
+    </div>
+
+  </div>
+  </form>
+</div>
+
+<script>
+const MCQ_SCORE = {{ attempt.mcq_score }};
+
+function gradeFromTotal(t) {
+  if (t >= 80) return 'A+';
+  if (t >= 70) return 'A';
+  if (t >= 60) return 'A-';
+  if (t >= 50) return 'B';
+  if (t >= 40) return 'C';
+  if (t >= 33) return 'D';
+  return 'F';
+}
+
+function gradeColor(g) {
+  const map = {'A+':'text-green-600','A':'text-blue-600','A-':'text-sky-600','B':'text-yellow-600','C':'text-orange-600','D':'text-red-600','F':'text-gray-600'};
+  return map[g] || 'text-gray-600';
+}
+
+function updateTotal() {
+  let cqTotal = 0;
+  document.querySelectorAll('input[type=number]').forEach(inp => {
+    cqTotal += parseInt(inp.value || 0);
+  });
+  const grand = MCQ_SCORE + cqTotal;
+  const g = gradeFromTotal(grand);
+  document.getElementById('cq-total').textContent = cqTotal;
+  document.getElementById('grand-total').textContent = grand;
+  const gEl = document.getElementById('grade-preview');
+  gEl.textContent = g;
+  gEl.className = 'text-lg font-extrabold ' + gradeColor(g);
+}
+
+updateTotal();
+</script>
+{% endblock %}

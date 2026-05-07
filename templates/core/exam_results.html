@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-10">
+
+{% if attempt.status == 'CQ_PENDING' %}
+<!-- ===== WAITING STATE ===== -->
+<div class="text-center py-16">
+  <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-yellow-100 mb-6 animate-pulse">
+    <span class="text-5xl">⏳</span>
+  </div>
+  <h2 class="text-2xl font-bold text-gray-800 mb-2">মূল্যায়ন চলছে…</h2>
+  <p class="text-gray-500 mb-6">আপনার CQ উত্তর Teacher-এর কাছে পাঠানো হয়েছে। মূল্যায়ন সম্পন্ন হলে এখানে ফলাফল দেখা যাবে।</p>
+
+  <div class="bg-white rounded-2xl shadow p-6 mb-6 text-left">
+    <h3 class="font-semibold text-gray-700 mb-4 border-b pb-2">এখন পর্যন্ত</h3>
+    <div class="flex justify-between items-center py-2">
+      <span class="text-gray-600">MCQ স্কোর</span>
+      <span class="font-bold text-blue-700 text-lg">{{ attempt.mcq_score }} নম্বর</span>
+    </div>
+    <div class="flex justify-between items-center py-2 border-t">
+      <span class="text-gray-600">CQ স্কোর</span>
+      <span class="text-gray-400 italic">মূল্যায়নাধীন</span>
+    </div>
+    <div class="mt-3 text-sm text-gray-400">জমার সময়: {{ attempt.cq_submitted_at|date:"d M Y, g:i A" }}</div>
+  </div>
+
+  <a href="{% url 'dashboard' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition">Dashboard এ যান</a>
+</div>
+
+{% elif attempt.status == 'GRADED' %}
+<!-- ===== GRADED STATE ===== -->
+
+{% with grade=attempt.grade total=attempt.total_score %}
+<!-- Grade Banner -->
+<div class="rounded-2xl shadow-lg p-8 mb-6 text-center
+  {% if grade == 'A+' %}bg-gradient-to-br from-green-500 to-emerald-600
+  {% elif grade == 'A' %}bg-gradient-to-br from-blue-500 to-blue-700
+  {% elif grade == 'A-' %}bg-gradient-to-br from-sky-500 to-cyan-600
+  {% elif grade == 'B' %}bg-gradient-to-br from-yellow-400 to-orange-500
+  {% elif grade == 'C' %}bg-gradient-to-br from-orange-400 to-red-500
+  {% elif grade == 'D' %}bg-gradient-to-br from-red-500 to-rose-600
+  {% else %}bg-gradient-to-br from-gray-500 to-gray-700{% endif %}
+  text-white">
+  <div class="text-6xl font-extrabold mb-2 drop-shadow">{{ grade }}</div>
+  <div class="text-2xl font-semibold opacity-90">{{ total }}/100 নম্বর</div>
+  <div class="text-sm opacity-75 mt-1">{{ attempt.exam_paper.title }}</div>
+</div>
+
+<!-- Score Breakdown -->
+<div class="bg-white rounded-2xl shadow p-6 mb-6">
+  <h3 class="font-bold text-gray-800 mb-4 text-lg">নম্বর বিভাজন</h3>
+  <div class="space-y-3">
+    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+      <div>
+        <p class="font-semibold text-gray-700">MCQ পর্ব</p>
+        <p class="text-xs text-gray-400">৩০টি MCQ, প্রতিটি ১ নম্বর</p>
+      </div>
+      <span class="text-2xl font-bold text-blue-700">{{ attempt.mcq_score }}</span>
+    </div>
+    <div class="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
+      <div>
+        <p class="font-semibold text-gray-700">CQ পর্ব</p>
+        <p class="text-xs text-gray-400">{{ cq_submissions|length }}টি সৃজনশীল প্রশ্ন</p>
+      </div>
+      <span class="text-2xl font-bold text-purple-700">{{ attempt.cq_score }}</span>
+    </div>
+    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border-2 border-gray-300">
+      <span class="font-bold text-gray-700 text-lg">মোট</span>
+      <span class="text-2xl font-extrabold text-gray-800">{{ total }}/100</span>
+    </div>
+  </div>
+</div>
+
+<!-- Grade Scale Reference -->
+<div class="bg-white rounded-2xl shadow p-6 mb-6">
+  <h3 class="font-semibold text-gray-700 mb-3">গ্রেড স্কেল</h3>
+  <div class="grid grid-cols-4 gap-2 text-center text-xs">
+    <div class="p-2 rounded-lg {% if grade == 'A+' %}bg-green-100 ring-2 ring-green-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-green-700">A+</div><div class="text-gray-500">৮০+</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'A' %}bg-blue-100 ring-2 ring-blue-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-blue-700">A</div><div class="text-gray-500">৭০–৭৯</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'A-' %}bg-sky-100 ring-2 ring-sky-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-sky-700">A-</div><div class="text-gray-500">৬০–৬৯</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'B' %}bg-yellow-100 ring-2 ring-yellow-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-yellow-700">B</div><div class="text-gray-500">৫০–৫৯</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'C' %}bg-orange-100 ring-2 ring-orange-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-orange-700">C</div><div class="text-gray-500">৪০–৪৯</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'D' %}bg-red-100 ring-2 ring-red-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-red-700">D</div><div class="text-gray-500">৩৩–৩৯</div></div>
+    <div class="p-2 rounded-lg col-span-2 {% if grade == 'F' %}bg-gray-200 ring-2 ring-gray-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-gray-700">F</div><div class="text-gray-500">০–৩২</div></div>
+  </div>
+</div>
+
+<!-- CQ Details -->
+{% if cq_submissions %}
+<div class="bg-white rounded-2xl shadow p-6 mb-6">
+  <h3 class="font-semibold text-gray-700 mb-4">CQ বিস্তারিত মূল্যায়ন</h3>
+  <div class="space-y-4">
+    {% for sub in cq_submissions %}
+    <div class="border border-gray-200 rounded-xl p-4">
+      <div class="flex justify-between items-start mb-2">
+        <p class="text-sm font-semibold text-gray-700">{{ sub.cq_question.question_text|truncatechars:80 }}</p>
+        <span class="text-lg font-bold text-purple-700 shrink-0 ml-3">
+          {{ sub.marks_given|default:"—" }}
+          <span class="text-xs text-gray-400 font-normal">/{{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }}</span>
+        </span>
+      </div>
+      {% if sub.teacher_comment %}
+      <p class="text-xs text-gray-500 italic bg-gray-50 rounded p-2">💬 {{ sub.teacher_comment }}</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="text-sm text-gray-400 text-center mb-6">
+  মূল্যায়ন করেছেন: {{ attempt.graded_by.get_full_name|default:attempt.graded_by.username }} • {{ attempt.graded_at|date:"d M Y, g:i A" }}
+</div>
+
+{% endwith %}
+
+<div class="flex gap-3 justify-center">
+  <a href="{% url 'dashboard' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition">Dashboard</a>
+  <a href="{% url 'question_bank' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-medium transition">Question Bank</a>
+</div>
+
+{% else %}
+<!-- Fallback for other statuses -->
+<div class="text-center py-16">
+  <p class="text-gray-500">পরীক্ষার তথ্য পাওয়া যাচ্ছে না।</p>
+  <a href="{% url 'dashboard' %}" class="mt-4 inline-block text-blue-600 hover:underline">Dashboard এ ফিরুন</a>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

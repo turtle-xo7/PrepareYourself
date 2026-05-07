@@ -675,13 +675,15 @@ def superadmin_dashboard(request):
 
 @admin_required
 def manage_dashboard(request):
-    from .models import PracticalVideo
+    from .models import PracticalVideo, ExamPaper, ExamAttempt
     total_questions = Question.objects.filter(is_active=True).count()
     total_videos = PracticalVideo.objects.filter(is_active=True).count()
     total_boards = Board.objects.filter(is_active=True).count()
     total_subjects = Subject.objects.filter(is_active=True).count()
     total_classes = Class.objects.count()
     recent_questions = Question.objects.select_related('board', 'subject').order_by('-created_at')[:5]
+    exam_paper_count = ExamPaper.objects.count()
+    pending_cq_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
     return render(request, 'manage/dashboard.html', {
         'total_questions': total_questions,
         'total_videos': total_videos,
@@ -689,6 +691,8 @@ def manage_dashboard(request):
         'total_subjects': total_subjects,
         'total_classes': total_classes,
         'recent_questions': recent_questions,
+        'exam_paper_count': exam_paper_count,
+        'pending_cq_count': pending_cq_count,
     })
 
 
@@ -937,7 +941,7 @@ def cancel_subscription(request, pk):
 
 @admin_required
 def teacher_dashboard(request):
-    from .models import UserProgress, TeacherFeedback, Contest
+    from .models import UserProgress, TeacherFeedback, Contest, ExamPaper, ExamAttempt
     from datetime import timedelta
     from django.utils import timezone
     from django.db.models import Count, Q
@@ -1055,6 +1059,53 @@ def teacher_dashboard(request):
     if not insights:
         insights.append("✅ সব ঠিকঠাক আছে। Class ভালো perform করছে!")
 
+    # ---- Exam Mode data ----
+    exam_papers = ExamPaper.objects.filter(is_active=True).select_related(
+        'subject', 'class_obj'
+    ).order_by('-created_at')
+
+    exam_paper_data = []
+    for paper in exam_papers:
+        attempts = paper.attempts.all()
+        exam_paper_data.append({
+            'paper': paper,
+            'total': attempts.count(),
+            'pending': attempts.filter(status='CQ_PENDING').count(),
+            'graded': attempts.filter(status='GRADED').count(),
+            'mcq_count': paper.mcqs.count(),
+            'cq_count': paper.cqs.count(),
+        })
+
+    pending_cq_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
+
+    urgent_cutoff = timezone.now() - timedelta(hours=24)
+    urgent_cq_count = ExamAttempt.objects.filter(
+        status='CQ_PENDING', cq_submitted_at__lt=urgent_cutoff
+    ).count()
+
+    recent_exam_pending = ExamAttempt.objects.filter(
+        status='CQ_PENDING'
+    ).select_related('student', 'exam_paper').order_by('cq_submitted_at')[:6]
+
+    recent_exam_graded = ExamAttempt.objects.filter(
+        status='GRADED'
+    ).select_related('student', 'exam_paper').order_by('-graded_at')[:5]
+
+    # Latest exam attempt per student (for student table column)
+    all_student_ids = [s['profile'].user.id for s in student_data]
+    latest_attempt_map = {}
+    for attempt in ExamAttempt.objects.filter(
+        student_id__in=all_student_ids
+    ).select_related('exam_paper').order_by('-started_at'):
+        if attempt.student_id not in latest_attempt_map:
+            latest_attempt_map[attempt.student_id] = attempt
+
+    for s in student_data:
+        s['exam_attempt'] = latest_attempt_map.get(s['profile'].user.id)
+
+    if pending_cq_count:
+        insights.append(f"📝 {pending_cq_count}টি CQ submission এখনো grade করা হয়নি।")
+
     return render(request, 'teacher/dashboard.html', {
         'student_data': student_data,
         'total_answered_all': total_answered_all,
@@ -1071,6 +1122,11 @@ def teacher_dashboard(request):
         'heatmap_days': heatmap_days,
         'max_heatmap': max_count,
         'insights': insights,
+        'exam_paper_data': exam_paper_data,
+        'pending_cq_count': pending_cq_count,
+        'urgent_cq_count': urgent_cq_count,
+        'recent_exam_pending': recent_exam_pending,
+        'recent_exam_graded': recent_exam_graded,
     })
 
 
@@ -2159,3 +2215,676 @@ def export_excel(request):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     wb.save(response)
     return response
+
+
+# -------- EXAM MODE VIEWS --------
+
+@login_required
+def exam_paper_list(request):
+    from .models import ExamPaper, ExamAttempt
+    papers = ExamPaper.objects.filter(is_active=True).select_related(
+        'subject', 'class_obj', 'board'
+    ).order_by('-year', 'subject__name')
+
+    attempt_map = {}
+    if request.user.is_authenticated:
+        for a in ExamAttempt.objects.filter(
+            student=request.user, exam_paper__is_active=True
+        ).values('exam_paper_id', 'status', 'id'):
+            attempt_map[a['exam_paper_id']] = a
+
+    paper_data = []
+    for paper in papers:
+        attempt = attempt_map.get(paper.id)
+        paper_data.append({
+            'paper': paper,
+            'mcq_count': paper.mcqs.count(),
+            'cq_count': paper.cqs.count(),
+            'attempt': attempt,
+        })
+
+    subjects = ExamPaper.objects.filter(is_active=True).values_list(
+        'subject__name', flat=True
+    ).distinct().order_by('subject__name')
+    classes = ExamPaper.objects.filter(is_active=True).values_list(
+        'class_obj__name', flat=True
+    ).distinct().order_by('class_obj__numeric_value')
+
+    return render(request, 'core/exam_paper_list.html', {
+        'paper_data': paper_data,
+        'subjects': subjects,
+        'classes': classes,
+    })
+
+
+@login_required
+def exam_paper_detail(request, pk):
+    from .models import ExamPaper, ExamAttempt
+    paper = get_object_or_404(ExamPaper, pk=pk, is_active=True)
+
+    attempt = ExamAttempt.objects.filter(
+        exam_paper=paper, student=request.user
+    ).first()
+
+    mcqs = paper.mcqs.all()[:30]
+    cqs = paper.cqs.all()
+
+    return render(request, 'core/exam_paper_detail.html', {
+        'paper': paper,
+        'attempt': attempt,
+        'mcq_count': mcqs.count(),
+        'cq_count': cqs.count(),
+        'mcq_sample': mcqs[:3],
+    })
+
+
+def _calculate_grade(total_score):
+    if total_score >= 80:
+        return 'A+'
+    elif total_score >= 70:
+        return 'A'
+    elif total_score >= 60:
+        return 'A-'
+    elif total_score >= 50:
+        return 'B'
+    elif total_score >= 40:
+        return 'C'
+    elif total_score >= 33:
+        return 'D'
+    return 'F'
+
+
+def _auto_submit_mcq(attempt):
+    from django.utils import timezone
+    mcqs = attempt.exam_paper.mcqs.all()[:30]
+    score = 0
+    for mcq in mcqs:
+        selected = int(attempt.mcq_answers.get(str(mcq.id), 0))
+        if selected == mcq.correct_option:
+            score += mcq.marks
+    attempt.mcq_score = score
+    attempt.mcq_submitted_at = timezone.now()
+    if attempt.exam_paper.cqs.exists():
+        attempt.status = 'MCQ_DONE'
+    else:
+        attempt.status = 'GRADED'
+        attempt.cq_score = 0
+        attempt.total_score = score
+        attempt.grade = _calculate_grade(score)
+    attempt.save()
+
+
+@login_required
+def start_exam(request, pk):
+    from .models import ExamPaper, ExamAttempt
+    paper = get_object_or_404(ExamPaper, pk=pk, is_active=True)
+    attempt = ExamAttempt.objects.filter(exam_paper=paper, student=request.user).first()
+
+    if attempt:
+        if attempt.status == 'MCQ_PHASE':
+            if attempt.mcq_seconds_remaining == 0:
+                _auto_submit_mcq(attempt)
+                return redirect('exam_cq_phase', attempt_id=attempt.id)
+            mcqs = list(paper.mcqs.all()[:30])
+            return render(request, 'core/exam_mcq_phase.html', {
+                'paper': paper,
+                'attempt': attempt,
+                'mcqs': mcqs,
+                'seconds_remaining': attempt.mcq_seconds_remaining,
+            })
+        if attempt.status in ('MCQ_DONE', 'CQ_PHASE'):
+            return redirect('exam_cq_phase', attempt_id=attempt.id)
+        return redirect('exam_results', attempt_id=attempt.id)
+
+    from django.utils import timezone
+    mcqs = list(paper.mcqs.all()[:30])
+    if not mcqs:
+        attempt = ExamAttempt.objects.create(
+            exam_paper=paper, student=request.user,
+            status='MCQ_DONE', mcq_score=0, mcq_submitted_at=timezone.now()
+        )
+        if not paper.cqs.exists():
+            attempt.status = 'GRADED'
+            attempt.cq_score = 0
+            attempt.total_score = 0
+            attempt.grade = _calculate_grade(0)
+            attempt.save()
+            return redirect('exam_results', attempt_id=attempt.id)
+        return redirect('exam_cq_phase', attempt_id=attempt.id)
+
+    attempt = ExamAttempt.objects.create(exam_paper=paper, student=request.user, status='MCQ_PHASE')
+    return render(request, 'core/exam_mcq_phase.html', {
+        'paper': paper,
+        'attempt': attempt,
+        'mcqs': mcqs,
+        'seconds_remaining': attempt.mcq_seconds_remaining,
+    })
+
+
+@login_required
+def submit_mcq(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    try:
+        data = json.loads(request.body)
+        attempt_id = int(data.get('attempt_id', 0))
+        answers = data.get('answers', {})
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid data'}, status=400)
+
+    from .models import ExamAttempt
+    attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user, status='MCQ_PHASE')
+    from django.utils import timezone
+
+    mcqs = attempt.exam_paper.mcqs.all()[:30]
+    score = 0
+    for mcq in mcqs:
+        selected = int(answers.get(str(mcq.id), 0))
+        if selected == mcq.correct_option:
+            score += mcq.marks
+
+    attempt.mcq_answers = {str(k): int(v) for k, v in answers.items() if str(v).isdigit()}
+    attempt.mcq_score = score
+    attempt.mcq_submitted_at = timezone.now()
+    if attempt.exam_paper.cqs.exists():
+        attempt.status = 'MCQ_DONE'
+        redirect_url = f'/exam/{attempt.id}/cq/'
+    else:
+        attempt.status = 'GRADED'
+        attempt.cq_score = 0
+        attempt.total_score = score
+        attempt.grade = _calculate_grade(score)
+        redirect_url = f'/exam/{attempt.id}/results/'
+    attempt.save()
+
+    return JsonResponse({
+        'success': True,
+        'score': score,
+        'redirect': redirect_url,
+    })
+
+
+@login_required
+def exam_cq_phase(request, attempt_id):
+    from .models import ExamAttempt
+    from django.utils import timezone
+    attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user)
+
+    if attempt.status == 'MCQ_PHASE':
+        return redirect('start_exam', pk=attempt.exam_paper.id)
+    if attempt.status in ('CQ_PENDING', 'GRADED'):
+        return redirect('exam_results', attempt_id=attempt.id)
+
+    if attempt.status == 'MCQ_DONE':
+        attempt.status = 'CQ_PHASE'
+        attempt.cq_started_at = timezone.now()
+        attempt.save()
+
+    if attempt.cq_seconds_remaining == 0:
+        attempt.status = 'CQ_PENDING'
+        attempt.cq_submitted_at = timezone.now()
+        attempt.save()
+        messages.info(request, 'CQ সময় শেষ। উত্তর auto-submit হয়েছে।')
+        return redirect('exam_results', attempt_id=attempt.id)
+
+    cqs = attempt.exam_paper.cqs.all()
+    existing_subs = {s.cq_question_id: s for s in attempt.cq_submissions.all()}
+    selected_ids = set(attempt.selected_cqs)
+
+    return render(request, 'core/exam_cq_phase.html', {
+        'attempt': attempt,
+        'cqs': cqs,
+        'existing_subs': existing_subs,
+        'selected_ids': selected_ids,
+        'seconds_remaining': attempt.cq_seconds_remaining,
+    })
+
+
+@login_required
+def submit_cq(request, attempt_id):
+    if request.method != 'POST':
+        return redirect('exam_cq_phase', attempt_id=attempt_id)
+
+    from .models import ExamAttempt, CQQuestion, CQSubmission
+    from django.utils import timezone
+    attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user, status='CQ_PHASE')
+
+    selected_cq_ids = []
+    for val in request.POST.getlist('selected_cqs'):
+        try:
+            selected_cq_ids.append(int(val))
+        except ValueError:
+            pass
+    selected_cq_ids = selected_cq_ids[:7]
+
+    for cq_id in selected_cq_ids:
+        try:
+            cq = CQQuestion.objects.get(id=cq_id, exam_paper=attempt.exam_paper)
+        except CQQuestion.DoesNotExist:
+            continue
+        sub, _ = CQSubmission.objects.get_or_create(attempt=attempt, cq_question=cq)
+        if f'photo_{cq_id}' in request.FILES:
+            sub.photo = request.FILES[f'photo_{cq_id}']
+        for part in ('a', 'b', 'c', 'd'):
+            key = f'photo_{cq_id}_{part}'
+            if key in request.FILES:
+                setattr(sub, f'photo_{part}', request.FILES[key])
+        sub.save()
+
+    attempt.selected_cqs = selected_cq_ids
+    attempt.status = 'CQ_PENDING'
+    attempt.cq_submitted_at = timezone.now()
+    attempt.save()
+
+    from django.core.mail import send_mail
+    staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
+    if staff_emails:
+        try:
+            send_mail(
+                subject=f'[PrepareYourself] CQ Grading Required: {attempt.exam_paper.title}',
+                message=(
+                    f'{attempt.student.get_full_name() or attempt.student.username} এর CQ উত্তর জমা হয়েছে।\n'
+                    f'Paper: {attempt.exam_paper.title}\n\n'
+                    f'Grade করতে যান: /manage/grade-queue/'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=staff_emails,
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+    messages.success(request, 'আপনার CQ উত্তর সফলভাবে জমা হয়েছে। Teacher এর মূল্যায়নের জন্য অপেক্ষা করুন।')
+    return redirect('exam_results', attempt_id=attempt.id)
+
+
+@login_required
+def exam_results(request, attempt_id):
+    from .models import ExamAttempt
+    attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user)
+    cq_submissions = attempt.cq_submissions.select_related('cq_question').all()
+    return render(request, 'core/exam_results.html', {
+        'attempt': attempt,
+        'cq_submissions': cq_submissions,
+    })
+
+
+def _is_exam_staff(user):
+    if not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    try:
+        p = user.profile
+        return p.is_superadmin or p.role == 'ADMIN'
+    except Exception:
+        return False
+
+
+@login_required
+def create_exam_paper(request):
+    from .models import ExamPaper, ExamPaperMCQ, CQQuestion
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'Teacher/Staff শুধু এই page access করতে পারবে।')
+        return redirect('home')
+
+    subjects = Subject.objects.filter(is_active=True).order_by('name')
+    classes = Class.objects.all().order_by('numeric_value')
+    boards = Board.objects.filter(is_active=True).order_by('name')
+    years = list(range(CURRENT_YEAR, CURRENT_YEAR - 10, -1))
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        subject_id = request.POST.get('subject', '').strip()
+        class_id = request.POST.get('class_obj', '').strip()
+        board_id = request.POST.get('board', '').strip()
+        year = request.POST.get('year', '').strip()
+
+        errors = []
+        if not title:
+            errors.append('Title দিন।')
+        if not subject_id:
+            errors.append('Subject বেছে নিন।')
+        if not class_id:
+            errors.append('Class বেছে নিন।')
+
+        mcq_texts = request.POST.getlist('mcq_question_text')
+        cq_texts = request.POST.getlist('cq_question_text')
+        if not any(t.strip() for t in mcq_texts) and not any(t.strip() for t in cq_texts):
+            errors.append('কমপক্ষে ১টি MCQ অথবা ১টি CQ প্রশ্ন দিন।')
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return render(request, 'manage/create_exam_paper.html', {
+                'subjects': subjects, 'classes': classes,
+                'boards': boards, 'years': years, 'post': request.POST,
+            })
+
+        paper = ExamPaper.objects.create(
+            title=title,
+            subject_id=subject_id,
+            class_obj_id=class_id,
+            board_id=board_id if board_id else None,
+            year=int(year) if year else None,
+            created_by=request.user,
+            is_active=True,
+        )
+
+        # MCQs
+        mcq_opt1 = request.POST.getlist('mcq_option1')
+        mcq_opt2 = request.POST.getlist('mcq_option2')
+        mcq_opt3 = request.POST.getlist('mcq_option3')
+        mcq_opt4 = request.POST.getlist('mcq_option4')
+        mcq_correct = request.POST.getlist('mcq_correct_option')
+        mcq_marks = request.POST.getlist('mcq_marks')
+
+        order = 0
+        for i, text in enumerate(mcq_texts):
+            text = text.strip()
+            if not text:
+                continue
+            try:
+                correct = int(mcq_correct[i]) if i < len(mcq_correct) else 1
+                marks = int(mcq_marks[i]) if i < len(mcq_marks) else 1
+            except (ValueError, IndexError):
+                correct, marks = 1, 1
+            ExamPaperMCQ.objects.create(
+                exam_paper=paper,
+                question_text=text,
+                option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
+                option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
+                option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
+                option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
+                correct_option=correct,
+                marks=marks,
+                order=order,
+            )
+            order += 1
+
+        # CQs
+        cq_part_a = request.POST.getlist('cq_part_a')
+        cq_part_b = request.POST.getlist('cq_part_b')
+        cq_part_c = request.POST.getlist('cq_part_c')
+        cq_part_d = request.POST.getlist('cq_part_d')
+        cq_marks_a = request.POST.getlist('cq_marks_a')
+        cq_marks_b = request.POST.getlist('cq_marks_b')
+        cq_marks_c = request.POST.getlist('cq_marks_c')
+        cq_marks_d = request.POST.getlist('cq_marks_d')
+
+        order = 0
+        for i, text in enumerate(cq_texts):
+            text = text.strip()
+            if not text:
+                continue
+            def _m(lst, idx, default):
+                try:
+                    return max(0, int(lst[idx])) if idx < len(lst) else default
+                except ValueError:
+                    return default
+            CQQuestion.objects.create(
+                exam_paper=paper,
+                question_text=text,
+                part_a=cq_part_a[i] if i < len(cq_part_a) else '',
+                part_b=cq_part_b[i] if i < len(cq_part_b) else '',
+                part_c=cq_part_c[i] if i < len(cq_part_c) else '',
+                part_d=cq_part_d[i] if i < len(cq_part_d) else '',
+                marks_a=_m(cq_marks_a, i, 1),
+                marks_b=_m(cq_marks_b, i, 2),
+                marks_c=_m(cq_marks_c, i, 3),
+                marks_d=_m(cq_marks_d, i, 4),
+                order=order,
+            )
+            order += 1
+
+        messages.success(
+            request,
+            f'"{paper.title}" তৈরি হয়েছে — {paper.mcqs.count()}টি MCQ, {paper.cqs.count()}টি CQ।'
+        )
+        return redirect('exam_paper_detail', pk=paper.pk)
+
+    return render(request, 'manage/create_exam_paper.html', {
+        'subjects': subjects,
+        'classes': classes,
+        'boards': boards,
+        'years': years,
+    })
+
+
+@login_required
+def edit_exam_paper(request, pk):
+    import json as _json
+    from .models import ExamPaper, ExamPaperMCQ, CQQuestion, ExamAttempt
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'Teacher/Staff শুধু এই page access করতে পারবে।')
+        return redirect('home')
+
+    paper = get_object_or_404(ExamPaper, pk=pk)
+    subjects = Subject.objects.filter(is_active=True).order_by('name')
+    classes = Class.objects.all().order_by('numeric_value')
+    boards = Board.objects.filter(is_active=True).order_by('name')
+    years = list(range(CURRENT_YEAR, CURRENT_YEAR - 10, -1))
+    active_attempt_count = ExamAttempt.objects.filter(
+        exam_paper=paper
+    ).exclude(status='GRADED').count()
+
+    def _get_existing():
+        mcqs = list(paper.mcqs.order_by('order').values(
+            'question_text', 'option1', 'option2', 'option3', 'option4',
+            'correct_option', 'marks'
+        ))
+        cqs = list(paper.cqs.order_by('order').values(
+            'question_text', 'part_a', 'part_b', 'part_c', 'part_d',
+            'marks_a', 'marks_b', 'marks_c', 'marks_d'
+        ))
+        return _json.dumps(mcqs), _json.dumps(cqs)
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        subject_id = request.POST.get('subject', '').strip()
+        class_id = request.POST.get('class_obj', '').strip()
+        board_id = request.POST.get('board', '').strip()
+        year = request.POST.get('year', '').strip()
+
+        errors = []
+        if not title: errors.append('Title দিন।')
+        if not subject_id: errors.append('Subject বেছে নিন।')
+        if not class_id: errors.append('Class বেছে নিন।')
+
+        mcq_texts = request.POST.getlist('mcq_question_text')
+        cq_texts = request.POST.getlist('cq_question_text')
+        if not any(t.strip() for t in mcq_texts) and not any(t.strip() for t in cq_texts):
+            errors.append('কমপক্ষে ১টি MCQ অথবা ১টি CQ প্রশ্ন দিন।')
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            mcqs_json, cqs_json = _get_existing()
+            return render(request, 'manage/edit_exam_paper.html', {
+                'paper': paper, 'subjects': subjects, 'classes': classes,
+                'boards': boards, 'years': years,
+                'existing_mcqs_json': mcqs_json, 'existing_cqs_json': cqs_json,
+                'active_attempt_count': active_attempt_count,
+            })
+
+        paper.title = title
+        paper.subject_id = subject_id
+        paper.class_obj_id = class_id
+        paper.board_id = board_id if board_id else None
+        paper.year = int(year) if year else None
+        paper.save()
+
+        paper.mcqs.all().delete()
+        mcq_opt1 = request.POST.getlist('mcq_option1')
+        mcq_opt2 = request.POST.getlist('mcq_option2')
+        mcq_opt3 = request.POST.getlist('mcq_option3')
+        mcq_opt4 = request.POST.getlist('mcq_option4')
+        mcq_correct = request.POST.getlist('mcq_correct_option')
+        mcq_marks_list = request.POST.getlist('mcq_marks')
+        order = 0
+        for i, text in enumerate(mcq_texts):
+            text = text.strip()
+            if not text:
+                continue
+            try:
+                correct = int(mcq_correct[i]) if i < len(mcq_correct) else 1
+                marks = int(mcq_marks_list[i]) if i < len(mcq_marks_list) else 1
+            except (ValueError, IndexError):
+                correct, marks = 1, 1
+            ExamPaperMCQ.objects.create(
+                exam_paper=paper,
+                question_text=text,
+                option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
+                option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
+                option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
+                option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
+                correct_option=correct,
+                marks=marks,
+                order=order,
+            )
+            order += 1
+
+        paper.cqs.all().delete()
+        cq_part_a = request.POST.getlist('cq_part_a')
+        cq_part_b = request.POST.getlist('cq_part_b')
+        cq_part_c = request.POST.getlist('cq_part_c')
+        cq_part_d = request.POST.getlist('cq_part_d')
+        cq_marks_a = request.POST.getlist('cq_marks_a')
+        cq_marks_b = request.POST.getlist('cq_marks_b')
+        cq_marks_c = request.POST.getlist('cq_marks_c')
+        cq_marks_d = request.POST.getlist('cq_marks_d')
+        order = 0
+        for i, text in enumerate(cq_texts):
+            text = text.strip()
+            if not text:
+                continue
+            def _m(lst, idx, default):
+                try:
+                    return max(0, int(lst[idx])) if idx < len(lst) else default
+                except ValueError:
+                    return default
+            CQQuestion.objects.create(
+                exam_paper=paper,
+                question_text=text,
+                part_a=cq_part_a[i] if i < len(cq_part_a) else '',
+                part_b=cq_part_b[i] if i < len(cq_part_b) else '',
+                part_c=cq_part_c[i] if i < len(cq_part_c) else '',
+                part_d=cq_part_d[i] if i < len(cq_part_d) else '',
+                marks_a=_m(cq_marks_a, i, 1),
+                marks_b=_m(cq_marks_b, i, 2),
+                marks_c=_m(cq_marks_c, i, 3),
+                marks_d=_m(cq_marks_d, i, 4),
+                order=order,
+            )
+            order += 1
+
+        messages.success(
+            request,
+            f'"{paper.title}" আপডেট হয়েছে — {paper.mcqs.count()}টি MCQ, {paper.cqs.count()}টি CQ।'
+        )
+        return redirect('exam_paper_detail', pk=paper.pk)
+
+    mcqs_json, cqs_json = _get_existing()
+    return render(request, 'manage/edit_exam_paper.html', {
+        'paper': paper,
+        'subjects': subjects,
+        'classes': classes,
+        'boards': boards,
+        'years': years,
+        'existing_mcqs_json': mcqs_json,
+        'existing_cqs_json': cqs_json,
+        'active_attempt_count': active_attempt_count,
+    })
+
+
+@login_required
+def delete_exam_paper(request, pk):
+    from .models import ExamPaper, ExamAttempt
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'Teacher/Staff শুধু এই page access করতে পারবে।')
+        return redirect('home')
+
+    if request.method != 'POST':
+        return redirect('exam_paper_detail', pk=pk)
+
+    paper = get_object_or_404(ExamPaper, pk=pk)
+    active_attempts = ExamAttempt.objects.filter(
+        exam_paper=paper
+    ).exclude(status='GRADED').count()
+
+    if active_attempts > 0:
+        messages.error(
+            request,
+            f'{active_attempts}জন student এই exam-এ active আছে। Delete করা সম্ভব নয়।'
+        )
+        return redirect('exam_paper_detail', pk=pk)
+
+    paper_title = paper.title
+    paper.is_active = False
+    paper.save()
+    messages.success(request, f'"{paper_title}" সফলভাবে মুছে ফেলা হয়েছে।')
+    return redirect('exam_paper_list')
+
+
+@login_required
+def grade_cq_submission(request, attempt_id):
+    from .models import ExamAttempt, CQSubmission
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'শুধু Teacher/Staff এই page access করতে পারবে।')
+        return redirect('home')
+
+    attempt = get_object_or_404(ExamAttempt, id=attempt_id, status='CQ_PENDING')
+    cq_submissions = attempt.cq_submissions.select_related('cq_question').all()
+
+    if request.method == 'POST':
+        from django.utils import timezone
+        total_cq = 0
+        for sub in cq_submissions:
+            try:
+                marks = int(request.POST.get(f'marks_{sub.id}') or 0)
+            except ValueError:
+                marks = 0
+            max_marks = (sub.cq_question.marks_a + sub.cq_question.marks_b +
+                         sub.cq_question.marks_c + sub.cq_question.marks_d)
+            marks = max(0, min(marks, max_marks))
+            sub.marks_given = marks
+            sub.teacher_comment = request.POST.get(f'comment_{sub.id}', '').strip()
+            sub.save()
+            total_cq += marks
+
+        attempt.cq_score = total_cq
+        attempt.total_score = attempt.mcq_score + total_cq
+        attempt.grade = _calculate_grade(attempt.total_score)
+        attempt.status = 'GRADED'
+        attempt.graded_by = request.user
+        attempt.graded_at = timezone.now()
+        attempt.save()
+
+        messages.success(request, f'Grading সম্পন্ন। Grade: {attempt.grade}')
+        return redirect('manage_grade_list')
+
+    return render(request, 'manage/grade_cq_submission.html', {
+        'attempt': attempt,
+        'cq_submissions': cq_submissions,
+    })
+
+
+@login_required
+def manage_grade_list(request):
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'শুধু Teacher/Staff এই page access করতে পারবে।')
+        return redirect('home')
+
+    from .models import ExamAttempt
+    from django.utils import timezone
+    from datetime import timedelta
+
+    pending = ExamAttempt.objects.filter(status='CQ_PENDING').select_related(
+        'student', 'exam_paper', 'exam_paper__subject'
+    ).order_by('cq_submitted_at')
+
+    cutoff = timezone.now() - timedelta(hours=24)
+    for attempt in pending:
+        attempt.is_urgent = bool(attempt.cq_submitted_at and attempt.cq_submitted_at < cutoff)
+
+    return render(request, 'manage/grade_queue.html', {'pending': pending})
