@@ -166,7 +166,7 @@
             <h3 class="text-lg font-bold text-gray-900 mb-1">{% if LANG == 'en' %}School &amp; College Papers{% else %}স্কুল ও কলেজ পেপার{% endif %}</h3>
             <p class="text-purple-600 text-xs font-semibold mb-2 uppercase tracking-wide">{% if LANG == 'en' %}500+ Institutions{% else %}৫০০+ প্রতিষ্ঠান{% endif %}</p>
             <p class="text-gray-500 text-sm leading-relaxed">{% if LANG == 'en' %}Actual exam papers from top schools and colleges across all boards.{% else %}সব বোর্ডের শীর্ষ স্কুল ও কলেজের আসল পরীক্ষার প্রশ্নপত্র।{% endif %}</p>
-            <a href="#" class="mt-4 inline-flex items-center gap-1 text-purple-600 font-semibold text-sm group/link">
+            <a href="{% url 'exam_paper_list' %}" class="mt-4 inline-flex items-center gap-1 text-purple-600 font-semibold text-sm group/link">
                 {% if LANG == 'en' %}Explore{% else %}দেখুন{% endif %}
                 <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </a>
@@ -180,7 +180,7 @@
             <h3 class="text-lg font-bold text-gray-900 mb-1">{% if LANG == 'en' %}Practical Video Tutorials{% else %}ব্যবহারিক ভিডিও টিউটোরিয়াল{% endif %}</h3>
             <p class="text-green-600 text-xs font-semibold mb-2 uppercase tracking-wide">{% if LANG == 'en' %}300+ Videos{% else %}৩০০+ ভিডিও{% endif %}</p>
             <p class="text-gray-500 text-sm leading-relaxed">{% if LANG == 'en' %}Step-by-step science practicals, interactive molecular lab simulations.{% else %}ধাপে ধাপে বিজ্ঞান ব্যবহারিক, ইন্টারেক্টিভ মলিকিউলার ল্যাব সিমুলেশন।{% endif %}</p>
-            <a href="{% url 'practical_lab' %}" class="mt-4 inline-flex items-center gap-1 text-green-600 font-semibold text-sm group/link">
+            <a href="{% url 'practical_videos' %}" class="mt-4 inline-flex items-center gap-1 text-green-600 font-semibold text-sm group/link">
                 {% if LANG == 'en' %}Explore{% else %}দেখুন{% endif %}
                 <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </a>
