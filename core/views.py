@@ -2026,14 +2026,34 @@ def profile_view(request):
 
 
 @login_required
+def profile_picture_delete(request):
+    if request.method == 'POST':
+        profile = request.user.profile
+        if profile.profile_picture:
+            profile.profile_picture.delete(save=False)
+            profile.profile_picture = None
+            profile.save(update_fields=['profile_picture'])
+            messages.success(request, 'ছবি মুছে ফেলা হয়েছে।')
+    return redirect('profile')
+
+
+@login_required
 def profile_update(request):
     if request.method == 'POST':
         user = request.user
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
-        user.email = request.POST.get('email', '')
+        profile = user.profile
+
+        if request.FILES.get('profile_picture'):
+            profile.profile_picture = request.FILES['profile_picture']
+            profile.save(update_fields=['profile_picture'])
+            messages.success(request, 'প্রোফাইল ছবি আপডেট হয়েছে!')
+            return redirect('profile')
+
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
         user.save()
-        messages.success(request, 'Profile updated!')
+        messages.success(request, 'প্রোফাইল আপডেট হয়েছে!')
         return redirect('profile')
     return render(request, 'core/profile.html', {
         'profile': request.user.profile,

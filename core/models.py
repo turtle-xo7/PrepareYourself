@@ -82,6 +82,7 @@ class UserProfile(models.Model):
     is_admin = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
     preferred_language = models.CharField(max_length=5, choices=LANG_CHOICES, default='bn')
+    profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     def __str__(self):
         return self.user.username
     @property

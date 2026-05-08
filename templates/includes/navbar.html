@@ -67,6 +67,16 @@
                             {% endif %}
                         </a>
                         {% endif %}
+                        <a href="{% url 'profile' %}"
+                           title="{% if LANG == 'en' %}My Profile{% else %}আমার প্রোফাইল{% endif %}"
+                           class="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center font-bold text-sm text-white transition-all duration-200 hover:scale-110 hover:shadow-md flex-shrink-0"
+                           style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                            {% if request.user.profile.profile_picture %}
+                            <img src="{{ request.user.profile.profile_picture.url }}" alt="profile" class="w-full h-full object-cover">
+                            {% else %}
+                            {{ request.user.username|slice:":1"|upper }}
+                            {% endif %}
+                        </a>
                         <a href="{% url 'logout' %}" class="text-sm font-medium text-gray-500 hover:text-red-500 px-3 py-2 rounded-lg hover:bg-red-50 transition-all duration-200">{% if LANG == 'en' %}Log Out{% else %}লগ আউট{% endif %}</a>
                     {% else %}
                         <a href="{% url 'login' %}" class="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg transition-all duration-200">{% if LANG == 'en' %}Log In{% else %}লগ ইন{% endif %}</a>
@@ -123,6 +133,7 @@
                         {% endif %}
                     </a>
                     {% endif %}
+                    <a href="{% url 'profile' %}" class="mobile-nav-link">👤 {% if LANG == 'en' %}My Profile{% else %}আমার প্রোফাইল{% endif %}</a>
                     <a href="{% url 'logout' %}" class="mobile-nav-link text-red-400 hover:text-red-600">{% if LANG == 'en' %}Log Out{% else %}লগ আউট{% endif %}</a>
                 {% else %}
                     <a href="{% url 'login' %}" class="mobile-nav-link">{% if LANG == 'en' %}Log In{% else %}লগ ইন{% endif %}</a>

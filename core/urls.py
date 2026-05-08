@@ -17,6 +17,7 @@ urlpatterns = [
     path('progress/', views.progress_history, name='progress_history'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/update/', views.profile_update, name='profile_update'),
+    path('profile/delete-picture/', views.profile_picture_delete, name='profile_picture_delete'),
 
     # Password Reset
     path('password-reset/', auth_views.PasswordResetView.as_view(
