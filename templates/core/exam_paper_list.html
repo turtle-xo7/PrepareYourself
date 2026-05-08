@@ -118,7 +118,12 @@
             বিস্তারিত
           </a>
 
-          {% if not attempt %}
+          {% if is_admin or is_superadmin %}
+          <a href="{% url 'preview_exam' paper.pk %}"
+             class="flex-1 text-center py-2 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 transition">
+            🔍 Preview
+          </a>
+          {% elif not attempt %}
           <a href="{% url 'start_exam' paper.pk %}"
              class="flex-1 text-center py-2 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition">
             Start Exam →

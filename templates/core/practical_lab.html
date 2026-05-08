@@ -1,28 +1,74 @@
 {% extends 'base.html' %}
 {% block title %}Practical Lab{% endblock %}
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <a href="{% url 'home' %}" class="hover:text-blue-600">Home</a>
-        <span>/</span><span>Practical Lab</span>
-    </div>
-    <h1 class="text-3xl font-bold text-gray-900 mb-1">Practical Videos &amp; Molecular Lab</h1>
-    <p class="text-gray-500 mb-6">Interactive molecular simulation — watch bonds break &amp; form with real charge indicators.</p>
 
-    <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;min-height:600px">
+<style>
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+}
+.live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: livePulse 1.4s ease-in-out infinite;
+    flex-shrink: 0;
+}
+.lab-panel {
+    background: #0f172a;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(5,150,105,0.12);
+}
+</style>
+
+<!-- Page Header -->
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #065f46 100%); min-height:180px; display:flex; align-items:center;">
+    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+    <div class="absolute -top-10 -right-10 w-72 h-72 rounded-full" style="background:rgba(6,95,70,0.25); filter:blur(55px);"></div>
+    <div class="absolute -bottom-10 -left-10 w-56 h-56 rounded-full" style="background:rgba(30,58,138,0.4); filter:blur(40px);"></div>
+    <div class="max-w-7xl mx-auto px-4 py-10 relative z-10 w-full">
+        <div class="flex items-center gap-2 text-green-300/70 text-sm mb-3" data-aos="fade-down">
+            <a href="{% url 'home' %}" class="hover:text-white transition">Home</a>
+            <span>/</span>
+            <span class="text-white">Practical Lab</span>
+        </div>
+        <div class="flex items-center gap-3 mb-3" data-aos="fade-down">
+            <span class="inline-flex items-center gap-1.5 bg-white/10 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm border border-white/15">
+                ⚗️ Molecular Simulation
+            </span>
+            <span class="inline-flex items-center gap-1.5 bg-green-500/20 text-green-300 text-xs font-bold px-3 py-1 rounded-full border border-green-500/30 backdrop-blur-sm">
+                <span class="live-dot"></span> LIVE
+            </span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight" data-aos="fade-up" data-aos-delay="50">
+            ⚗️ Interactive Lab
+        </h1>
+        <p class="text-green-200/80 mt-1 text-sm max-w-xl" data-aos="fade-up" data-aos-delay="100">
+            Interactive molecular simulation — watch bonds break &amp; form with real charge indicators.
+        </p>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="lab-panel" style="display:grid;grid-template-columns:220px 1fr;gap:0;min-height:600px;" data-aos="fade-up">
 
         <!-- Sidebar -->
-        <div style="background:#0f172a;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px">
+        <div style="background:#0a1628;padding:14px;display:flex;flex-direction:column;gap:6px;border-right:1px solid rgba(255,255,255,0.07)">
             <p style="font-size:10px;letter-spacing:2px;color:#475569;text-transform:uppercase;padding:4px 6px 10px;margin:0">Select Molecule</p>
             <div id="molList"></div>
         </div>
 
         <!-- Main Panel -->
-        <div style="background:#0f172a;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="background:#0f172a;overflow:hidden;display:flex;flex-direction:column">
 
             <!-- Header -->
-            <div style="padding:14px 20px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:12px">
-                <div id="eqBadge" style="background:#2563eb;color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:20px;white-space:nowrap">
+            <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px">
+                <div id="eqBadge" style="background: linear-gradient(135deg, #059669, #0d9488);color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:20px;white-space:nowrap">
                     Equation: <span id="eqText">2H + O → H₂O</span>
                 </div>
                 <p style="font-size:11px;color:#64748b;margin:0">Click Break Bonds to scatter atoms, Form Bonds to snap back.</p>
@@ -35,16 +81,16 @@
             </div>
 
             <!-- Info Bar -->
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #1e293b;border-bottom:1px solid #1e293b">
-                <div style="padding:10px 14px;border-right:1px solid #1e293b">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06)">
+                <div style="padding:10px 14px;border-right:1px solid rgba(255,255,255,0.06)">
                     <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#475569;margin-bottom:3px">Shape</div>
                     <div style="font-size:13px;font-weight:600;color:#e2e8f0" id="iShape">Bent (V-shaped)</div>
                 </div>
-                <div style="padding:10px 14px;border-right:1px solid #1e293b">
+                <div style="padding:10px 14px;border-right:1px solid rgba(255,255,255,0.06)">
                     <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#475569;margin-bottom:3px">Bond Angle</div>
                     <div style="font-size:13px;font-weight:600;color:#e2e8f0" id="iAngle">104.5°</div>
                 </div>
-                <div style="padding:10px 14px;border-right:1px solid #1e293b">
+                <div style="padding:10px 14px;border-right:1px solid rgba(255,255,255,0.06)">
                     <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#475569;margin-bottom:3px">Bond Type</div>
                     <div style="font-size:13px;font-weight:600;color:#e2e8f0" id="iType">Covalent (Polar)</div>
                 </div>
@@ -59,17 +105,18 @@
                 <button id="breakBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#ef4444;color:#fff;transition:background .15s">
                     ⚡ Break Bonds
                 </button>
-                <button id="formBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#22c55e;color:#fff;transition:background .15s">
+                <button id="formBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background: linear-gradient(135deg, #059669, #0d9488);color:#fff;transition:opacity .15s">
                     ✦ Form Bonds
                 </button>
             </div>
 
             <!-- Fact -->
-            <div id="factBox" style="margin:0 16px 14px;background:#0c1e3d;border:1px solid #1e3a5f;border-radius:10px;padding:11px 14px;font-size:12px;color:#93c5fd;line-height:1.65">
+            <div id="factBox" style="margin:0 16px 14px;background:#0a1628;border:1px solid rgba(5,150,105,0.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#6ee7b7;line-height:1.65">
                 Water is bent — 2 lone pairs on O push the H atoms down. δ+ on H, δ− on O makes it polar.
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
 
@@ -211,9 +258,9 @@ function selectMol(id){
   document.getElementById('legend').innerHTML=m.legend.map(l=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};flex-shrink:0"></div>${l.l}</div>`).join('');
   document.querySelectorAll('[data-mol]').forEach(b=>{
     const active=b.dataset.mol===id;
-    b.style.background=active?'#1e3a5f':'transparent';
-    b.style.borderColor=active?'#2563eb':'transparent';
-    b.style.color=active?'#fff':'#94a3b8';
+    b.style.background=active?'#0d2a1f':'transparent';
+    b.style.borderColor=active?'#059669':'transparent';
+    b.style.color=active?'#6ee7b7':'#94a3b8';
   });
   startPulseLoop();
 }
@@ -363,8 +410,8 @@ function formBonds(){
 
 breakBtn.onmouseenter=()=>breakBtn.style.background='#dc2626';
 breakBtn.onmouseleave=()=>breakBtn.style.background='#ef4444';
-formBtn.onmouseenter=()=>formBtn.style.background='#16a34a';
-formBtn.onmouseleave=()=>formBtn.style.background='#22c55e';
+formBtn.onmouseenter=()=>formBtn.style.opacity='0.85';
+formBtn.onmouseleave=()=>formBtn.style.opacity='1';
 
 breakBtn.addEventListener('click',breakBonds);
 formBtn.addEventListener('click',formBonds);

@@ -1,83 +1,172 @@
 {% extends 'base.html' %}
-{% block title %}Study Notes{% endblock %}
+{% block title %}{% if LANG == 'en' %}Study Notes{% else %}স্টাডি নোটস{% endif %}{% endblock %}
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
 
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">📝 Study Notes</h1>
-            <p class="text-gray-500 mt-1">Chapter-wise গুরুত্বপূর্ণ নোট</p>
+<style>
+.note-card {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #ede9fe;
+    border-left: 4px solid #7c3aed;
+    padding: 1.25rem;
+    box-shadow: 0 2px 12px rgba(109,40,217,0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    position: relative;
+}
+.note-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 36px rgba(109,40,217,0.14);
+    border-color: #7c3aed;
+}
+.search-input:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(109,40,217,0.12);
+}
+.filter-select:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(109,40,217,0.10);
+}
+.read-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f5f3ff;
+    color: #6d28d9;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid #ddd6fe;
+}
+</style>
+
+<!-- Page Header -->
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #3b0764 0%, #6d28d9 50%, #a78bfa 100%); min-height: 170px;">
+    <div class="hero-dot-grid absolute inset-0"></div>
+    <div class="float-shape absolute -top-10 -right-10 w-72 h-72 rounded-full" style="background:rgba(167,139,250,0.15); filter:blur(50px);"></div>
+    <div class="float-shape absolute -bottom-10 -left-10 w-56 h-56 rounded-full" style="background:rgba(59,7,100,0.4); filter:blur(35px);"></div>
+
+    <div class="max-w-7xl mx-auto px-4 relative z-10 flex flex-col justify-center" style="min-height: 170px; padding-top: 2.5rem; padding-bottom: 2.5rem;">
+        <div data-aos="fade-down" class="mb-3">
+            <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/25">
+                📚 {% if LANG == 'en' %}Study Notes{% else %}স্টাডি নোটস{% endif %}
+            </span>
+        </div>
+        <div data-aos="fade-up" data-aos-delay="80">
+            <h1 class="text-3xl md:text-4xl font-bold text-white leading-tight">📚 {% if LANG == 'en' %}Study Notes{% else %}স্টাডি নোটস{% endif %}</h1>
+            <p class="text-purple-200 mt-1 text-sm md:text-base">{% if LANG == 'en' %}Chapter-wise important notes — for SSC &amp; HSC students{% else %}অধ্যায়ভিত্তিক গুরুত্বপূর্ণ নোট — SSC &amp; HSC পরীক্ষার্থীদের জন্য{% endif %}</p>
         </div>
         {% if is_admin %}
-        <div class="flex gap-2">
+        <div data-aos="fade-up" data-aos-delay="160" class="flex gap-2 flex-wrap mt-4">
             <a href="{% url 'generate_note_ai' %}"
-                class="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition">
-                🤖 AI Generate
+                class="inline-flex items-center gap-1.5 text-white text-sm font-semibold px-4 py-2 rounded-xl border border-white/30 bg-white/10 hover:bg-white/20 backdrop-blur transition">
+                🤖 {% if LANG == 'en' %}AI Generate{% else %}AI জেনারেট{% endif %}
             </a>
             <a href="{% url 'study_note_add' %}"
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
-                + Add Note
+                class="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition text-white"
+                style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                + {% if LANG == 'en' %}Add Note{% else %}নোট যোগ করুন{% endif %}
             </a>
         </div>
         {% endif %}
     </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 py-8">
 
     <!-- Search & Filters -->
-    <form method="get" class="flex gap-3 mb-8 flex-wrap">
-        <input type="text" name="search" value="{{ search }}"
-            placeholder="Search notes..."
-            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 flex-1 min-w-48">
-        <select name="subject" onchange="this.form.submit()"
-            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
-            <option value="">All Subjects</option>
-            {% for s in subjects %}
-            <option value="{{ s.slug }}" {% if request.GET.subject == s.slug %}selected{% endif %}>{{ s.name }}</option>
-            {% endfor %}
-        </select>
-        <select name="class_obj" onchange="this.form.submit()"
-            class="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
-            <option value="">All Classes</option>
-            {% for c in classes %}
-            <option value="{{ c.id }}" {% if request.GET.class_obj == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">Search</button>
-    </form>
+    <div data-aos="fade-up" data-aos-delay="0" class="bg-white rounded-2xl border border-ede9fe p-4 mb-8" style="border-color:#ede9fe; box-shadow: 0 2px 14px rgba(109,40,217,0.07);">
+        <form method="get" class="flex gap-3 flex-wrap items-center">
+            <input type="text" name="search" value="{{ search }}"
+                placeholder="{% if LANG == 'en' %}Search notes...{% else %}নোট খোঁজো...{% endif %}"
+                class="search-input border border-gray-200 rounded-xl px-4 py-2.5 text-sm flex-1 min-w-48 transition"
+                style="outline: none;">
+            <select name="subject" onchange="this.form.submit()"
+                class="filter-select border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white transition">
+                <option value="">{% if LANG == 'en' %}All Subjects{% else %}সব বিষয়{% endif %}</option>
+                {% for s in subjects %}
+                <option value="{{ s.slug }}" {% if request.GET.subject == s.slug %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="class_obj" onchange="this.form.submit()"
+                class="filter-select border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white transition">
+                <option value="">{% if LANG == 'en' %}All Classes{% else %}সব ক্লাস{% endif %}</option>
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if request.GET.class_obj == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit"
+                class="text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition hover:opacity-90"
+                style="background: linear-gradient(135deg, #6d28d9, #a78bfa);">
+                {% if LANG == 'en' %}Search{% else %}খোঁজো{% endif %}
+            </button>
+        </form>
+    </div>
 
     <!-- Notes Grid -->
     {% if notes %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for note in notes %}
-        <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition relative">
+        <div class="note-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'1'|stringformat:'s' }}00">
             {% if note.pk in bookmarked_ids %}
-            <span class="absolute top-4 right-4 text-yellow-500 text-sm">🔖</span>
+            <span class="absolute top-4 right-4 text-yellow-500 text-sm" title="{% if LANG == 'en' %}Saved{% else %}সংরক্ষিত{% endif %}">🔖</span>
             {% endif %}
+
             <a href="{% url 'study_note_detail' note.pk %}" class="block">
                 <div class="flex justify-between items-start mb-3 pr-6">
-                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ note.subject.name }}</span>
-                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ note.class_obj.name }}</span>
+                    <span class="inline-block bg-purple-50 text-purple-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-purple-100">
+                        {{ note.subject.name }}
+                    </span>
+                    <span class="inline-block bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-full">
+                        {{ note.class_obj.name }}
+                    </span>
                 </div>
-                <h3 class="font-semibold text-gray-900 mb-1">{{ note.title }}</h3>
-                <p class="text-sm text-gray-500 mb-3">{{ note.chapter }}</p>
-                <p class="text-xs text-gray-400">{{ note.content|striptags|truncatechars:80 }}</p>
+                <h3 class="font-semibold text-gray-900 mb-1 leading-snug">{{ note.title }}</h3>
+                <p class="text-sm text-purple-600 font-medium mb-2">{{ note.chapter }}</p>
+                <p class="text-xs text-gray-400 leading-relaxed">{{ note.content|striptags|truncatechars:90 }}</p>
             </a>
-            <div class="mt-4 flex justify-between items-center">
-                <span class="text-xs text-gray-400">{{ note.created_at|date:"d M Y" }}</span>
-                {% if is_admin %}
-                <form method="post" action="{% url 'study_note_delete' note.pk %}">
-                    {% csrf_token %}
-                    <button type="submit" onclick="return confirm('Delete?')"
-                        class="text-xs text-red-500 hover:text-red-700">🗑 Delete</button>
-                </form>
-                {% endif %}
+
+            <div class="mt-4 pt-3 border-t border-purple-50 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-400 flex items-center gap-1">
+                        📅 {{ note.created_at|date:"d M Y" }}
+                    </span>
+                    <span class="read-badge">📖 {% widthratio note.pk 3 2 %} {% if LANG == 'en' %}min read{% else %}মিনিট পড়া{% endif %}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'study_note_detail' note.pk %}"
+                        class="text-xs text-purple-600 font-medium hover:text-purple-800 transition">
+                        {% if LANG == 'en' %}Read →{% else %}পড়ো →{% endif %}
+                    </a>
+                    {% if is_admin %}
+                    <form method="post" action="{% url 'study_note_delete' note.pk %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('{% if LANG == 'en' %}Delete this note?{% else %}এই note মুছে ফেলবে?{% endif %}')"
+                            class="text-xs text-red-400 hover:text-red-600 transition">
+                            🗑
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
+
     {% else %}
-    <div class="text-center py-20 text-gray-400">
-        <p class="text-4xl mb-3">📝</p>
-        <p>কোনো note নেই এখনো।</p>
+    <div data-aos="fade-up" class="text-center py-24 bg-white rounded-2xl border" style="border-color:#ede9fe; box-shadow: 0 2px 14px rgba(109,40,217,0.06);">
+        <div class="text-5xl mb-4">📚</div>
+        <p class="text-gray-400 text-base font-medium">{% if LANG == 'en' %}No notes yet.{% else %}কোনো note নেই এখনো।{% endif %}</p>
+        {% if is_admin %}
+        <a href="{% url 'study_note_add' %}"
+            class="inline-block mt-4 text-sm font-semibold text-white px-5 py-2.5 rounded-xl transition hover:opacity-90"
+            style="background: linear-gradient(135deg, #6d28d9, #a78bfa);">
+            + {% if LANG == 'en' %}Add First Note{% else %}প্রথম Note যোগ করো{% endif %}
+        </a>
+        {% endif %}
     </div>
     {% endif %}
 

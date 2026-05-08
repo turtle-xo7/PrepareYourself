@@ -75,11 +75,13 @@ class Question(models.Model):
 class UserProfile(models.Model):
     ROLE_CHOICES = [('STUDENT','Student'),('ADMIN','Teacher/Tutor/Institution')]
     PLAN_CHOICES = [('FREE','Free'),('BASIC','Basic'),('PREMIUM','Premium')]
+    LANG_CHOICES = [('bn', 'বাংলা'), ('en', 'English')]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='STUDENT')
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='FREE')
     is_admin = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
+    preferred_language = models.CharField(max_length=5, choices=LANG_CHOICES, default='bn')
     def __str__(self):
         return self.user.username
     @property
@@ -373,3 +375,24 @@ class CQSubmission(models.Model):
         unique_together = ['attempt', 'cq_question']
     def __str__(self):
         return f"{self.attempt.student.username} - CQ{self.cq_question.id}"
+
+
+class Notification(models.Model):
+    TYPE_CHOICES = [
+        ('exam', 'Exam Paper'),
+        ('contest', 'Contest'),
+        ('note', 'Study Note'),
+    ]
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    notif_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    title = models.CharField(max_length=300)
+    message = models.TextField()
+    link = models.CharField(max_length=200, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.recipient.username} - {self.title}"

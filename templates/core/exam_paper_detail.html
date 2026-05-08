@@ -108,7 +108,13 @@
 
       <!-- CTA button -->
       <div class="flex gap-3 flex-wrap">
-        {% if not attempt %}
+        {% if is_admin or is_superadmin %}
+        <a href="{% url 'preview_exam' paper.pk %}"
+           class="inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 px-6 py-3 rounded-xl font-bold text-sm transition">
+          🔍 Preview করুন (সব প্রশ্ন দেখুন)
+        </a>
+
+        {% elif not attempt %}
         <a href="{% url 'start_exam' paper.pk %}"
            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-base transition shadow-sm hover:shadow-md">
           পরীক্ষা শুরু করুন →

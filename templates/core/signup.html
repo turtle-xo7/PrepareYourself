@@ -1,55 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Sign Up - Prepare Yourself</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Prepare Yourself</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .input-field {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      width: 100%;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      outline: none;
+      font-size: 0.875rem;
+    }
+    .input-field:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    .role-card:has(input:checked) {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+    .plan-row:has(input:checked) {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4 py-8">
-  <div class="w-full max-w-md">
+<body style="background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
 
-    <div class="text-center mb-6">
-      <a href="/">
-        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-          <span class="text-white text-xl font-bold">P</span>
-        </div>
-        <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Prepare Yourself</span>
-      </a>
-      <p class="text-gray-500 mt-2 text-sm">নতুন account বানাও</p>
-    </div>
+  <div class="w-full max-w-md mx-auto" data-aos="fade-up" data-aos-duration="500">
 
-    {% if messages %}{% for msg in messages %}
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm">{{ msg }}</div>
-    {% endfor %}{% endif %}
+    <!-- Main card -->
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-10">
 
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <a href="/" class="inline-flex flex-col items-center gap-2">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+            <span class="text-white text-2xl font-extrabold tracking-tight">PY</span>
+          </div>
+          <span class="text-xl font-bold" style="background: linear-gradient(135deg,#3b82f6,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Prepare Yourself</span>
+        </a>
+        <p class="text-gray-400 text-sm mt-2">নতুন account বানাও</p>
+      </div>
+
+      {% if messages %}
+      {% for msg in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm font-medium mb-4
+        {% if msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-700
+        {% elif msg.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-700
+        {% else %}bg-green-50 border border-green-200 text-green-700{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+      {% endif %}
+
       <form method="post" class="space-y-4">
         {% csrf_token %}
+
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-          <input type="text" name="username" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+          <input type="text" name="username" required class="input-field" placeholder="তোমার username">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" name="email" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+          <input type="email" name="email" required class="input-field" placeholder="email@example.com">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input type="password" name="password" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+          <input type="password" name="password" required class="input-field" placeholder="••••••••">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">আমি একজন</label>
           <div class="grid grid-cols-2 gap-2">
-            <label class="border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+            <label class="role-card border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-400 transition">
               <input type="radio" name="role" value="STUDENT" checked class="hidden">
-              <p class="font-medium text-sm">🎓 Student</p>
-              <p class="text-xs text-gray-500">শিক্ষার্থী</p>
+              <p class="font-semibold text-sm">🎓 Student</p>
+              <p class="text-xs text-gray-400 mt-0.5">শিক্ষার্থী</p>
             </label>
-            <label class="border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+            <label class="role-card border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-400 transition">
               <input type="radio" name="role" value="ADMIN" class="hidden">
-              <p class="font-medium text-sm">👨‍🏫 Teacher/Institution</p>
-              <p class="text-xs text-gray-500">শিক্ষক/প্রতিষ্ঠান</p>
+              <p class="font-semibold text-sm">👨‍🏫 Teacher/Institution</p>
+              <p class="text-xs text-gray-400 mt-0.5">শিক্ষক/প্রতিষ্ঠান</p>
             </label>
           </div>
         </div>
@@ -57,48 +96,77 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Plan বাছো</label>
           <div class="space-y-2">
-            <label class="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+            <label class="plan-row flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-400 transition">
               <div>
-                <p class="font-medium text-sm">Free</p>
-                <p class="text-xs text-gray-500">সীমিত access</p>
+                <p class="font-semibold text-sm">Free</p>
+                <p class="text-xs text-gray-400">সীমিত access</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-sm font-bold">৳0</span>
-                <input type="radio" name="plan" value="FREE" checked>
+                <span class="text-sm font-bold text-gray-700">৳0</span>
+                <input type="radio" name="plan" value="FREE" checked class="accent-blue-500">
               </div>
             </label>
-            <label class="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+            <label class="plan-row flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-400 transition">
               <div>
-                <p class="font-medium text-sm">Basic</p>
-                <p class="text-xs text-gray-500">সব question bank</p>
+                <p class="font-semibold text-sm">Basic</p>
+                <p class="text-xs text-gray-400">সব question bank</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-sm font-bold">৳99/mo</span>
-                <input type="radio" name="plan" value="BASIC">
+                <span class="text-sm font-bold text-gray-700">৳99/mo</span>
+                <input type="radio" name="plan" value="BASIC" class="accent-blue-500">
               </div>
             </label>
-            <label class="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+            <label class="plan-row flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-blue-400 transition">
               <div>
-                <p class="font-medium text-sm">Premium</p>
-                <p class="text-xs text-gray-500">সব feature + 1-on-1 mentor</p>
+                <p class="font-semibold text-sm">Premium</p>
+                <p class="text-xs text-gray-400">সব feature + 1-on-1 mentor</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-sm font-bold">৳199/mo</span>
-                <input type="radio" name="plan" value="PREMIUM">
+                <span class="text-sm font-bold text-gray-700">৳199/mo</span>
+                <input type="radio" name="plan" value="PREMIUM" class="accent-blue-500">
               </div>
             </label>
           </div>
         </div>
 
-        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition text-sm">
+        <button type="submit"
+          class="w-full py-3 rounded-xl font-bold text-white text-sm transition hover:opacity-90 active:scale-95 shadow-md ripple btn-glow"
+          style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
           Sign Up করো
         </button>
       </form>
 
-      <p class="text-center text-sm text-gray-500 mt-4">
-        Already have an account? <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Log In</a>
+      <p class="text-center text-sm text-gray-400 mt-5">
+        Already have an account?
+        <a href="{% url 'login' %}" class="text-blue-500 hover:text-blue-700 font-medium transition">Log In</a>
       </p>
+
     </div>
+
+    <p class="text-center text-xs text-gray-400 mt-6">© 2026 Prepare Yourself</p>
   </div>
+
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({ once: true });
+
+    // Ripple helper
+    document.querySelectorAll('.ripple').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const r = document.createElement('span');
+        r.className = 'ripple-wave';
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        r.style.cssText = `position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);transform:scale(0);animation:rippleGrow 0.65s ease-out forwards;pointer-events:none;width:${size}px;height:${size}px;left:${e.clientX - rect.left - size/2}px;top:${e.clientY - rect.top - size/2}px`;
+        this.appendChild(r);
+        setTimeout(() => r.remove(), 700);
+      });
+    });
+  </script>
+  <style>
+    @keyframes rippleGrow { to { transform: scale(4); opacity: 0; } }
+    .btn-glow { position: relative; overflow: hidden; }
+    .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(59,130,246,0.4); }
+  </style>
 </body>
 </html>

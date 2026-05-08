@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% block title %}Preview — {{ paper.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.preview-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+}
+.mcq-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb;
+    font-size: .875rem;
+    color: #374151;
+    transition: background .15s;
+}
+.mcq-option.correct {
+    border-color: #6ee7b7;
+    background: #ecfdf5;
+    color: #065f46;
+    font-weight: 600;
+}
+.option-label {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: #e5e7eb;
+    color: #6b7280;
+}
+.mcq-option.correct .option-label {
+    background: #059669;
+    color: #fff;
+}
+.cq-part {
+    border-left: 3px solid #a5b4fc;
+    padding: 8px 14px;
+    margin-bottom: 8px;
+    background: #f5f3ff;
+    border-radius: 0 8px 8px 0;
+}
+.cq-part .part-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #6366f1;
+    margin-bottom: 4px;
+}
+.section-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 20px;
+}
+.section-divider span {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #6b7280;
+    white-space: nowrap;
+}
+.section-divider::before,
+.section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header -->
+    <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <span class="preview-badge">🔍 Preview Mode</span>
+                <span class="text-xs text-gray-400 font-medium">শুধু Teacher/Admin দেখতে পারবেন</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-gray-900 leading-tight">{{ paper.title }}</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                {{ paper.subject.name }} &middot; {{ paper.class_obj.name }}
+                {% if paper.board %}&middot; {{ paper.board.name }}{% endif %}
+                {% if paper.year %}&middot; {{ paper.year }}{% endif %}
+            </p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <a href="{% url 'edit_exam_paper' paper.pk %}"
+               class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 px-4 py-2 rounded-xl font-medium text-sm transition">
+                ✏️ Edit করুন
+            </a>
+            <a href="{% url 'exam_paper_detail' paper.pk %}"
+               class="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-xl font-medium text-sm transition">
+                ← ফিরে যান
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="grid grid-cols-3 gap-3 mb-8">
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-center">
+            <p class="text-2xl font-extrabold text-indigo-700">{{ mcqs.count }}</p>
+            <p class="text-xs text-indigo-500 font-semibold mt-0.5 uppercase tracking-wide">MCQ</p>
+        </div>
+        <div class="bg-purple-50 border border-purple-100 rounded-xl p-4 text-center">
+            <p class="text-2xl font-extrabold text-purple-700">{{ cqs.count }}</p>
+            <p class="text-xs text-purple-500 font-semibold mt-0.5 uppercase tracking-wide">CQ</p>
+        </div>
+        <div class="bg-green-50 border border-green-100 rounded-xl p-4 text-center">
+            <p class="text-2xl font-extrabold text-green-700">
+                {% with total_mcq_marks=0 %}
+                {{ mcqs.count|add:cqs.count }}
+                {% endwith %}
+            </p>
+            <p class="text-xs text-green-500 font-semibold mt-0.5 uppercase tracking-wide">মোট প্রশ্ন</p>
+        </div>
+    </div>
+
+    <!-- ══ MCQ Section ══ -->
+    {% if mcqs %}
+    <div class="section-divider">
+        <span>📝 MCQ প্রশ্নসমূহ</span>
+    </div>
+
+    <div class="space-y-6">
+    {% for mcq in mcqs %}
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+        <!-- Question number + text -->
+        <div class="flex gap-3 mb-4">
+            <span class="min-w-[28px] h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  style="background: linear-gradient(135deg, #6366f1, #818cf8);">{{ forloop.counter }}</span>
+            <p class="text-sm text-gray-800 leading-relaxed font-medium">{{ mcq.question_text }}</p>
+        </div>
+
+        <!-- Options -->
+        <div class="space-y-2 pl-10">
+            <!-- Option 1 -->
+            <div class="mcq-option {% if mcq.correct_option == 1 %}correct{% endif %}">
+                <span class="option-label">ক</span>
+                <span>{{ mcq.option1 }}</span>
+                {% if mcq.correct_option == 1 %}<span class="ml-auto text-xs font-bold text-green-600">✓ সঠিক</span>{% endif %}
+            </div>
+            <!-- Option 2 -->
+            <div class="mcq-option {% if mcq.correct_option == 2 %}correct{% endif %}">
+                <span class="option-label">খ</span>
+                <span>{{ mcq.option2 }}</span>
+                {% if mcq.correct_option == 2 %}<span class="ml-auto text-xs font-bold text-green-600">✓ সঠিক</span>{% endif %}
+            </div>
+            <!-- Option 3 -->
+            <div class="mcq-option {% if mcq.correct_option == 3 %}correct{% endif %}">
+                <span class="option-label">গ</span>
+                <span>{{ mcq.option3 }}</span>
+                {% if mcq.correct_option == 3 %}<span class="ml-auto text-xs font-bold text-green-600">✓ সঠিক</span>{% endif %}
+            </div>
+            <!-- Option 4 -->
+            <div class="mcq-option {% if mcq.correct_option == 4 %}correct{% endif %}">
+                <span class="option-label">ঘ</span>
+                <span>{{ mcq.option4 }}</span>
+                {% if mcq.correct_option == 4 %}<span class="ml-auto text-xs font-bold text-green-600">✓ সঠিক</span>{% endif %}
+            </div>
+        </div>
+
+        <!-- Marks badge -->
+        <div class="mt-3 pl-10">
+            <span class="text-xs bg-indigo-50 text-indigo-600 border border-indigo-100 px-2.5 py-0.5 rounded-full font-semibold">{{ mcq.marks }} নম্বর</span>
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ══ CQ Section ══ -->
+    {% if cqs %}
+    <div class="section-divider">
+        <span>✍️ সৃজনশীল প্রশ্নসমূহ (CQ)</span>
+    </div>
+
+    <div class="space-y-6">
+    {% for cq in cqs %}
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+        <!-- CQ number + main question -->
+        <div class="flex gap-3 mb-4">
+            <span class="min-w-[28px] h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">{{ forloop.counter }}</span>
+            <p class="text-sm text-gray-800 leading-relaxed font-medium">{{ cq.question_text }}</p>
+        </div>
+
+        <!-- Parts -->
+        <div class="pl-10 space-y-2">
+            {% if cq.part_a %}
+            <div class="cq-part">
+                <p class="part-label">ক — {{ cq.marks_a }} নম্বর</p>
+                <p class="text-sm text-gray-700 leading-relaxed">{{ cq.part_a }}</p>
+            </div>
+            {% endif %}
+            {% if cq.part_b %}
+            <div class="cq-part">
+                <p class="part-label">খ — {{ cq.marks_b }} নম্বর</p>
+                <p class="text-sm text-gray-700 leading-relaxed">{{ cq.part_b }}</p>
+            </div>
+            {% endif %}
+            {% if cq.part_c %}
+            <div class="cq-part">
+                <p class="part-label">গ — {{ cq.marks_c }} নম্বর</p>
+                <p class="text-sm text-gray-700 leading-relaxed">{{ cq.part_c }}</p>
+            </div>
+            {% endif %}
+            {% if cq.part_d %}
+            <div class="cq-part">
+                <p class="part-label">ঘ — {{ cq.marks_d }} নম্বর</p>
+                <p class="text-sm text-gray-700 leading-relaxed">{{ cq.part_d }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not mcqs and not cqs %}
+    <div class="text-center py-16 text-gray-400">
+        <p class="text-4xl mb-3">📋</p>
+        <p class="font-medium">এই exam paper-এ এখনো কোনো প্রশ্ন নেই।</p>
+        <a href="{% url 'edit_exam_paper' paper.pk %}"
+           class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+           style="background: linear-gradient(135deg, #6366f1, #818cf8);">
+            ✏️ Edit করে প্রশ্ন যোগ করুন
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Bottom actions -->
+    <div class="mt-10 flex gap-3 justify-end flex-wrap">
+        <a href="{% url 'edit_exam_paper' paper.pk %}"
+           class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition shadow-sm">
+            ✏️ Edit করুন
+        </a>
+        <a href="{% url 'exam_paper_detail' paper.pk %}"
+           class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-medium text-sm transition">
+            ← ফিরে যান
+        </a>
+    </div>
+
+</div>
+{% endblock %}

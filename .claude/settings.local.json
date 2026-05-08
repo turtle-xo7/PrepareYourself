@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(python *)",
-      "Bash(del *)"
+      "Bash(del *)",
+      "Bash(python3 -c \"import os; os.environ.setdefault\\('DJANGO_SETTINGS_MODULE', 'prepare_yourself.settings'\\); from django.conf import settings; print\\(hasattr\\(settings, 'ANTHROPIC_API_KEY'\\)\\)\")",
+      "Bash(claude *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8001/)",
+      "Bash(curl -s http://127.0.0.1:8001/)"
     ]
   }
 }

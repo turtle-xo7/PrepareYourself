@@ -15,24 +15,23 @@
   <h1 class="text-2xl font-bold text-gray-900 mb-2">✏️ Exam Paper সম্পাদনা</h1>
   <p class="text-gray-500 text-sm mb-4">পরিবর্তন সংরক্ষণ করলে সব MCQ ও CQ প্রশ্ন নতুন করে সেভ হবে।</p>
 
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="px-4 py-3 rounded-xl text-sm font-medium mb-4
+    {% if msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-700
+    {% elif msg.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-700
+    {% else %}bg-green-50 border border-green-200 text-green-700{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
   {% if active_attempt_count > 0 %}
   <div class="bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
     <span class="text-xl">⚠️</span>
     <p class="text-sm text-yellow-800 font-medium">
       {{ active_attempt_count }}জন student এই exam-এ active আছে। Edit করলে তাদের progress প্রভাবিত হতে পারে।
     </p>
-  </div>
-  {% endif %}
-
-  {% if messages %}
-  <div class="mb-6 space-y-2">
-    {% for msg in messages %}
-    <div class="px-4 py-3 rounded-xl text-sm font-medium
-      {% if msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-700
-      {% else %}bg-green-50 border border-green-200 text-green-700{% endif %}">
-      {{ msg }}
-    </div>
-    {% endfor %}
   </div>
   {% endif %}
 
@@ -94,6 +93,50 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ── OCR Upload Card ── -->
+  <div class="bg-sky-50 border border-sky-200 rounded-2xl p-5 mb-6">
+    <div class="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h2 class="font-bold text-gray-800 flex items-center gap-2">
+          <span class="text-lg">📸</span> ছবি থেকে প্রশ্ন তুলুন
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">Exam paper এর ছবি upload করুন — OCR দিয়ে text বের হবে, তারপর form-এ ভরাট করুন।</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="file" id="ocr-file-input" accept="image/*" class="hidden">
+        <button type="button" onclick="document.getElementById('ocr-file-input').click()"
+                class="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
+          📤 ছবি আপলোড করুন
+        </button>
+      </div>
+    </div>
+
+    <div id="ocr-loading" class="hidden mt-3">
+      <div class="flex items-center gap-2 text-sm text-sky-700 mb-1">
+        <span class="inline-block animate-spin">⏳</span>
+        <span id="ocr-progress-msg">OCR শুরু হচ্ছে…</span>
+      </div>
+      <div class="w-full bg-sky-100 rounded-full h-1.5">
+        <div id="ocr-progress-bar" class="bg-sky-500 h-1.5 rounded-full transition-all" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="ocr-result-box" class="hidden mt-4">
+      <label class="block text-xs font-medium text-gray-600 mb-1">Extract হওয়া Text (প্রয়োজনে সম্পাদনা করুন):</label>
+      <textarea id="ocr-raw-text" rows="6"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 resize-y bg-white font-mono"></textarea>
+      <div class="flex items-center gap-3 mt-2">
+        <button type="button" onclick="parseAndFill()"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-sm font-bold transition">
+          Form-এ ভরাট করুন →
+        </button>
+        <span id="ocr-fill-status" class="text-sm text-gray-500"></span>
+      </div>
+    </div>
+
+    <div id="ocr-error" class="hidden mt-3 text-sm text-red-600 font-medium"></div>
   </div>
 
   <!-- ── SECTION 2: MCQ Questions ── -->
@@ -393,6 +436,77 @@ document.getElementById('exam-form').addEventListener('submit', function(e) {
   });
   if (radioMissing) { e.preventDefault(); alert('প্রতিটি MCQ-তে সঠিক উত্তর চিহ্নিত করুন।'); }
 });
+
+// ── OCR (Gemini AI via Django backend) ───────────────────────────
+document.getElementById('ocr-file-input').addEventListener('change', async function() {
+  const file = this.files[0];
+  if (!file) return;
+  this.value = '';
+
+  const loadingEl = document.getElementById('ocr-loading');
+  const resultBox = document.getElementById('ocr-result-box');
+  const errEl    = document.getElementById('ocr-error');
+  const bar      = document.getElementById('ocr-progress-bar');
+  const msg      = document.getElementById('ocr-progress-msg');
+
+  loadingEl.classList.remove('hidden');
+  resultBox.classList.add('hidden');
+  errEl.classList.add('hidden');
+  bar.style.width = '20%';
+  msg.textContent = 'ছবি পাঠানো হচ্ছে…';
+
+  const fd = new FormData();
+  fd.append('image', file);
+  fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+  try {
+    bar.style.width = '50%';
+    msg.textContent = 'Gemini AI text extract করছে…';
+
+    const resp = await fetch('{% url "extract_image_text" %}', { method: 'POST', body: fd });
+    bar.style.width = '90%';
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success) throw new Error(data.error || 'OCR ব্যর্থ হয়েছে।');
+
+    bar.style.width = '100%';
+    loadingEl.classList.add('hidden');
+    document.getElementById('ocr-raw-text').value = data.text;
+    resultBox.classList.remove('hidden');
+    document.getElementById('ocr-fill-status').textContent =
+      'Text extract হয়েছে। প্রয়োজনে সম্পাদনা করুন, তারপর ভরাট করুন।';
+  } catch (err) {
+    loadingEl.classList.add('hidden');
+    errEl.textContent = '❌ OCR ব্যর্থ হয়েছে: ' + (err.message || err);
+    errEl.classList.remove('hidden');
+  }
+});
+
+async function parseAndFill() {
+  const text = document.getElementById('ocr-raw-text').value.trim();
+  const statusEl = document.getElementById('ocr-fill-status');
+  if (!text) { statusEl.textContent = '⚠️ Text নেই।'; return; }
+  statusEl.textContent = 'পার্স করা হচ্ছে…';
+
+  const fd = new FormData();
+  fd.append('text', text);
+  fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+  try {
+    const resp = await fetch('{% url "parse_exam_text" %}', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) {
+      statusEl.textContent = '❌ ' + (data.error || 'পার্স ব্যর্থ হয়েছে।');
+      return;
+    }
+    const { mcqs = [], cqs = [] } = data.data;
+    mcqs.forEach(m => addMCQ(m));
+    cqs.forEach(c => addCQ(c));
+    statusEl.textContent = `✅ ${mcqs.length}টি MCQ ও ${cqs.length}টি CQ form-এ যোগ হয়েছে।`;
+  } catch (err) {
+    statusEl.textContent = '❌ Error: ' + (err.message || err);
+  }
+}
 
 // Pre-load existing questions
 const existingMCQs = {{ existing_mcqs_json|safe }};

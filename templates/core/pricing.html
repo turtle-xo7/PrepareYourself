@@ -1,18 +1,21 @@
 {% extends 'base.html' %}
-{% block title %}Pricing{% endblock %}
+{% block title %}{% if LANG == 'en' %}Pricing{% else %}মূল্য তালিকা{% endif %}{% endblock %}
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-12">
     <div class="text-center mb-12">
-        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">7-day free trial on all paid plans</span>
-        <h1 class="text-4xl font-bold mt-4">Simple, Affordable Pricing</h1>
-        <p class="text-xl text-gray-600 mt-2">Choose the plan that suits you best. Start free, upgrade anytime.</p>
-        <p class="text-gray-500 mt-2">Starting at just ৳99/month.</p>
+        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">{% if LANG == 'en' %}7-day free trial on all paid plans{% else %}সব পেইড প্ল্যানে ৭ দিনের বিনামূল্যে ট্রায়াল{% endif %}</span>
+        <h1 class="text-4xl font-bold mt-4">{% if LANG == 'en' %}Simple, Affordable Pricing{% else %}সহজ ও সাশ্রয়ী মূল্য তালিকা{% endif %}</h1>
+        <p class="text-xl text-gray-600 mt-2">{% if LANG == 'en' %}Choose the plan that suits you best. Start free, upgrade anytime.{% else %}আপনার জন্য সেরা প্ল্যান বেছে নিন। বিনামূল্যে শুরু করুন, যেকোনো সময় আপগ্রেড করুন।{% endif %}</p>
+        <p class="text-gray-500 mt-2">{% if LANG == 'en' %}Starting at just ৳99/month.{% else %}মাত্র ৳৯৯/মাস থেকে শুরু।{% endif %}</p>
     </div>
 
     {% if messages %}
     {% for msg in messages %}
-    <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm text-center">
-      ⚠️ {{ msg }}
+    <div class="px-4 py-3 rounded-xl text-sm font-medium mb-4
+      {% if msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-700
+      {% elif msg.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-700
+      {% else %}bg-green-50 border border-green-200 text-green-700{% endif %}">
+      {{ msg }}
     </div>
     {% endfor %}
     {% endif %}
@@ -21,93 +24,93 @@
 
         <!-- Free Plan -->
         <div class="bg-white rounded-2xl p-8 border-2 border-gray-100 hover:border-green-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
-            <h3 class="text-2xl font-bold group-hover:text-green-600 transition">Free</h3>
-            <p class="text-gray-500 mt-2">For trying out</p>
+            <h3 class="text-2xl font-bold group-hover:text-green-600 transition">{% if LANG == 'en' %}Free{% else %}বিনামূল্যে{% endif %}</h3>
+            <p class="text-gray-500 mt-2">{% if LANG == 'en' %}For trying out{% else %}চেষ্টা করার জন্য{% endif %}</p>
             <div class="mt-4 text-4xl font-bold group-hover:text-green-600 transition">৳0</div>
-            <p class="text-gray-500">forever</p>
+            <p class="text-gray-500">{% if LANG == 'en' %}forever{% else %}চিরকাল{% endif %}</p>
             <ul class="mt-6 space-y-3">
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Limited question access
+                    {% if LANG == 'en' %}Limited question access{% else %}সীমিত প্রশ্ন অ্যাক্সেস{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    5 notes/month
+                    {% if LANG == 'en' %}5 notes/month{% else %}মাসে ৫টি নোট{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Basic analytics
+                    {% if LANG == 'en' %}Basic analytics{% else %}প্রাথমিক বিশ্লেষণ{% endif %}
                 </li>
             </ul>
             {% if request.user.is_authenticated %}
-                <button class="mt-8 w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 group-hover:border-green-500 group-hover:text-green-600 transition">Current Plan</button>
+                <button class="mt-8 w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 group-hover:border-green-500 group-hover:text-green-600 transition">{% if LANG == 'en' %}Current Plan{% else %}বর্তমান প্ল্যান{% endif %}</button>
             {% else %}
-                <a href="{% url 'signup' %}" class="mt-8 block text-center w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 group-hover:border-green-500 group-hover:text-green-600 transition">Get Started</a>
+                <a href="{% url 'signup' %}" class="mt-8 block text-center w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 group-hover:border-green-500 group-hover:text-green-600 transition">{% if LANG == 'en' %}Get Started{% else %}শুরু করুন{% endif %}</a>
             {% endif %}
         </div>
 
         <!-- Basic Plan (Highlight) -->
         <div class="bg-white rounded-2xl p-8 border-2 border-blue-500 relative transform scale-105 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
-            <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">Most Popular</span>
-            <h3 class="text-2xl font-bold group-hover:text-blue-600 transition">Basic</h3>
-            <p class="text-gray-500 mt-2">For regular students</p>
-            <div class="mt-4 text-4xl font-bold group-hover:text-blue-600 transition">৳99<span class="text-lg font-normal text-gray-500">/month</span></div>
+            <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">{% if LANG == 'en' %}Most Popular{% else %}সবচেয়ে জনপ্রিয়{% endif %}</span>
+            <h3 class="text-2xl font-bold group-hover:text-blue-600 transition">{% if LANG == 'en' %}Basic{% else %}বেসিক{% endif %}</h3>
+            <p class="text-gray-500 mt-2">{% if LANG == 'en' %}For regular students{% else %}নিয়মিত শিক্ষার্থীদের জন্য{% endif %}</p>
+            <div class="mt-4 text-4xl font-bold group-hover:text-blue-600 transition">৳99<span class="text-lg font-normal text-gray-500">/{% if LANG == 'en' %}month{% else %}মাস{% endif %}</span></div>
             <ul class="mt-6 space-y-3">
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Unlimited question bank
+                    {% if LANG == 'en' %}Unlimited question bank{% else %}সীমাহীন প্রশ্ন ব্যাংক{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    All study notes
+                    {% if LANG == 'en' %}All study notes{% else %}সব স্টাডি নোটস{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    300+ practical videos
+                    {% if LANG == 'en' %}300+ practical videos{% else %}৩০০+ ব্যবহারিক ভিডিও{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Advanced progress tracking
+                    {% if LANG == 'en' %}Advanced progress tracking{% else %}উন্নত অগ্রগতি ট্র্যাকিং{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Save unlimited questions
+                    {% if LANG == 'en' %}Save unlimited questions{% else %}সীমাহীন প্রশ্ন সংরক্ষণ{% endif %}
                 </li>
             </ul>
             {% if request.user.is_authenticated %}
-                <a href="{% url 'checkout' %}?plan=BASIC" class="mt-8 block text-center w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:opacity-90 transition">Start Free Trial</a>
+                <a href="{% url 'checkout' %}?plan=BASIC" class="mt-8 block text-center w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:opacity-90 transition">{% if LANG == 'en' %}Start Free Trial{% else %}বিনামূল্যে ট্রায়াল শুরু করুন{% endif %}</a>
             {% else %}
-                <a href="{% url 'signup' %}" class="mt-8 block text-center w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:opacity-90 transition">Start Free Trial</a>
+                <a href="{% url 'signup' %}" class="mt-8 block text-center w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:opacity-90 transition">{% if LANG == 'en' %}Start Free Trial{% else %}বিনামূল্যে ট্রায়াল শুরু করুন{% endif %}</a>
             {% endif %}
         </div>
 
         <!-- Premium Plan -->
         <div class="bg-white rounded-2xl p-8 border-2 border-gray-100 hover:border-purple-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
-            <h3 class="text-2xl font-bold group-hover:text-purple-600 transition">Premium</h3>
-            <p class="text-gray-500 mt-2">For serious aspirants</p>
-            <div class="mt-4 text-4xl font-bold group-hover:text-purple-600 transition">৳199<span class="text-lg font-normal text-gray-500">/month</span></div>
+            <h3 class="text-2xl font-bold group-hover:text-purple-600 transition">{% if LANG == 'en' %}Premium{% else %}প্রিমিয়াম{% endif %}</h3>
+            <p class="text-gray-500 mt-2">{% if LANG == 'en' %}For serious aspirants{% else %}গুরুত্বের সাথে প্রস্তুতি নেওয়াদের জন্য{% endif %}</p>
+            <div class="mt-4 text-4xl font-bold group-hover:text-purple-600 transition">৳199<span class="text-lg font-normal text-gray-500">/{% if LANG == 'en' %}month{% else %}মাস{% endif %}</span></div>
             <ul class="mt-6 space-y-3">
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Everything in Basic
+                    {% if LANG == 'en' %}Everything in Basic{% else %}বেসিকের সব সুবিধা{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Live doubt solving
+                    {% if LANG == 'en' %}Live doubt solving{% else %}লাইভ সমস্যা সমাধান{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    1-on-1 mentor sessions
+                    {% if LANG == 'en' %}1-on-1 mentor sessions{% else %}১-এ-১ মেন্টর সেশন{% endif %}
                 </li>
                 <li class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Premium study material
+                    {% if LANG == 'en' %}Premium study material{% else %}প্রিমিয়াম স্টাডি ম্যাটেরিয়াল{% endif %}
                 </li>
             </ul>
             {% if request.user.is_authenticated %}
-                <a href="{% url 'checkout' %}?plan=PREMIUM" class="mt-8 block text-center w-full border-2 border-purple-500 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-500 hover:text-white transition">Start Free Trial</a>
+                <a href="{% url 'checkout' %}?plan=PREMIUM" class="mt-8 block text-center w-full border-2 border-purple-500 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-500 hover:text-white transition">{% if LANG == 'en' %}Start Free Trial{% else %}বিনামূল্যে ট্রায়াল শুরু করুন{% endif %}</a>
             {% else %}
-                <a href="{% url 'signup' %}" class="mt-8 block text-center w-full border-2 border-purple-500 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-500 hover:text-white transition">Start Free Trial</a>
+                <a href="{% url 'signup' %}" class="mt-8 block text-center w-full border-2 border-purple-500 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-500 hover:text-white transition">{% if LANG == 'en' %}Start Free Trial{% else %}বিনামূল্যে ট্রায়াল শুরু করুন{% endif %}</a>
             {% endif %}
         </div>
     </div>

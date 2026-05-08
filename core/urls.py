@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('set-language/', views.toggle_language, name='toggle_language'),
     path('question-bank/', views.question_bank, name='question_bank'),
     path('login/', views.login_view, name='login'),
     path('signup/', views.signup_view, name='signup'),
@@ -108,8 +109,11 @@ urlpatterns = [
     path('manage/grade-queue/', views.manage_grade_list, name='manage_grade_list'),
     path('manage/grade-cq/<int:attempt_id>/', views.grade_cq_submission, name='grade_cq_submission'),
     path('manage/exam-paper/create/', views.create_exam_paper, name='create_exam_paper'),
+    path('manage/exam-paper/<int:pk>/preview/', views.preview_exam, name='preview_exam'),
     path('manage/exam-paper/<int:pk>/edit/', views.edit_exam_paper, name='edit_exam_paper'),
     path('manage/exam-paper/<int:pk>/delete/', views.delete_exam_paper, name='delete_exam_paper'),
+    path('manage/parse-exam-text/', views.parse_exam_text, name='parse_exam_text'),
+    path('manage/extract-image-text/', views.extract_text_from_image, name='extract_image_text'),
 
     # Syllabus
     path('syllabus/', views.syllabus_list, name='syllabus_list'),

@@ -131,6 +131,20 @@ def logout_view(request):
     return redirect('login')
 
 
+def toggle_language(request):
+    current = getattr(request, 'LANG', 'bn')
+    new_lang = 'en' if current == 'bn' else 'bn'
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.profile
+            profile.preferred_language = new_lang
+            profile.save(update_fields=['preferred_language'])
+        except Exception:
+            pass
+    request.session['preferred_language'] = new_lang
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
 @login_required
 def checkout(request):
     if request.method == 'POST':
@@ -1299,13 +1313,18 @@ def send_general_feedback(request, student_pk):
 
 @login_required
 def notifications(request):
-    from .models import TeacherFeedback
+    from .models import TeacherFeedback, Notification
     feedbacks = TeacherFeedback.objects.filter(
         student=request.user
     ).select_related('teacher', 'progress__question')
     feedbacks.filter(is_read=False).update(is_read=True)
+
+    notifs = Notification.objects.filter(recipient=request.user)
+    notifs.filter(is_read=False).update(is_read=True)
+
     return render(request, 'core/notifications.html', {
         'feedbacks': feedbacks,
+        'notifications': notifs,
     })
 
 
@@ -1395,6 +1414,12 @@ def study_note_add(request):
         if request.FILES.get('pdf_file'):
             note.pdf_file = request.FILES['pdf_file']
             note.save()
+        _notify_all_students(
+            'note',
+            f'নতুন Study Note: {note.title}',
+            f'{request.user.username} একটি নতুন study note আপলোড করেছেন — "{note.title}" ({note.subject.name}, {note.class_obj.name})',
+            link=f'/study-notes/{note.pk}/',
+        )
         messages.success(request, 'Note added!')
         return redirect('study_notes')
     return render(request, 'core/study_note_add.html', {
@@ -1757,6 +1782,12 @@ def contest_create(request):
                     option4=option4s[i] if i < len(option4s) else '',
                     correct_option=int(correct_options[i]) if i < len(correct_options) and correct_options[i] else None,
                 )
+        _notify_all_students(
+            'contest',
+            f'নতুন Contest: {contest.title}',
+            f'{request.user.username} একটি নতুন contest তৈরি করেছেন — "{contest.title}" ({contest.subject.name}, {contest.class_obj.name})',
+            link=f'/contests/{contest.pk}/',
+        )
         messages.success(request, 'Contest created!')
         return redirect('contest_detail', pk=contest.pk)
     return render(request, 'core/contest_create.html', {
@@ -2106,7 +2137,7 @@ def export_excel(request):
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment
     from django.http import HttpResponse
-    from .models import UserProgress, TeacherFeedback, StudyNote, Contest, ContestSubmission, NoteBookmark
+    from .models import UserProgress, TeacherFeedback, StudyNote, Contest, ContestSubmission, NoteBookmark, ExamPaper, ExamAttempt
 
     wb = openpyxl.Workbook()
 
@@ -2206,6 +2237,43 @@ def export_excel(request):
             bm.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
+    ws9 = wb.create_sheet('Exam Papers')
+    headers9 = ['Title', 'Subject', 'Class', 'Board', 'Year', 'Created By', 'MCQ Count', 'CQ Count', 'Total Attempts', 'Graded', 'Created At']
+    style_header(ws9, headers9)
+    for paper in ExamPaper.objects.select_related('subject', 'class_obj', 'board', 'created_by').all():
+        total_attempts = paper.attempts.count()
+        graded = paper.attempts.filter(status='GRADED').count()
+        ws9.append([
+            paper.title,
+            paper.subject.name,
+            paper.class_obj.name,
+            paper.board.name if paper.board else '',
+            paper.year or '',
+            paper.created_by.username,
+            paper.mcqs.count(),
+            paper.cqs.count(),
+            total_attempts,
+            graded,
+            paper.created_at.strftime('%d-%m-%Y %H:%M'),
+        ])
+
+    ws10 = wb.create_sheet('Exam Results')
+    headers10 = ['Student', 'Exam Paper', 'Subject', 'Status', 'MCQ Score', 'CQ Score', 'Total Score', 'Grade', 'Started At', 'CQ Submitted At']
+    style_header(ws10, headers10)
+    for attempt in ExamAttempt.objects.select_related('student', 'exam_paper', 'exam_paper__subject').all():
+        ws10.append([
+            attempt.student.username,
+            attempt.exam_paper.title,
+            attempt.exam_paper.subject.name,
+            attempt.get_status_display(),
+            attempt.mcq_score,
+            attempt.cq_score if attempt.cq_score is not None else '',
+            attempt.total_score if attempt.total_score is not None else '',
+            attempt.grade or '',
+            attempt.started_at.strftime('%d-%m-%Y %H:%M'),
+            attempt.cq_submitted_at.strftime('%d-%m-%Y %H:%M') if attempt.cq_submitted_at else '',
+        ])
+
     from django.utils import timezone
     filename = f"PrepareYourself_Data_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     from django.http import HttpResponse
@@ -2278,6 +2346,22 @@ def exam_paper_detail(request, pk):
     })
 
 
+@login_required
+def preview_exam(request, pk):
+    from .models import ExamPaper
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'শুধুমাত্র Teacher/Admin এই page দেখতে পারবেন।')
+        return redirect('exam_paper_detail', pk=pk)
+    paper = get_object_or_404(ExamPaper, pk=pk, is_active=True)
+    mcqs = paper.mcqs.all()
+    cqs = paper.cqs.all()
+    return render(request, 'manage/preview_exam.html', {
+        'paper': paper,
+        'mcqs': mcqs,
+        'cqs': cqs,
+    })
+
+
 def _calculate_grade(total_score):
     if total_score >= 80:
         return 'A+'
@@ -2317,6 +2401,12 @@ def _auto_submit_mcq(attempt):
 @login_required
 def start_exam(request, pk):
     from .models import ExamPaper, ExamAttempt
+    try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            return redirect('exam_paper_detail', pk=pk)
+    except Exception:
+        pass
     paper = get_object_or_404(ExamPaper, pk=pk, is_active=True)
     attempt = ExamAttempt.objects.filter(exam_paper=paper, student=request.user).first()
 
@@ -2366,6 +2456,11 @@ def submit_mcq(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            return JsonResponse({'error': 'Not allowed'}, status=403)
+    except Exception:
+        pass
+    try:
         data = json.loads(request.body)
         attempt_id = int(data.get('attempt_id', 0))
         answers = data.get('answers', {})
@@ -2406,6 +2501,12 @@ def submit_mcq(request):
 
 @login_required
 def exam_cq_phase(request, attempt_id):
+    try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            return redirect('exam_paper_list')
+    except Exception:
+        pass
     from .models import ExamAttempt
     from django.utils import timezone
     attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user)
@@ -2442,6 +2543,12 @@ def exam_cq_phase(request, attempt_id):
 
 @login_required
 def submit_cq(request, attempt_id):
+    try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            return redirect('exam_paper_list')
+    except Exception:
+        pass
     if request.method != 'POST':
         return redirect('exam_cq_phase', attempt_id=attempt_id)
 
@@ -2500,6 +2607,12 @@ def submit_cq(request, attempt_id):
 
 @login_required
 def exam_results(request, attempt_id):
+    try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            return redirect('exam_paper_list')
+    except Exception:
+        pass
     from .models import ExamAttempt
     attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user)
     cq_submissions = attempt.cq_submissions.select_related('cq_question').all()
@@ -2519,6 +2632,15 @@ def _is_exam_staff(user):
         return p.is_superadmin or p.role == 'ADMIN'
     except Exception:
         return False
+
+
+def _notify_all_students(notif_type, title, message, link=''):
+    from .models import Notification, UserProfile
+    student_ids = UserProfile.objects.filter(role='STUDENT').values_list('user_id', flat=True)
+    Notification.objects.bulk_create([
+        Notification(recipient_id=uid, notif_type=notif_type, title=title, message=message, link=link)
+        for uid in student_ids
+    ])
 
 
 @login_required
@@ -2637,6 +2759,12 @@ def create_exam_paper(request):
             )
             order += 1
 
+        _notify_all_students(
+            'exam',
+            f'নতুন Exam Paper: {paper.title}',
+            f'{request.user.username} একটি নতুন exam paper আপলোড করেছেন — "{paper.title}" ({paper.subject.name}, {paper.class_obj.name})',
+            link=f'/exam-papers/{paper.pk}/',
+        )
         messages.success(
             request,
             f'"{paper.title}" তৈরি হয়েছে — {paper.mcqs.count()}টি MCQ, {paper.cqs.count()}টি CQ।'
@@ -2809,7 +2937,8 @@ def delete_exam_paper(request, pk):
 
     paper = get_object_or_404(ExamPaper, pk=pk)
     active_attempts = ExamAttempt.objects.filter(
-        exam_paper=paper
+        exam_paper=paper,
+        student__profile__role='STUDENT',
     ).exclude(status='GRADED').count()
 
     if active_attempts > 0:
@@ -2824,6 +2953,154 @@ def delete_exam_paper(request, pk):
     paper.save()
     messages.success(request, f'"{paper_title}" সফলভাবে মুছে ফেলা হয়েছে।')
     return redirect('exam_paper_list')
+
+
+def _parse_exam_questions(text):
+    import re
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    mcqs = []
+    cqs = []
+
+    # Bengali/Arabic numeral at line start = possible question
+    q_start = re.compile(r'^[০-৯0-9]{1,2}[।\.)\s]+(.*)')
+    # Option line: starts with ক/খ/গ/ঘ or (ক)/(খ) etc.
+    opt_line = re.compile(r'^[(（]?([কখগঘ])[)）\.\s]+(.*)')
+    # Marks hint: (2) or ২ in brackets after CQ part
+    marks_hint = re.compile(r'\(?(\d)\)?[\s]*$')
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        qm = q_start.match(line)
+        if qm:
+            q_text = qm.group(1).strip()
+            # Collect continuation lines before first option
+            j = i + 1
+            while j < len(lines) and not opt_line.match(lines[j]) and not q_start.match(lines[j]):
+                q_text += ' ' + lines[j]
+                j += 1
+            # Collect up to 4 options
+            opts = {}
+            marks = {}
+            while j < len(lines):
+                om = opt_line.match(lines[j])
+                if not om:
+                    break
+                letter = om.group(1)   # ক/খ/গ/ঘ
+                opt_text = om.group(2).strip()
+                # Extract marks hint like (2) at end
+                mm = marks_hint.search(opt_text)
+                mk = int(mm.group(1)) if mm else None
+                if mk:
+                    opt_text = opt_text[:mm.start()].strip()
+                opts[letter] = opt_text
+                if mk:
+                    marks[letter] = mk
+                j += 1
+
+            opt_ka = opts.get('ক', '')
+            opt_kha = opts.get('খ', '')
+            opt_ga = opts.get('গ', '')
+            opt_gha = opts.get('ঘ', '')
+
+            if opt_ka and opt_kha and opt_ga and opt_gha:
+                # All 4 options → MCQ
+                mcqs.append({
+                    'question_text': q_text,
+                    'option1': opt_ka,
+                    'option2': opt_kha,
+                    'option3': opt_ga,
+                    'option4': opt_gha,
+                    'correct_option': 1,
+                    'marks': 1,
+                })
+            elif opt_ka or opt_kha:
+                # Partial options → CQ sub-questions
+                cqs.append({
+                    'question_text': q_text,
+                    'part_a': opt_ka,
+                    'part_b': opt_kha,
+                    'part_c': opt_ga,
+                    'part_d': opt_gha,
+                    'marks_a': marks.get('ক', 1),
+                    'marks_b': marks.get('খ', 2),
+                    'marks_c': marks.get('গ', 3),
+                    'marks_d': marks.get('ঘ', 4),
+                })
+            else:
+                # Question with no options yet — might be CQ stimulus; skip for now
+                pass
+            i = j
+        else:
+            i += 1
+
+    return mcqs, cqs
+
+
+@login_required
+def parse_exam_text(request):
+    """Receives raw OCR text (from browser-side Tesseract.js) and parses MCQ/CQ structure."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    if not _is_exam_staff(request.user):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    text = request.POST.get('text', '').strip()
+    if not text:
+        return JsonResponse({'error': 'Text দিন।'}, status=400)
+
+    mcqs, cqs = _parse_exam_questions(text)
+    return JsonResponse({
+        'success': True,
+        'data': {'mcqs': mcqs, 'cqs': cqs},
+    })
+
+
+@login_required
+def extract_text_from_image(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    if not _is_exam_staff(request.user):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    image_file = request.FILES.get('image')
+    if not image_file:
+        return JsonResponse({'error': 'ছবি দিন।'}, status=400)
+
+    import base64, json
+    from urllib import request as urllib_request
+    from urllib.error import HTTPError
+
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        return JsonResponse({'error': 'Gemini API key কনফিগার করা নেই। settings.py-তে GEMINI_API_KEY সেট করুন।'}, status=500)
+
+    image_data = base64.b64encode(image_file.read()).decode('utf-8')
+    mime_type = image_file.content_type or 'image/jpeg'
+
+    payload = json.dumps({
+        'contents': [{
+            'parts': [
+                {'inline_data': {'mime_type': mime_type, 'data': image_data}},
+                {'text': 'এই ছবিতে থাকা সব বাংলা ও ইংরেজি টেক্সট হুবহু extract করো। শুধু টেক্সট দাও, কোনো ব্যাখ্যা বা মন্তব্য যোগ করো না।'}
+            ]
+        }],
+        'generationConfig': {'temperature': 0, 'maxOutputTokens': 4096}
+    }).encode('utf-8')
+
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}'
+    req = urllib_request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
+
+    try:
+        with urllib_request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+        text = result['candidates'][0]['content']['parts'][0]['text']
+        return JsonResponse({'success': True, 'text': text})
+    except HTTPError as e:
+        err_body = e.read().decode('utf-8', errors='replace')
+        return JsonResponse({'error': f'Gemini error {e.code}: {err_body[:300]}'}, status=500)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required

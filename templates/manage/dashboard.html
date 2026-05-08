@@ -3,138 +3,206 @@
 {% block content %}
 
 <div class="min-h-screen bg-gray-50">
-  <!-- Top Bar -->
-  <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-        <span class="text-white text-sm font-bold">M</span>
+
+  <!-- ══════════ GRADIENT HERO HEADER ══════════ -->
+  <div class="relative overflow-hidden py-10 px-6 hero-dot-grid"
+       style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);">
+    <!-- Floating blobs -->
+    <div class="float-shape float-shape-1"></div>
+    <div class="float-shape float-shape-2"></div>
+    <div class="float-shape float-shape-3"></div>
+    <div class="float-shape float-shape-4"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <div class="section-badge mb-3" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); color:white;" data-aos="fade-down">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+          Manage Panel
+        </div>
+        <h1 class="text-3xl font-extrabold text-white tracking-tight" data-aos="fade-up" data-aos-delay="50">Dashboard</h1>
+        <p class="text-blue-100 mt-1 text-sm" data-aos="fade-up" data-aos-delay="100">সব কিছু এখান থেকে manage করো।</p>
       </div>
-      <span class="font-semibold text-gray-800">Manage Panel</span>
+      <a href="{% url 'home' %}"
+         class="text-sm text-white/80 hover:text-white transition flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl border border-white/20"
+         data-aos="fade-left" data-aos-delay="100">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Main Site
+      </a>
     </div>
-    <a href="{% url 'home' %}" class="text-sm text-gray-500 hover:text-gray-700">← Main Site</a>
   </div>
+  <!-- ══════════ END HEADER ══════════ -->
 
   <div class="max-w-7xl mx-auto px-6 py-8">
 
-    <!-- Welcome -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p class="text-gray-500 mt-1">সব কিছু এখান থেকে manage করো।</p>
-    </div>
-
-    <!-- Stats -->
+    <!-- ── Stat Cards ───────────────────────────── -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-3xl font-bold text-blue-600">{{ total_questions }}</p>
-        <p class="text-sm text-gray-500 mt-1">📝 Questions</p>
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group" data-aos="fade-up" data-aos-delay="0"
+           style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-gray-900">{{ total_questions }}</p>
+        <p class="text-xs text-gray-400 mt-1 font-medium">Questions</p>
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-3xl font-bold text-purple-600">{{ total_boards }}</p>
-        <p class="text-sm text-gray-500 mt-1">🏫 Boards</p>
+
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group" data-aos="fade-up" data-aos-delay="60"
+           style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-gray-900">{{ total_boards }}</p>
+        <p class="text-xs text-gray-400 mt-1 font-medium">Boards</p>
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-3xl font-bold text-green-600">{{ total_subjects }}</p>
-        <p class="text-sm text-gray-500 mt-1">📚 Subjects</p>
+
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group" data-aos="fade-up" data-aos-delay="120"
+           style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#10b981,#34d399)">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-gray-900">{{ total_subjects }}</p>
+        <p class="text-xs text-gray-400 mt-1 font-medium">Subjects</p>
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-3xl font-bold text-yellow-600">{{ total_classes }}</p>
-        <p class="text-sm text-gray-500 mt-1">🎓 Classes</p>
+
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group" data-aos="fade-up" data-aos-delay="180"
+           style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-gray-900">{{ total_classes }}</p>
+        <p class="text-xs text-gray-400 mt-1 font-medium">Classes</p>
       </div>
     </div>
 
-    <!-- Student Progress Link -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-5 mb-8 flex items-center justify-between">
-      <div>
-        <h2 class="font-semibold text-white text-lg">👨‍🎓 Student Progress</h2>
-        <p class="text-blue-100 text-sm mt-1">সব student এর progress দেখো</p>
+    <!-- ── Student Progress Banner ──────────────── -->
+    <div class="relative overflow-hidden rounded-2xl p-6 mb-8 flex items-center justify-between"
+         style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);"
+         data-aos="fade-up" data-aos-delay="200">
+      <div class="float-shape float-shape-2" style="width:100px;height:100px;opacity:0.3;"></div>
+      <div class="relative z-10">
+        <p class="text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1">Teacher View</p>
+        <h2 class="font-bold text-white text-lg">Student Progress</h2>
+        <p class="text-blue-100 text-sm mt-0.5">সব student এর progress দেখো</p>
       </div>
       <a href="{% url 'teacher_dashboard' %}"
-         class="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:shadow-md transition">
+         class="relative z-10 bg-white text-blue-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition btn-glow ripple">
         View Students →
       </a>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- ── Quick Actions ─────────────────────────── -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-      <a href="{% url 'manage_questions' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-5 transition group">
-        <div class="text-2xl mb-3">📝</div>
-        <h2 class="font-semibold">Questions</h2>
+      <!-- Questions (accent card) -->
+      <a href="{% url 'manage_questions' %}"
+         class="relative overflow-hidden rounded-2xl p-5 transition group ripple btn-glow"
+         style="background: linear-gradient(135deg, #3b82f6, #2563eb);"
+         data-aos="fade-up" data-aos-delay="0">
+        <div class="text-3xl mb-3">📝</div>
+        <h2 class="font-bold text-white">Questions</h2>
         <p class="text-sm text-blue-200 mt-1">Add, edit, delete</p>
-        <div class="mt-3 text-xs text-blue-200 group-hover:text-white">Manage →</div>
+        <div class="mt-4 text-xs text-blue-100 group-hover:text-white transition">Manage →</div>
+        <div class="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 -translate-y-6 translate-x-6" style="background:white;"></div>
       </a>
-      <a href="{% url 'manage_subjects' %}" class="bg-white hover:shadow-md border border-gray-200 text-gray-800 rounded-xl p-5 transition group">
-        <div class="text-2xl mb-3">📚</div>
-        <h2 class="font-semibold">Subjects</h2>
-        <p class="text-sm text-gray-500 mt-1">Physics, Chemistry...</p>
-        <div class="mt-3 text-xs text-blue-600 group-hover:underline">Manage →</div>
+
+      <a href="{% url 'manage_subjects' %}"
+         class="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group"
+         style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
+         data-aos="fade-up" data-aos-delay="60">
+        <div class="text-3xl mb-3">📚</div>
+        <h2 class="font-bold text-gray-800">Subjects</h2>
+        <p class="text-sm text-gray-400 mt-1">Physics, Chemistry...</p>
+        <div class="mt-4 text-xs text-blue-500 group-hover:underline">Manage →</div>
       </a>
-      <a href="{% url 'manage_classes' %}" class="bg-white hover:shadow-md border border-gray-200 text-gray-800 rounded-xl p-5 transition group">
-        <div class="text-2xl mb-3">🎓</div>
-        <h2 class="font-semibold">Classes</h2>
-        <p class="text-sm text-gray-500 mt-1">Class 9, 10, Inter...</p>
-        <div class="mt-3 text-xs text-blue-600 group-hover:underline">Manage →</div>
+
+      <a href="{% url 'manage_classes' %}"
+         class="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group"
+         style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
+         data-aos="fade-up" data-aos-delay="120">
+        <div class="text-3xl mb-3">🎓</div>
+        <h2 class="font-bold text-gray-800">Classes</h2>
+        <p class="text-sm text-gray-400 mt-1">Class 9, 10, Inter...</p>
+        <div class="mt-4 text-xs text-blue-500 group-hover:underline">Manage →</div>
       </a>
-      <a href="{% url 'exam_paper_list' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-5 transition group">
-        <div class="text-2xl mb-3">📋</div>
-        <h2 class="font-semibold">Exam Papers</h2>
+
+      <!-- Exam Papers (accent) -->
+      <a href="{% url 'exam_paper_list' %}"
+         class="relative overflow-hidden rounded-2xl p-5 transition group ripple btn-glow"
+         style="background: linear-gradient(135deg, #6366f1, #4f46e5);"
+         data-aos="fade-up" data-aos-delay="180">
+        <div class="text-3xl mb-3">📋</div>
+        <h2 class="font-bold text-white">Exam Papers</h2>
         <p class="text-sm text-indigo-200 mt-1">{{ exam_paper_count }} টি paper</p>
-        <div class="mt-3 text-xs text-indigo-200 group-hover:text-white">Manage →</div>
+        <div class="mt-4 text-xs text-indigo-100 group-hover:text-white transition">Manage →</div>
+        <div class="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 -translate-y-6 translate-x-6" style="background:white;"></div>
       </a>
-      <a href="{% url 'manage_grade_list' %}" class="relative bg-white hover:shadow-md border border-gray-200 text-gray-800 rounded-xl p-5 transition group">
+
+      <a href="{% url 'manage_grade_list' %}"
+         class="relative bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group"
+         style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
+         data-aos="fade-up" data-aos-delay="240">
         {% if pending_cq_count > 0 %}
-        <span class="absolute top-3 right-3 bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{{ pending_cq_count }}</span>
+        <span class="absolute top-3 right-3 bg-amber-400 text-white text-xs px-2 py-0.5 rounded-full font-bold badge-pulse">{{ pending_cq_count }}</span>
         {% endif %}
-        <div class="text-2xl mb-3">📝</div>
-        <h2 class="font-semibold">Grade Queue</h2>
-        <p class="text-sm text-gray-500 mt-1">CQ submissions grade করো</p>
-        <div class="mt-3 text-xs text-blue-600 group-hover:underline">Grade করো →</div>
+        <div class="text-3xl mb-3">📝</div>
+        <h2 class="font-bold text-gray-800">Grade Queue</h2>
+        <p class="text-sm text-gray-400 mt-1">CQ submissions grade করো</p>
+        <div class="mt-4 text-xs text-blue-500 group-hover:underline">Grade করো →</div>
       </a>
-      <a href="{% url 'create_exam_paper' %}" class="bg-white hover:shadow-md border border-gray-200 text-gray-800 rounded-xl p-5 transition group">
-        <div class="text-2xl mb-3">➕</div>
-        <h2 class="font-semibold">New Exam Paper</h2>
-        <p class="text-sm text-gray-500 mt-1">নতুন paper তৈরি করো</p>
-        <div class="mt-3 text-xs text-blue-600 group-hover:underline">Create →</div>
+
+      <a href="{% url 'create_exam_paper' %}"
+         class="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition group"
+         style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
+         data-aos="fade-up" data-aos-delay="300">
+        <div class="text-3xl mb-3">➕</div>
+        <h2 class="font-bold text-gray-800">New Exam Paper</h2>
+        <p class="text-sm text-gray-400 mt-1">নতুন paper তৈরি করো</p>
+        <div class="mt-4 text-xs text-blue-500 group-hover:underline">Create →</div>
       </a>
     </div>
 
-    <!-- Recent Questions -->
-    <div class="bg-white rounded-xl border border-gray-200">
+    <!-- ── Recent Questions ──────────────────────── -->
+    <div class="bg-white rounded-2xl border border-gray-100" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
+         data-aos="fade-up" data-aos-delay="60">
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="font-semibold text-gray-800">সর্বশেষ যোগ করা Questions</h2>
-        <a href="{% url 'question_add' %}" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700">+ নতুন</a>
+        <h2 class="font-bold text-gray-800">সর্বশেষ যোগ করা Questions</h2>
+        <a href="{% url 'question_add' %}"
+           class="text-sm font-semibold text-white px-4 py-1.5 rounded-xl transition ripple btn-glow"
+           style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+          + নতুন
+        </a>
       </div>
-      <div class="divide-y divide-gray-100">
+      <div class="divide-y divide-gray-50">
         {% for q in recent_questions %}
-        <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50">
+        <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition">
           <div class="flex items-center gap-3">
-            <span class="px-2 py-0.5 rounded text-xs font-medium
+            <span class="px-2.5 py-0.5 rounded-lg text-xs font-semibold
               {% if q.question_type == 'MCQ' %}bg-blue-100 text-blue-700{% else %}bg-purple-100 text-purple-700{% endif %}">
               {{ q.question_type }}
             </span>
             <div>
               <p class="text-sm font-medium text-gray-800">{{ q.chapter|truncatechars:40 }}</p>
-              <p class="text-xs text-gray-400 mt-0.5">{{ q.subject }} • {{ q.board }} • {{ q.year }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">{{ q.subject }} &bull; {{ q.board }} &bull; {{ q.year }}</p>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <span class="text-xs px-2 py-0.5 rounded
+            <span class="text-xs px-2.5 py-0.5 rounded-lg font-medium
               {% if q.difficulty == 'Easy' %}bg-green-100 text-green-700
               {% elif q.difficulty == 'Medium' %}bg-yellow-100 text-yellow-700
               {% else %}bg-red-100 text-red-700{% endif %}">
               {{ q.difficulty }}
             </span>
-            <a href="{% url 'question_edit' q.pk %}" class="text-xs text-blue-600 hover:underline">Edit</a>
+            <a href="{% url 'question_edit' q.pk %}" class="text-xs text-blue-500 hover:underline font-medium">Edit</a>
           </div>
         </div>
         {% empty %}
-        <div class="px-6 py-8 text-center text-gray-400 text-sm">
-          কোনো question নেই। <a href="{% url 'question_add' %}" class="text-blue-600 hover:underline">এখনই যোগ করো।</a>
+        <div class="px-6 py-10 text-center text-gray-400 text-sm">
+          কোনো question নেই।
+          <a href="{% url 'question_add' %}" class="text-blue-500 hover:underline ml-1">এখনই যোগ করো।</a>
         </div>
         {% endfor %}
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /max-w-7xl -->
+</div><!-- /min-h-screen -->
 
 {% endblock %}

@@ -1,69 +1,174 @@
 {% extends 'base.html' %}
-{% block title %}Contests{% endblock %}
-{% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
+{% block title %}{% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}{% endblock %}
 
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">🏆 Contests</h1>
-            <p class="text-gray-500 mt-1">Teacher এর দেওয়া contest এ অংশ নাও</p>
-        </div>
+{% block extra_head %}
+<style>
+    .contest-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-left: 4px solid #fbbf24;
+        border-radius: 1rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease;
+    }
+    .contest-card:hover {
+        box-shadow: 0 8px 32px rgba(180,83,9,0.13);
+        border-left-color: #b45309;
+        transform: translateY(-2px);
+    }
+    .contest-card.past-card {
+        border-left-color: #d1d5db;
+        opacity: 0.85;
+    }
+    .contest-card.past-card:hover {
+        border-left-color: #9ca3af;
+        opacity: 1;
+    }
+
+    @keyframes pulse-live {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.6; transform: scale(1.3); }
+    }
+    .live-dot {
+        display: inline-block;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #22c55e;
+        animation: pulse-live 1.4s ease-in-out infinite;
+    }
+
+    .amber-btn {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: #fff;
+        font-weight: 700;
+        border-radius: 0.75rem;
+        transition: opacity .2s, box-shadow .2s, transform .15s;
+    }
+    .amber-btn:hover {
+        opacity: 0.92;
+        box-shadow: 0 6px 20px rgba(180,83,9,0.25);
+        transform: translateY(-1px);
+    }
+
+    .tag-amber {
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 999px;
+        border: 1px solid #fde68a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header — Amber-Gold -->
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%); min-height:180px; display:flex; align-items:center;">
+    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+    <div class="float-shape absolute -top-10 -right-10 w-72 h-72 rounded-full" style="background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%); filter:blur(40px);"></div>
+    <div class="float-shape absolute -bottom-10 -left-10 w-52 h-52 rounded-full" style="background:radial-gradient(circle,rgba(251,191,36,0.25) 0%,transparent 70%); filter:blur(30px);"></div>
+
+    <div class="max-w-7xl mx-auto px-4 py-12 relative z-10 w-full text-center">
+        <span class="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 backdrop-blur-sm border border-white/20" data-aos="fade-down">
+            🏆 {% if LANG == 'en' %}Competitions{% else %}প্রতিযোগিতা{% endif %}
+        </span>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-2" data-aos="fade-up" data-aos-delay="50">
+            🏆 {% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}
+        </h1>
+        <p class="text-amber-100 text-base font-medium" data-aos="fade-up" data-aos-delay="100">{% if LANG == 'en' %}Join competitions — test yourself{% else %}প্রতিযোগিতায় অংশ নিন — নিজেকে যাচাই করুন{% endif %}</p>
+
         {% if is_admin %}
-        <a href="{% url 'contest_create' %}"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
-            + Create Contest
-        </a>
+        <div class="mt-6" data-aos="fade-up" data-aos-delay="160">
+            <a href="{% url 'contest_create' %}"
+               class="inline-flex items-center gap-2 amber-btn px-6 py-2.5 text-sm">
+                + {% if LANG == 'en' %}Create Contest{% else %}কনটেস্ট তৈরি করুন{% endif %}
+            </a>
+        </div>
         {% endif %}
     </div>
+</div>
+
+<!-- Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <!-- Active Contests -->
-    <h2 class="font-semibold text-gray-900 mb-4">🔴 Active Contests</h2>
+    <div class="flex items-center gap-2 mb-6" data-aos="fade-up">
+        <span class="live-dot"></span>
+        <h2 class="font-extrabold text-gray-900 text-lg tracking-tight">{% if LANG == 'en' %}Active Contests{% else %}সক্রিয় কনটেস্ট{% endif %}</h2>
+        <span class="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-green-100 ml-1">
+            <span class="live-dot" style="width:6px;height:6px;"></span> {% if LANG == 'en' %}Live{% else %}লাইভ{% endif %}
+        </span>
+    </div>
+
     {% if active_contests %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {% for contest in active_contests %}
-        <div class="bg-white rounded-2xl border border-green-200 p-6 hover:shadow-md transition">
-            <div class="flex justify-between items-start mb-3">
-                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">🟢 Active</span>
-                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ contest.duration_minutes }} min</span>
+        <div class="contest-card p-5"
+             data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'1' }}00">
+
+            <!-- Status row -->
+            <div class="flex justify-between items-start mb-4">
+                <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full border border-green-100">
+                    <span class="live-dot" style="width:7px;height:7px;"></span> {% if LANG == 'en' %}Active{% else %}সক্রিয়{% endif %}
+                </span>
+                <span class="tag-amber">{{ contest.duration_minutes }} {% if LANG == 'en' %}min{% else %}মিনিট{% endif %}</span>
             </div>
-            <h3 class="font-semibold text-gray-900 mb-1">{{ contest.title }}</h3>
-            <p class="text-sm text-gray-500 mb-1">{{ contest.subject.name }} • {{ contest.class_obj.name }}</p>
-            <p class="text-xs text-gray-400 mb-4">Ends: {{ contest.end_time|date:"d M Y H:i" }}</p>
+
+            <h3 class="font-bold text-gray-900 text-base mb-1">{{ contest.title }}</h3>
+            <p class="text-sm text-gray-500 mb-1">{{ contest.subject.name }} &bull; {{ contest.class_obj.name }}</p>
+            <p class="text-xs text-gray-400 mb-5">{% if LANG == 'en' %}Ends:{% else %}শেষ:{% endif %} {{ contest.end_time|date:"d M Y H:i" }}</p>
+
             <div class="flex gap-2">
                 <a href="{% url 'contest_join' contest.pk %}"
-                    class="flex-1 text-center bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition">
-                    Join Now →
+                   class="flex-1 text-center text-sm px-3 py-2 amber-btn">
+                    {% if LANG == 'en' %}Join Now &rarr;{% else %}যোগ দিন &rarr;{% endif %}
                 </a>
                 <a href="{% url 'contest_leaderboard' contest.pk %}"
-                    class="text-center bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 transition">
-                    🏆
+                   class="text-center bg-amber-50 text-amber-800 px-3 py-2 rounded-xl text-sm border border-amber-100 hover:bg-amber-100 transition font-semibold">
+                    &#127942;
                 </a>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="bg-gray-50 rounded-2xl p-8 text-center text-gray-400 mb-8">
-        <p class="text-3xl mb-2">🏆</p>
-        <p>কোনো active contest নেই।</p>
+    <div class="bg-white rounded-2xl border border-amber-100 p-12 text-center mb-12"
+         style="box-shadow: 0 2px 12px rgba(0,0,0,0.05);"
+         data-aos="fade-up">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+             style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+            <span class="text-2xl">&#127942;</span>
+        </div>
+        <p class="text-gray-400 text-sm font-medium">{% if LANG == 'en' %}No active contests.{% else %}কোনো active contest নেই।{% endif %}</p>
     </div>
     {% endif %}
 
     <!-- Past Contests -->
     {% if past_contests %}
-    <h2 class="font-semibold text-gray-900 mb-4">⏰ Past Contests</h2>
+    <div class="flex items-center gap-2 mb-6" data-aos="fade-up">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+        <h2 class="font-extrabold text-gray-700 text-lg tracking-tight">{% if LANG == 'en' %}Past Contests{% else %}পুরানো কনটেস্ট{% endif %}</h2>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for contest in past_contests %}
-        <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition">
-            <div class="flex justify-between items-start mb-3">
-                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">⏰ Ended</span>
-                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">{{ contest.duration_minutes }} min</span>
+        <div class="contest-card past-card p-5"
+             data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'1' }}00">
+
+            <div class="flex justify-between items-start mb-4">
+                <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200">
+                    &#9200; {% if LANG == 'en' %}Ended{% else %}শেষ হয়েছে{% endif %}
+                </span>
+                <span class="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">{{ contest.duration_minutes }} {% if LANG == 'en' %}min{% else %}মিনিট{% endif %}</span>
             </div>
-            <h3 class="font-semibold text-gray-900 mb-1">{{ contest.title }}</h3>
-            <p class="text-sm text-gray-500 mb-4">{{ contest.subject.name }} • {{ contest.class_obj.name }}</p>
+
+            <h3 class="font-bold text-gray-900 text-base mb-1">{{ contest.title }}</h3>
+            <p class="text-sm text-gray-500 mb-5">{{ contest.subject.name }} &bull; {{ contest.class_obj.name }}</p>
+
             <a href="{% url 'contest_leaderboard' contest.pk %}"
-                class="block text-center bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 transition">
-                🏆 Leaderboard দেখো
+               class="block text-center bg-gray-50 text-gray-700 text-sm font-semibold px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-100 transition">
+                &#127942; {% if LANG == 'en' %}View Leaderboard{% else %}লিডারবোর্ড দেখো{% endif %}
             </a>
         </div>
         {% endfor %}

@@ -3,26 +3,32 @@
 
 {% block extra_head %}
 <style>
+    /* ── Emerald theme overrides ── */
     .ph-card {
         background: #fff;
         border: 1px solid #e5e7eb;
         border-radius: 1rem;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        transition: box-shadow .3s ease, border-color .3s ease;
     }
-    .ph-fade {
-        opacity: 0;
-        transform: translateY(6px);
-        animation: ph-rise .4s cubic-bezier(.2,.7,.3,1) forwards;
+    .ph-card:hover {
+        box-shadow: 0 8px 32px rgba(5,150,105,0.10);
+        border-color: rgba(5,150,105,0.20);
     }
-    @keyframes ph-rise { to { opacity: 1; transform: translateY(0); } }
-    .stagger > * { animation-delay: calc(var(--i, 0) * 30ms); }
 
+    /* Stat cards get a green left-border accent */
+    .ph-stat-card {
+        border-left: 4px solid #34d399;
+    }
+
+    /* Timeline */
     .timeline-line {
         position: absolute;
         left: 19px;
         top: 0; bottom: 0;
         width: 2px;
-        background: #e5e7eb;
+        background: linear-gradient(to bottom, #059669, #34d399);
+        opacity: 0.30;
     }
     .timeline-dot {
         position: absolute;
@@ -31,7 +37,43 @@
         width: 16px; height: 16px;
         border-radius: 50%;
         border: 3px solid #fff;
-        box-shadow: 0 0 0 1px #e5e7eb;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.08);
+    }
+
+    /* Progress bars */
+    .emerald-bar {
+        background: linear-gradient(90deg, #059669, #34d399);
+        border-radius: 999px;
+        height: 6px;
+    }
+
+    .filter-select {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: #374151;
+        background: white;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+        width: 100%;
+        cursor: pointer;
+    }
+    .filter-select:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
+    }
+
+    .emerald-btn {
+        background: linear-gradient(135deg, #059669, #34d399);
+        color: #fff;
+        font-weight: 700;
+        border-radius: 0.75rem;
+        transition: opacity .2s, box-shadow .2s;
+    }
+    .emerald-btn:hover {
+        opacity: 0.90;
+        box-shadow: 0 6px 20px rgba(5,150,105,0.25);
     }
 
     @media print {
@@ -43,59 +85,116 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-    <!-- Header -->
-    <div class="ph-fade flex flex-wrap items-end justify-between gap-4" style="--i: 0;">
-        <div class="flex items-center gap-4">
-            <a href="{% url 'dashboard' %}"
-               class="text-gray-400 hover:text-gray-700 text-sm flex items-center gap-1 no-print">
-                ← Back
-            </a>
+<!-- ── Page Header — Emerald Green ── -->
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #34d399 100%); min-height: 180px; display:flex; align-items:center;">
+    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+    <div class="float-shape" style="width:270px;height:270px;top:-80px;right:-30px;background:radial-gradient(circle,rgba(255,255,255,0.10) 0%,transparent 70%);animation:floatY 14s ease-in-out infinite;"></div>
+    <div class="float-shape" style="width:140px;height:140px;bottom:-50px;left:5%;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);animation:floatY 10s ease-in-out infinite reverse;"></div>
+    <div class="float-shape" style="width:80px;height:80px;top:18%;right:26%;background:rgba(255,255,255,0.10);border-radius:30% 70% 70% 30%/30% 30% 70% 70%;animation:floatRotate 12s ease-in-out infinite;"></div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 w-full">
+        <div class="flex items-center justify-between flex-wrap gap-6">
+            <!-- Left: title block -->
             <div>
-                <h1 class="text-3xl font-bold tracking-tight text-gray-900">Progress History</h1>
-                <p class="text-sm text-gray-500 mt-0.5">তোমার সব practice activity timeline-এ</p>
+                <div class="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-3 py-1 text-xs font-semibold text-white mb-3 hero-anim-down">
+                    📊 Activity Timeline
+                </div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight hero-anim-1">
+                    📊 অগ্রগতি
+                </h1>
+                <p class="text-emerald-100 mt-1 text-sm hero-anim-2">তোমার সব practice activity timeline-এ</p>
+            </div>
+
+            <!-- Right: big accuracy number or motivational text -->
+            <div class="text-right hero-anim-r">
+                {% if accuracy_all %}
+                <p class="text-emerald-100 text-xs font-semibold uppercase tracking-widest mb-1">All-time Accuracy</p>
+                <p class="text-6xl font-black text-white leading-none">{{ accuracy_all }}<span class="text-3xl">%</span></p>
+                {% else %}
+                <p class="text-4xl font-black text-white leading-none">Keep Going! 💪</p>
+                {% endif %}
             </div>
         </div>
-        <button onclick="window.print()"
-                class="no-print bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition flex items-center gap-2 shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-            </svg>
-            Export PDF
-        </button>
-    </div>
 
-    <!-- Summary stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 stagger">
-        <div class="ph-card ph-fade p-5" style="--i: 1;">
-            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Streak</p>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ current_streak }} <span class="text-base font-medium text-gray-500">days</span> 🔥</p>
+        <!-- Action buttons row -->
+        <div class="flex gap-3 mt-6 no-print">
+            <a href="{% url 'dashboard' %}"
+               class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white font-medium hover:bg-white/20 transition backdrop-blur-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Dashboard
+            </a>
+            <button onclick="window.print()"
+                    class="no-print inline-flex items-center gap-2 bg-white text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-50 transition shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Export PDF
+            </button>
         </div>
-        <div class="ph-card ph-fade p-5" style="--i: 2;">
-            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">This Week</p>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ week_total }} <span class="text-base font-medium text-gray-500">answered</span></p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- ── Summary Stats ── -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="ph-card ph-stat-card p-5" data-aos="fade-up" data-aos-delay="0">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center bg-orange-100">
+                    <span class="text-xs">🔥</span>
+                </div>
+                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Streak</p>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">{{ current_streak }} <span class="text-base font-medium text-gray-500">days</span></p>
+            <div class="mt-3"><div class="emerald-bar" style="width:{{ current_streak|default:0 }}%;max-width:100%;"></div></div>
+        </div>
+        <div class="ph-card ph-stat-card p-5" data-aos="fade-up" data-aos-delay="60">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center bg-emerald-100">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">This Week</p>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">{{ week_total }} <span class="text-base font-medium text-gray-500">answered</span></p>
             <p class="text-xs text-gray-400 mt-0.5">{{ week_correct }} correct</p>
         </div>
-        <div class="ph-card ph-fade p-5" style="--i: 3;">
-            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Week Accuracy</p>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ week_accuracy }}%</p>
+        <div class="ph-card ph-stat-card p-5" data-aos="fade-up" data-aos-delay="120">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center bg-emerald-100">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Week Accuracy</p>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">{{ week_accuracy }}%</p>
+            <div class="mt-3"><div class="emerald-bar" style="width:{{ week_accuracy|default:0 }}%;max-width:100%;"></div></div>
         </div>
-        <div class="ph-card ph-fade p-5" style="--i: 4;">
-            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">All-time Accuracy</p>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ accuracy_all }}%</p>
+        <div class="ph-card ph-stat-card p-5" data-aos="fade-up" data-aos-delay="180">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center bg-emerald-100">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">All-time Accuracy</p>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">{{ accuracy_all }}%</p>
             <p class="text-xs text-gray-400 mt-0.5">{{ total_all }} total answered</p>
+            <div class="mt-3"><div class="emerald-bar" style="width:{{ accuracy_all|default:0 }}%;max-width:100%;"></div></div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <form method="get" class="ph-card ph-fade p-5 no-print" style="--i: 5;">
+    <!-- ── Filters ── -->
+    <form method="get" class="ph-card p-5 no-print" data-aos="fade-up" data-aos-delay="0">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #059669, #34d399);">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">Filter Results</h2>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div>
-                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">Subject</label>
-                <select name="subject"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Subject</label>
+                <select name="subject" class="filter-select">
                     <option value="">All</option>
                     {% for s in subjects %}
                     <option value="{{ s.id }}" {% if subject_filter == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
@@ -103,18 +202,16 @@
                 </select>
             </div>
             <div>
-                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">Result</label>
-                <select name="result"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Result</label>
+                <select name="result" class="filter-select">
                     <option value="">All</option>
                     <option value="correct" {% if result_filter == 'correct' %}selected{% endif %}>✓ Correct</option>
                     <option value="wrong" {% if result_filter == 'wrong' %}selected{% endif %}>✗ Wrong</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">Difficulty</label>
-                <select name="difficulty"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Difficulty</label>
+                <select name="difficulty" class="filter-select">
                     <option value="">All</option>
                     <option value="Easy" {% if difficulty_filter == 'Easy' %}selected{% endif %}>Easy</option>
                     <option value="Medium" {% if difficulty_filter == 'Medium' %}selected{% endif %}>Medium</option>
@@ -122,22 +219,20 @@
                 </select>
             </div>
             <div>
-                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">From</label>
-                <input type="date" name="from" value="{{ date_from }}"
-                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">From</label>
+                <input type="date" name="from" value="{{ date_from }}" class="filter-select">
             </div>
             <div>
-                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-medium mb-1.5">To</label>
-                <input type="date" name="to" value="{{ date_to }}"
-                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">To</label>
+                <input type="date" name="to" value="{{ date_to }}" class="filter-select">
             </div>
         </div>
-        <div class="flex items-center justify-between mt-4">
+        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
             <p class="text-xs text-gray-500">
                 {% if has_filters %}
-                Showing <span class="font-semibold text-gray-900">{{ filtered_count }}</span> filtered result{{ filtered_count|pluralize }}
+                Showing <span class="font-bold text-gray-900">{{ filtered_count }}</span> filtered result{{ filtered_count|pluralize }}
                 {% else %}
-                Showing all <span class="font-semibold text-gray-900">{{ filtered_count }}</span> entr{{ filtered_count|pluralize:"y,ies" }}
+                Showing all <span class="font-bold text-gray-900">{{ filtered_count }}</span> entr{{ filtered_count|pluralize:"y,ies" }}
                 {% endif %}
             </p>
             <div class="flex items-center gap-2">
@@ -148,52 +243,58 @@
                 </a>
                 {% endif %}
                 <button type="submit"
-                        class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm">
-                    Apply
+                        class="px-5 py-2 rounded-xl text-sm emerald-btn transition hover:opacity-90 shadow-sm">
+                    Apply Filters
                 </button>
             </div>
         </div>
     </form>
 
-    <!-- Timeline -->
+    <!-- ── Timeline ── -->
     {% if page_obj.object_list %}
-    <div class="ph-card ph-fade p-5 sm:p-6" style="--i: 6;">
-        <h2 class="text-base font-semibold text-gray-900 mb-5">Timeline</h2>
+    <div class="ph-card p-5 sm:p-6" data-aos="fade-up" data-aos-delay="0">
+        <div class="flex items-center gap-2 mb-5">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #059669, #34d399);">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">Timeline</h2>
+        </div>
+
         <div class="relative">
             <div class="timeline-line"></div>
             <div class="space-y-3">
                 {% for p in page_obj.object_list %}
                 <div class="relative pl-12">
                     <div class="timeline-dot" style="background: {% if p.is_correct %}#22c55e{% else %}#ef4444{% endif %};"></div>
-                    <div class="rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition p-4 bg-white">
+                    <div class="rounded-xl border border-gray-100 hover:border-emerald-200 hover:shadow-sm transition p-4 bg-white">
                         <div class="flex flex-wrap items-start gap-3 justify-between">
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm text-gray-800 font-medium leading-snug">
                                     {{ p.question.question_text|truncatechars:80 }}
                                 </p>
                                 <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
                                         {{ p.question.subject.name }}
                                     </span>
-                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">
                                         {{ p.question.board.name }}
                                     </span>
-                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">
                                         {{ p.question.year }}
                                     </span>
-                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full
-                                        {% if p.question.difficulty == 'Easy' %}bg-green-50 text-green-700
-                                        {% elif p.question.difficulty == 'Medium' %}bg-yellow-50 text-yellow-700
-                                        {% else %}bg-red-50 text-red-700{% endif %} font-medium">
+                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-semibold
+                                        {% if p.question.difficulty == 'Easy' %}bg-green-100 text-green-700
+                                        {% elif p.question.difficulty == 'Medium' %}bg-yellow-100 text-yellow-700
+                                        {% else %}bg-red-100 text-red-700{% endif %}">
                                         {{ p.question.difficulty }}
                                     </span>
                                 </div>
                             </div>
                             <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
                                 {% if p.is_correct %}
-                                <span class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">✓ Correct</span>
+                                <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">✓ Correct</span>
                                 {% else %}
-                                <span class="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">✗ Wrong</span>
+                                <span class="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full">✗ Wrong</span>
                                 {% endif %}
                                 <span class="text-[11px] text-gray-400">{{ p.answered_at|timesince }} ago</span>
                             </div>
@@ -201,7 +302,7 @@
                         <div class="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between no-print">
                             <span class="text-[11px] text-gray-400">{{ p.answered_at|date:"d M Y · H:i" }}</span>
                             <a href="{% url 'question_bank' %}?subject={{ p.question.subject.id }}#q-{{ p.question.id }}"
-                               class="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                               class="text-xs text-emerald-600 hover:text-emerald-700 font-semibold transition">
                                 Review Question →
                             </a>
                         </div>
@@ -221,19 +322,19 @@
             <div class="flex items-center gap-1">
                 {% if page_obj.has_previous %}
                 <a href="?{% if qs_string %}{{ qs_string }}&{% endif %}page={{ page_obj.previous_page_number }}"
-                   class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                   class="px-3 py-1.5 text-sm rounded-xl border border-gray-200 hover:bg-gray-50 transition font-medium">
                     ← Prev
                 </a>
                 {% else %}
-                <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300">← Prev</span>
+                <span class="px-3 py-1.5 text-sm rounded-xl border border-gray-100 text-gray-300">← Prev</span>
                 {% endif %}
 
                 {% for n in page_obj.paginator.page_range %}
                     {% if n == page_obj.number %}
-                        <span class="px-3 py-1.5 text-sm rounded-lg bg-gray-900 text-white font-medium">{{ n }}</span>
+                        <span class="px-3 py-1.5 text-sm rounded-xl text-white font-bold emerald-btn">{{ n }}</span>
                     {% elif n == 1 or n == page_obj.paginator.num_pages or n|add:"-2" <= page_obj.number and n|add:"2" >= page_obj.number %}
                         <a href="?{% if qs_string %}{{ qs_string }}&{% endif %}page={{ n }}"
-                           class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition">{{ n }}</a>
+                           class="px-3 py-1.5 text-sm rounded-xl border border-gray-200 hover:bg-gray-50 transition font-medium">{{ n }}</a>
                     {% elif n == 2 or n|add:"1" == page_obj.paginator.num_pages %}
                         <span class="px-2 text-gray-400">…</span>
                     {% endif %}
@@ -241,11 +342,11 @@
 
                 {% if page_obj.has_next %}
                 <a href="?{% if qs_string %}{{ qs_string }}&{% endif %}page={{ page_obj.next_page_number }}"
-                   class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                   class="px-3 py-1.5 text-sm rounded-xl border border-gray-200 hover:bg-gray-50 transition font-medium">
                     Next →
                 </a>
                 {% else %}
-                <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300">Next →</span>
+                <span class="px-3 py-1.5 text-sm rounded-xl border border-gray-100 text-gray-300">Next →</span>
                 {% endif %}
             </div>
         </div>
@@ -254,16 +355,18 @@
 
     {% else %}
     <!-- Empty state -->
-    <div class="ph-card ph-fade p-12" style="--i: 6;">
+    <div class="ph-card p-12" data-aos="fade-up">
         <div class="text-center max-w-md mx-auto">
-            <svg class="mx-auto w-24 h-24 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-            </svg>
-            <h3 class="text-lg font-semibold text-gray-900 mb-1">
+            <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5" style="background: linear-gradient(135deg, rgba(5,150,105,0.10), rgba(52,211,153,0.10));">
+                <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">
                 {% if has_filters %}No matches{% else %}Nothing here yet{% endif %}
             </h3>
-            <p class="text-sm text-gray-500 mb-5">
+            <p class="text-sm text-gray-500 mb-6">
                 {% if has_filters %}
                     এই filter এর জন্য কিছু পাইনি। অন্য filter try করো অথবা clear করে দেখো।
                 {% else %}
@@ -272,13 +375,14 @@
             </p>
             {% if has_filters %}
             <a href="{% url 'progress_history' %}"
-               class="inline-block bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-800 transition">
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
+               style="background: linear-gradient(135deg, #374151, #111827);">
                 Clear filters
             </a>
             {% else %}
             <a href="{% url 'question_bank' %}"
-               class="inline-block bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
-                Start practicing →
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm emerald-btn transition hover:opacity-90 shadow-sm">
+                📚 Start practicing →
             </a>
             {% endif %}
         </div>

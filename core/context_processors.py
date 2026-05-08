@@ -3,14 +3,18 @@ def user_role(request):
     is_superadmin = False
     unread_count = 0
     grade_queue_count = 0
+    lang = getattr(request, 'LANG', 'bn')
     if request.user.is_authenticated:
         try:
             is_admin = request.user.profile.role == 'ADMIN'
             is_superadmin = request.user.profile.is_superadmin
             if not is_admin and not is_superadmin:
-                from core.models import TeacherFeedback
+                from core.models import TeacherFeedback, Notification
                 unread_count = TeacherFeedback.objects.filter(
                     student=request.user, is_read=False
+                ).count()
+                unread_count += Notification.objects.filter(
+                    recipient=request.user, is_read=False
                 ).count()
             if request.user.is_staff or is_superadmin or is_admin:
                 from core.models import ExamAttempt
@@ -22,4 +26,5 @@ def user_role(request):
         'is_superadmin': is_superadmin,
         'unread_count': unread_count,
         'grade_queue_count': grade_queue_count,
+        'LANG': lang,
     }

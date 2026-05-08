@@ -1,152 +1,355 @@
 {% extends 'base.html' %}
-{% block title %}Home{% endblock %}
+{% block title %}{% if LANG == 'en' %}Home{% else %}হোম{% endif %}{% endblock %}
 {% block content %}
 
-<!-- Hero Section -->
-<div class="gradient-bg text-white">
-    <div class="max-w-7xl mx-auto px-4 py-16 md:py-24">
-        <div class="text-center md:text-left md:flex md:items-center">
-            <div class="md:w-2/3">
-                <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">Bangladesh's #1 Affordable Exam Prep Platform</span>
-                <h1 class="text-4xl md:text-5xl font-bold mt-6 leading-tight">Ace Your Board Exams<br>with Smart Preparation</h1>
-                <p class="text-xl mt-4 text-blue-50">Access 1,20,000+ board exam questions, school papers, practical videos, and study notes — all for an affordable monthly subscription starting at just ৳99.</p>
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <a href="#" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition">Start Free Trial</a>
-                    <a href="{% url 'question_bank' %}" class="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Browse Questions</a>
+<!-- ═══════════════════════════════════════════
+     HERO SECTION
+══════════════════════════════════════════════ -->
+<section class="gradient-bg text-white relative" style="min-height: 600px; display: flex; align-items: center;">
+    <!-- Dot-grid overlay -->
+    <div class="hero-dot-grid absolute inset-0 pointer-events-none"></div>
+
+    <!-- Floating ambient shapes -->
+    <div class="float-shape float-shape-1"></div>
+    <div class="float-shape float-shape-2"></div>
+    <div class="float-shape float-shape-3"></div>
+    <div class="float-shape float-shape-4"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10 w-full">
+        <div class="flex flex-col md:flex-row md:items-center gap-12">
+
+            <!-- Left: text -->
+            <div class="md:w-7/12">
+                <div class="section-badge mb-5" data-aos="fade-down" data-aos-duration="500"
+                     style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); color:white;">
+                    <span class="live-dot"></span>
+                    {% if LANG == 'en' %}Bangladesh's #1 Affordable Exam Prep Platform{% else %}বাংলাদেশের সেরা ও সাশ্রয়ী পরীক্ষা প্রস্তুতি প্ল্যাটফর্ম{% endif %}
                 </div>
-                <p class="mt-4 text-sm text-blue-100">✨ No credit card required • 7-day free trial • Cancel anytime</p>
+
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-5" data-aos="fade-up" data-aos-delay="80">
+                    {% if LANG == 'en' %}Ace Your Board Exams<br>
+                    <span style="background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0.75));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                        with Smart Preparation
+                    </span>
+                    {% else %}বোর্ড পরীক্ষায় সেরা ফলাফল করো<br>
+                    <span style="background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0.75));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                        স্মার্ট প্রস্তুতির মাধ্যমে
+                    </span>
+                    {% endif %}
+                </h1>
+
+                <p class="text-lg md:text-xl text-blue-100 mb-8 leading-relaxed max-w-xl" data-aos="fade-up" data-aos-delay="140">
+                    {% if LANG == 'en' %}Access 1,20,000+ board exam questions, school papers, practical videos, and study notes — all for an affordable monthly subscription starting at just <strong class="text-white">৳99</strong>.{% else %}১,২০,০০০+ বোর্ড পরীক্ষার প্রশ্ন, স্কুল পেপার, ব্যবহারিক ভিডিও এবং স্টাডি নোট অ্যাক্সেস করো — মাত্র <strong class="text-white">৳৯৯</strong> মাসিক সাবস্ক্রিপশনে।{% endif %}
+                </p>
+
+                <div class="flex flex-wrap gap-3 mb-6" data-aos="fade-up" data-aos-delay="200">
+                    <a href="#" class="cta-btn ripple inline-flex items-center gap-2 bg-white text-blue-600 font-bold px-7 py-3.5 rounded-xl text-sm shadow-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        {% if LANG == 'en' %}Start Free Trial{% else %}বিনামূল্যে শুরু করুন{% endif %}
+                    </a>
+                    <a href="{% url 'question_bank' %}" class="inline-flex items-center gap-2 border-2 border-white/40 text-white font-semibold px-7 py-3.5 rounded-xl text-sm hover:bg-white/10 hover:border-white/60 transition-all duration-200">
+                        {% if LANG == 'en' %}Browse Questions{% else %}প্রশ্ন দেখুন{% endif %}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+
+                <p class="text-sm text-blue-200" data-aos="fade-up" data-aos-delay="250">
+                    {% if LANG == 'en' %}✨ No credit card required &nbsp;•&nbsp; 7-day free trial &nbsp;•&nbsp; Cancel anytime{% else %}✨ ক্রেডিট কার্ড লাগবে না &nbsp;•&nbsp; ৭ দিনের বিনামূল্যে ট্রায়াল &nbsp;•&nbsp; যেকোনো সময় বাতিল করুন{% endif %}
+                </p>
             </div>
-            <div class="md:w-1/3 mt-8 md:mt-0 flex justify-center">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center">
-                        <div class="text-3xl font-bold">1.2L+</div>
-                        <div class="text-sm">Questions</div>
+
+            <!-- Right: stat boxes -->
+            <div class="md:w-5/12 flex justify-center md:justify-end" data-aos="fade-left" data-aos-delay="200">
+                <div class="grid grid-cols-2 gap-4 w-full max-w-xs">
+                    <div class="stat-box">
+                        <div class="text-3xl font-extrabold text-white mb-1">
+                            <span class="count-up" data-target="120000" data-suffix="L+" data-divisor="100000">1.2</span>L+
+                        </div>
+                        <div class="text-sm text-blue-200">{% if LANG == 'en' %}Questions{% else %}প্রশ্ন{% endif %}</div>
                     </div>
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center">
-                        <div class="text-3xl font-bold">2.5L+</div>
-                        <div class="text-sm">Students</div>
+                    <div class="stat-box">
+                        <div class="text-3xl font-extrabold text-white mb-1">
+                            <span class="count-up" data-target="250000" data-suffix="L+" data-divisor="100000">2.5</span>L+
+                        </div>
+                        <div class="text-sm text-blue-200">{% if LANG == 'en' %}Students{% else %}শিক্ষার্থী{% endif %}</div>
                     </div>
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center col-span-2">
-                        <div class="text-3xl font-bold">⭐ 4.9/5</div>
-                        <div class="text-sm">From 18,000+ reviews</div>
+                    <div class="stat-box col-span-2">
+                        <div class="text-3xl font-extrabold text-white mb-1">⭐ <span class="count-up" data-target="49" data-divisor="10" data-suffix="/5">4.9</span>/5</div>
+                        <div class="text-sm text-blue-200">{% if LANG == 'en' %}From 18,000+ reviews{% else %}১৮,০০০+ রিভিউ থেকে{% endif %}</div>
+                    </div>
+                    <div class="stat-box col-span-2">
+                        <div class="flex justify-around">
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-white"><span class="count-up" data-target="500">0</span>+</div>
+                                <div class="text-xs text-blue-200">{% if LANG == 'en' %}Institutions{% else %}প্রতিষ্ঠান{% endif %}</div>
+                            </div>
+                            <div class="w-px" style="background:rgba(255,255,255,0.2);"></div>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-white"><span class="count-up" data-target="80">0</span>+</div>
+                                <div class="text-xs text-blue-200">{% if LANG == 'en' %}Subjects{% else %}বিষয়{% endif %}</div>
+                            </div>
+                            <div class="w-px" style="background:rgba(255,255,255,0.2);"></div>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-white"><span class="count-up" data-target="8">0</span></div>
+                                <div class="text-xs text-blue-200">{% if LANG == 'en' %}Boards{% else %}বোর্ড{% endif %}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Quick Access to Molecular Lab -->
-<div class="max-w-7xl mx-auto px-4 pt-8">
-    <a href="{% url 'practical_lab' %}" class="block bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-6 card-shadow hover:shadow-lg transition group">
-        <div class="flex items-center justify-between">
+<!-- ═══════════════════════════════════════════
+     MOLECULAR LAB BANNER
+══════════════════════════════════════════════ -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10" data-aos="fade-up">
+    <a href="{% url 'practical_lab' %}" class="block group rounded-2xl p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden"
+       style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); border: 1px solid rgba(139,92,246,0.15);">
+        <!-- Subtle animated bg -->
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400" style="background:linear-gradient(135deg,rgba(139,92,246,0.05),rgba(59,130,246,0.05));"></div>
+        <div class="flex items-center justify-between relative z-10">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center text-3xl">🧬</div>
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
+                     style="background:linear-gradient(135deg,#a78bfa,#818cf8);">
+                    🧬
+                </div>
                 <div>
-                    <h3 class="text-xl font-bold text-gray-800 group-hover:text-purple-700 transition">Interactive Molecular Lab</h3>
-                    <p class="text-gray-600">Break & form bonds, see charges and bond angles — live 3D-style simulation!</p>
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="text-lg font-bold text-gray-900">{% if LANG == 'en' %}Interactive Molecular Lab{% else %}ইন্টারেক্টিভ মলিকিউলার ল্যাব{% endif %}</h3>
+                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{% if LANG == 'en' %}NEW{% else %}নতুন{% endif %}</span>
+                    </div>
+                    <p class="text-gray-500 text-sm">{% if LANG == 'en' %}Break &amp; form bonds, see charges and bond angles — live 3D-style simulation!{% else %}বন্ড ভাঙো ও গড়ো, চার্জ ও বন্ড কোণ দেখো — লাইভ থ্রিডি সিমুলেশন!{% endif %}</p>
                 </div>
             </div>
-            <div class="text-purple-600 font-medium group-hover:translate-x-1 transition">Try Now →</div>
+            <div class="hidden sm:flex items-center gap-2 text-purple-600 font-semibold text-sm group-hover:gap-3 transition-all duration-200">
+                {% if LANG == 'en' %}Try Now{% else %}এখনই চেষ্টা করো{% endif %}
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </div>
         </div>
     </a>
 </div>
 
-<!-- Feature Cards -->
-<div class="max-w-7xl mx-auto px-4 py-16">
-    <h2 class="text-3xl font-bold text-center mb-4">Everything You Need</h2>
-    <p class="text-gray-600 text-center mb-12">One Platform, Complete Preparation</p>
+<!-- ═══════════════════════════════════════════
+     FEATURE CARDS
+══════════════════════════════════════════════ -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="text-center mb-14">
+        <div class="section-badge mb-4" data-aos="fade-down">{% if LANG == 'en' %}Everything You Need{% else %}যা কিছু দরকার{% endif %}</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3" data-aos="fade-up" data-aos-delay="60">
+            {% if LANG == 'en' %}One Platform, <span class="gradient-text">Complete Preparation</span>{% else %}একটি প্ল্যাটফর্ম, <span class="gradient-text">সম্পূর্ণ প্রস্তুতি</span>{% endif %}
+        </h2>
+        <p class="text-gray-500 max-w-lg mx-auto" data-aos="fade-up" data-aos-delay="100">{% if LANG == 'en' %}All the tools you need to ace your SSC &amp; HSC exams, in one affordable plan.{% else %}SSC ও HSC পরীক্ষায় সেরা ফলাফলের জন্য প্রয়োজনীয় সব টুলস, একটি সাশ্রয়ী প্ল্যানে।{% endif %}</p>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Card 1 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <div class="feature-card" data-aos="fade-up" data-aos-delay="0" data-tilt data-tilt-max="14">
+            <div class="card-icon w-13 h-13 mb-5 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
-            <h3 class="text-xl font-semibold mb-2">Board Exam Question Bank</h3>
-            <p class="text-gray-600 text-sm mb-2">80+ Subjects</p>
-            <p class="text-gray-500 text-sm">Previous years' questions from all major boards, filtered by subject, year, chapter.</p>
-            <a href="{% url 'question_bank' %}" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">{% if LANG == 'en' %}Board Exam Question Bank{% else %}বোর্ড পরীক্ষার প্রশ্ন ব্যাংক{% endif %}</h3>
+            <p class="text-blue-600 text-xs font-semibold mb-2 uppercase tracking-wide">{% if LANG == 'en' %}80+ Subjects{% else %}৮০+ বিষয়{% endif %}</p>
+            <p class="text-gray-500 text-sm leading-relaxed">{% if LANG == 'en' %}Previous years' questions from all major boards, filtered by subject, year &amp; chapter.{% else %}সব প্রধান বোর্ডের বিগত বছরের প্রশ্ন, বিষয়, বছর ও অধ্যায় অনুযায়ী ফিল্টার করুন।{% endif %}</p>
+            <a href="{% url 'question_bank' %}" class="mt-4 inline-flex items-center gap-1 text-blue-600 font-semibold text-sm group/link">
+                {% if LANG == 'en' %}Explore{% else %}দেখুন{% endif %}
+                <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
+
         <!-- Card 2 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+        <div class="feature-card" data-aos="fade-up" data-aos-delay="80" data-tilt data-tilt-max="14">
+            <div class="card-icon w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm mb-5" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
             </div>
-            <h3 class="text-xl font-semibold mb-2">School & College Papers</h3>
-            <p class="text-gray-600 text-sm mb-2">500+ Institutions</p>
-            <p class="text-gray-500 text-sm">Actual exam papers from top schools and colleges.</p>
-            <a href="#" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">{% if LANG == 'en' %}School &amp; College Papers{% else %}স্কুল ও কলেজ পেপার{% endif %}</h3>
+            <p class="text-purple-600 text-xs font-semibold mb-2 uppercase tracking-wide">{% if LANG == 'en' %}500+ Institutions{% else %}৫০০+ প্রতিষ্ঠান{% endif %}</p>
+            <p class="text-gray-500 text-sm leading-relaxed">{% if LANG == 'en' %}Actual exam papers from top schools and colleges across all boards.{% else %}সব বোর্ডের শীর্ষ স্কুল ও কলেজের আসল পরীক্ষার প্রশ্নপত্র।{% endif %}</p>
+            <a href="#" class="mt-4 inline-flex items-center gap-1 text-purple-600 font-semibold text-sm group/link">
+                {% if LANG == 'en' %}Explore{% else %}দেখুন{% endif %}
+                <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
+
         <!-- Card 3 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        <div class="feature-card" data-aos="fade-up" data-aos-delay="160" data-tilt data-tilt-max="14">
+            <div class="card-icon w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm mb-5" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             </div>
-            <h3 class="text-xl font-semibold mb-2">Practical Video Tutorials</h3>
-            <p class="text-gray-600 text-sm mb-2">300+ Videos</p>
-            <p class="text-gray-500 text-sm">Step-by-step science practicals, interactive molecular lab.</p>
-            <a href="{% url 'practical_lab' %}" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">{% if LANG == 'en' %}Practical Video Tutorials{% else %}ব্যবহারিক ভিডিও টিউটোরিয়াল{% endif %}</h3>
+            <p class="text-green-600 text-xs font-semibold mb-2 uppercase tracking-wide">{% if LANG == 'en' %}300+ Videos{% else %}৩০০+ ভিডিও{% endif %}</p>
+            <p class="text-gray-500 text-sm leading-relaxed">{% if LANG == 'en' %}Step-by-step science practicals, interactive molecular lab simulations.{% else %}ধাপে ধাপে বিজ্ঞান ব্যবহারিক, ইন্টারেক্টিভ মলিকিউলার ল্যাব সিমুলেশন।{% endif %}</p>
+            <a href="{% url 'practical_lab' %}" class="mt-4 inline-flex items-center gap-1 text-green-600 font-semibold text-sm group/link">
+                {% if LANG == 'en' %}Explore{% else %}দেখুন{% endif %}
+                <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
+
         <!-- Card 4 -->
-        <div class="bg-white rounded-2xl p-6 card-shadow hover:shadow-xl transition">
-            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+        <div class="feature-card" data-aos="fade-up" data-aos-delay="240" data-tilt data-tilt-max="14">
+            <div class="card-icon w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm mb-5" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             </div>
-            <h3 class="text-xl font-semibold mb-2">Smart Study Notes</h3>
-            <p class="text-gray-600 text-sm mb-2">All Subjects</p>
-            <p class="text-gray-500 text-sm">Concise, exam-focused notes from popular guidebooks.</p>
-            <a href="{% url 'study_notes' %}" class="mt-4 inline-block text-blue-600 font-medium">Explore →</a>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">{% if LANG == 'en' %}Smart Study Notes{% else %}স্মার্ট স্টাডি নোটস{% endif %}</h3>
+            <p class="text-yellow-600 text-xs font-semibold mb-2 uppercase tracking-wide">{% if LANG == 'en' %}All Subjects{% else %}সব বিষয়{% endif %}</p>
+            <p class="text-gray-500 text-sm leading-relaxed">{% if LANG == 'en' %}Concise, exam-focused notes from popular guidebooks — with AI assistance.{% else %}জনপ্রিয় গাইডবই থেকে সংক্ষিপ্ত, পরীক্ষামুখী নোট — AI সহায়তায়।{% endif %}</p>
+            <a href="{% url 'study_notes' %}" class="mt-4 inline-flex items-center gap-1 text-yellow-600 font-semibold text-sm group/link">
+                {% if LANG == 'en' %}Explore{% else %}দেখুন{% endif %}
+                <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Boards Section -->
-<div class="bg-gray-100 py-16">
-    <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Questions from Every Education Board in Bangladesh</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<!-- ═══════════════════════════════════════════
+     BOARDS SECTION
+══════════════════════════════════════════════ -->
+<section style="background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);" class="py-20 relative overflow-hidden">
+    <div class="absolute inset-0 hero-dot-grid opacity-40 pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-12">
+            <div class="section-badge mb-4" data-aos="fade-down">{% if LANG == 'en' %}All Education Boards{% else %}সব শিক্ষা বোর্ড{% endif %}</div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900" data-aos="fade-up" data-aos-delay="60">
+                {% if LANG == 'en' %}Questions from Every Board in Bangladesh{% else %}বাংলাদেশের প্রতিটি বোর্ডের প্রশ্ন{% endif %}
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {% for board in boards %}
-            <div class="bg-white p-4 rounded-xl card-shadow text-center">
-                <div class="font-semibold">{{ board.name }} Board</div>
-                <div class="text-sm text-gray-500">{{ board.student_count }} students</div>
+            <div class="board-badge" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0 }}00">
+                <div class="text-2xl mb-2">🏫</div>
+                <div class="font-semibold text-gray-800 text-sm">{{ board.name }} {% if LANG == 'en' %}Board{% else %}বোর্ড{% endif %}</div>
+                <div class="text-xs text-gray-400 mt-1">{{ board.student_count }} {% if LANG == 'en' %}students{% else %}শিক্ষার্থী{% endif %}</div>
             </div>
             {% endfor %}
         </div>
-        <div class="text-center mt-8">
-            <a href="#" class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50">Browse All Boards →</a>
+
+        <div class="text-center mt-10" data-aos="fade-up">
+            <a href="#" class="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border border-gray-200">
+                {% if LANG == 'en' %}Browse All Boards{% else %}সব বোর্ড দেখুন{% endif %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Testimonials -->
-<div class="max-w-7xl mx-auto px-4 py-16">
-    <h2 class="text-3xl font-bold text-center mb-12">Students Love Prepare Yourself</h2>
+<!-- ═══════════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════════════ -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="text-center mb-14">
+        <div class="section-badge mb-4" data-aos="fade-down">{% if LANG == 'en' %}Student Reviews{% else %}শিক্ষার্থীদের মতামত{% endif %}</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900" data-aos="fade-up" data-aos-delay="60">
+            {% if LANG == 'en' %}Students <span class="gradient-text">Love</span> Prepare Yourself{% else %}শিক্ষার্থীরা <span class="gradient-text">ভালোবাসে</span> Prepare Yourself{% endif %}
+        </h2>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-2xl card-shadow">
-            <p class="text-gray-700 italic">"The interactive molecular lab is amazing! I finally understood how H₂O and CO₂ bonding works."</p>
-            <div class="mt-4 font-semibold">Rahim Ahmed</div>
-            <div class="text-sm text-gray-500">Class 10, Chittagong Board</div>
+        <div class="testimonial-card" data-aos="fade-up" data-aos-delay="0" data-tilt data-tilt-max="10">
+            <div class="flex gap-0.5 mb-3">
+                <span class="text-yellow-400 text-sm">★★★★★</span>
+            </div>
+            <p class="text-gray-700 leading-relaxed italic mb-5">{% if LANG == 'en' %}"The interactive molecular lab is amazing! I finally understood how H₂O and CO₂ bonding works."{% else %}"ইন্টারেক্টিভ মলিকিউলার ল্যাব অসাধারণ! অবশেষে H₂O ও CO₂ বন্ধন কীভাবে কাজ করে তা বুঝলাম।"{% endif %}</p>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);">RA</div>
+                <div>
+                    <div class="font-semibold text-gray-900 text-sm">Rahim Ahmed</div>
+                    <div class="text-xs text-gray-400">{% if LANG == 'en' %}Class 10, Chittagong Board{% else %}শ্রেণি ১০, চট্টগ্রাম বোর্ড{% endif %}</div>
+                </div>
+            </div>
         </div>
-        <div class="bg-white p-6 rounded-2xl card-shadow">
-            <p class="text-gray-700 italic">"I cleared my half-yearly with A+ after practising school papers from Prepare Yourself."</p>
-            <div class="mt-4 font-semibold">Tasfia Islam</div>
-            <div class="text-sm text-gray-500">Class 11, Rajshahi Board</div>
-        </div>
-        <div class="bg-white p-6 rounded-2xl card-shadow">
-            <p class="text-gray-700 italic">"Prepare Yourself helped me score GPA 5.00 in HSC! Best ৳199 I ever spent."</p>
-            <div class="mt-4 font-semibold">Fatima Rahman</div>
-            <div class="text-sm text-gray-500">Class 12, Dhaka Board</div>
-        </div>
-    </div>
-</div>
 
-<!-- CTA -->
-<div class="gradient-bg text-white py-16">
-    <div class="max-w-4xl mx-auto text-center px-4">
-        <h2 class="text-3xl font-bold mb-4">Ready to Start Your Board Exam Journey?</h2>
-        <p class="text-xl mb-8">Join over 2.5 lakh students already scoring better marks.</p>
-        <a href="#" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold text-lg hover:shadow-xl transition">Get Started Free – 7 Days Trial</a>
+        <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100" data-tilt data-tilt-max="10">
+            <div class="flex gap-0.5 mb-3">
+                <span class="text-yellow-400 text-sm">★★★★★</span>
+            </div>
+            <p class="text-gray-700 leading-relaxed italic mb-5">{% if LANG == 'en' %}"I cleared my half-yearly with A+ after practising school papers from Prepare Yourself."{% else %}"Prepare Yourself-এর স্কুল পেপার অনুশীলন করে অর্ধ-বার্ষিকীতে A+ পেয়েছি।"{% endif %}</p>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#8b5cf6,#ec4899);">TI</div>
+                <div>
+                    <div class="font-semibold text-gray-900 text-sm">Tasfia Islam</div>
+                    <div class="text-xs text-gray-400">{% if LANG == 'en' %}Class 11, Rajshahi Board{% else %}শ্রেণি ১১, রাজশাহী বোর্ড{% endif %}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card" data-aos="fade-up" data-aos-delay="200" data-tilt data-tilt-max="10">
+            <div class="flex gap-0.5 mb-3">
+                <span class="text-yellow-400 text-sm">★★★★★</span>
+            </div>
+            <p class="text-gray-700 leading-relaxed italic mb-5">{% if LANG == 'en' %}"Prepare Yourself helped me score GPA 5.00 in HSC! Best ৳199 I ever spent."{% else %}"Prepare Yourself-এর সাহায্যে HSC-তে GPA ৫.০০ পেয়েছি! সেরা ৳১৯৯ খরচ।"{% endif %}</p>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);">FR</div>
+                <div>
+                    <div class="font-semibold text-gray-900 text-sm">Fatima Rahman</div>
+                    <div class="text-xs text-gray-400">{% if LANG == 'en' %}Class 12, Dhaka Board{% else %}শ্রেণি ১২, ঢাকা বোর্ড{% endif %}</div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     BOTTOM CTA
+══════════════════════════════════════════════ -->
+<section class="gradient-bg text-white py-20 relative overflow-hidden">
+    <!-- Floating shapes -->
+    <div class="float-shape" style="width:280px;height:280px;top:-80px;right:5%;background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%);animation:floatY 18s ease-in-out infinite;"></div>
+    <div class="float-shape" style="width:180px;height:180px;bottom:-40px;left:8%;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);animation:floatY 13s ease-in-out infinite reverse;"></div>
+    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+
+    <div class="max-w-3xl mx-auto text-center px-4 relative z-10">
+        <div data-aos="zoom-in">
+            <div class="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+                <span>🚀</span> {% if LANG == 'en' %}Join 2.5 lakh+ students today{% else %}আজই ২.৫ লক্ষ+ শিক্ষার্থীর সাথে যোগ দিন{% endif %}
+            </div>
+            <h2 class="text-3xl md:text-5xl font-extrabold mb-5 leading-tight">
+                {% if LANG == 'en' %}Ready to Start Your<br>Board Exam Journey?{% else %}বোর্ড পরীক্ষার যাত্রা<br>শুরু করতে প্রস্তুত?{% endif %}
+            </h2>
+            <p class="text-xl text-blue-100 mb-10">{% if LANG == 'en' %}Join over 2.5 lakh students already scoring better marks.{% else %}ইতোমধ্যে ভালো নম্বর পাচ্ছে এমন ২.৫ লক্ষ+ শিক্ষার্থীর সাথে যোগ দিন।{% endif %}</p>
+            <a href="#" class="cta-btn ripple inline-flex items-center gap-3 bg-white text-blue-600 font-bold text-lg px-10 py-4 rounded-2xl shadow-2xl">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                {% if LANG == 'en' %}Get Started Free — 7 Days Trial{% else %}বিনামূল্যে শুরু করুন — ৭ দিনের ট্রায়াল{% endif %}
+            </a>
+            <p class="mt-5 text-sm text-blue-200">{% if LANG == 'en' %}No credit card needed &nbsp;•&nbsp; Cancel anytime{% else %}ক্রেডিট কার্ড লাগবে না &nbsp;•&nbsp; যেকোনো সময় বাতিল করুন{% endif %}</p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var counters = document.querySelectorAll('.count-up');
+  if (!counters.length) return;
+
+  function animateCounter(el) {
+    var target   = parseFloat(el.dataset.target);
+    var divisor  = parseFloat(el.dataset.divisor || '1');
+    var duration = 1600;
+    var start    = performance.now();
+
+    function step(now) {
+      var progress = Math.min((now - start) / duration, 1);
+      var ease     = 1 - Math.pow(1 - progress, 3);
+      var value    = target * ease;
+      el.textContent = divisor !== 1 ? (value / divisor).toFixed(1) : Math.round(value);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  counters.forEach(function (el) { observer.observe(el); });
+})();
+</script>
 {% endblock %}

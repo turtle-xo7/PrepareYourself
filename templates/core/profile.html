@@ -1,87 +1,345 @@
 {% extends 'base.html' %}
 {% block title %}Profile{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ── Profile: Indigo → Violet theme ── */
+
+    /* Card base */
+    .profile-card {
+        background: #fff;
+        border: 1px solid #e0e7ff;
+        border-radius: 1rem;
+        box-shadow: 0 2px 12px rgba(67,56,202,0.06);
+        transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease;
+    }
+    .profile-card:hover {
+        box-shadow: 0 8px 32px rgba(124,58,237,0.12);
+        border-color: rgba(124,58,237,0.18);
+    }
+
+    /* Form inputs */
+    .form-input {
+        width: 100%;
+        border: 1px solid #e0e7ff;
+        border-radius: 0.75rem;
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+        background: white;
+    }
+    .form-input:focus {
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+    }
+    .form-input:disabled {
+        background: #f5f3ff;
+        color: #9ca3af;
+        border-color: #ede9fe;
+        cursor: not-allowed;
+    }
+
+    /* Large avatar circle in hero */
+    .hero-avatar {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #fff;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%);
+        border: 4px solid rgba(255,255,255,0.35);
+        box-shadow: 0 8px 32px rgba(124,58,237,0.35);
+        flex-shrink: 0;
+    }
+
+    /* Role badge pills */
+    .role-badge-admin {
+        background: rgba(245,158,11,0.22);
+        border: 1px solid rgba(251,191,36,0.45);
+        color: #fef3c7;
+    }
+    .role-badge-student {
+        background: rgba(99,102,241,0.25);
+        border: 1px solid rgba(165,180,252,0.45);
+        color: #e0e7ff;
+    }
+    .role-badge-superadmin {
+        background: rgba(168,85,247,0.28);
+        border: 1px solid rgba(216,180,254,0.45);
+        color: #f3e8ff;
+    }
+
+    /* Plan badges in account info card */
+    .plan-pill-premium { background: #f3e8ff; color: #7c3aed; }
+    .plan-pill-basic   { background: #e0e7ff; color: #4338ca; }
+    .plan-pill-free    { background: #f1f5f9; color: #64748b; }
+
+    /* Left column avatar info block */
+    .info-col-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 900;
+        color: #fff;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%);
+        border: 3px solid #ede9fe;
+        box-shadow: 0 4px 16px rgba(124,58,237,0.20);
+    }
+
+    /* Orb animations */
+    @keyframes floatY {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-18px); }
+    }
+    @keyframes floatRotate {
+        0%   { transform: rotate(0deg) scale(1); }
+        50%  { transform: rotate(15deg) scale(1.07); }
+        100% { transform: rotate(0deg) scale(1); }
+    }
+    @keyframes avatarPulse {
+        0%, 100% { box-shadow: 0 8px 32px rgba(124,58,237,0.35); }
+        50%       { box-shadow: 0 8px 48px rgba(124,58,237,0.55); }
+    }
+    .hero-avatar { animation: avatarPulse 4s ease-in-out infinite; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 py-8">
 
-    <h1 class="text-2xl font-bold text-gray-900 mb-8">👤 My Profile</h1>
+<!-- ════════════════════════════════════════════
+     HERO  —  Indigo → Violet, CENTERED layout
+════════════════════════════════════════════ -->
+<div class="relative overflow-hidden"
+     style="background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #7c3aed 100%);
+            min-height: 230px; display:flex; align-items:center;">
 
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+    <!-- Background texture -->
+    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+
+    <!-- Floating orbs -->
+    <div class="float-shape absolute" style="width:280px;height:280px;top:-90px;right:-30px;
+        background:radial-gradient(circle,rgba(167,139,250,0.14) 0%,transparent 70%);
+        animation:floatY 15s ease-in-out infinite;"></div>
+    <div class="float-shape absolute" style="width:140px;height:140px;bottom:-60px;left:5%;
+        background:radial-gradient(circle,rgba(255,255,255,0.07) 0%,transparent 70%);
+        animation:floatY 11s ease-in-out infinite reverse;"></div>
+    <div class="float-shape absolute" style="width:70px;height:70px;top:20%;left:15%;
+        background:rgba(167,139,250,0.12);border-radius:40% 60% 60% 40% / 40% 40% 60% 60%;
+        animation:floatRotate 10s ease-in-out infinite;"></div>
+    <div class="float-shape absolute" style="width:50px;height:50px;bottom:15%;right:18%;
+        background:rgba(216,180,254,0.12);border-radius:30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation:floatRotate 13s ease-in-out infinite reverse;"></div>
+
+    <!-- CENTERED content -->
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 w-full">
+        <div class="flex flex-col items-center text-center gap-4">
+
+            <!-- Large avatar circle -->
+            <div class="hero-avatar hero-anim-down">
                 {{ request.user.username|first|upper }}
             </div>
-            <div>
-                <p class="font-semibold text-gray-900 text-lg">{{ request.user.username }}</p>
-                <div class="flex gap-2 mt-1">
-                    {% if profile.role == 'ADMIN' %}
-                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Teacher</span>
-                    {% else %}
-                    <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Student</span>
-                    {% endif %}
-                    {% if profile.plan == 'PREMIUM' %}
-                    <span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">Premium</span>
-                    {% elif profile.plan == 'BASIC' %}
-                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Basic</span>
-                    {% else %}
-                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">Free</span>
-                    {% endif %}
-                </div>
+
+            <!-- Label tag -->
+            <div class="inline-flex items-center gap-2 bg-white/12 border border-white/20
+                        rounded-full px-3 py-1 text-xs font-semibold text-violet-100 hero-anim-down">
+                👤 My Profile
+            </div>
+
+            <!-- Username bold -->
+            <h1 class="text-2xl md:text-3xl font-extrabold text-white leading-tight hero-anim-1">
+                {{ request.user.username }}
+            </h1>
+
+            <!-- Role badge + Plan badge row -->
+            <div class="flex flex-wrap items-center justify-center gap-2 hero-anim-2">
+
+                <!-- Role badge — three variants -->
+                {% if profile.is_superadmin %}
+                <span class="role-badge-superadmin text-xs px-3 py-1 rounded-full font-bold tracking-wide">
+                    👑 Superadmin
+                </span>
+                {% elif profile.role == 'ADMIN' %}
+                <span class="role-badge-admin text-xs px-3 py-1 rounded-full font-bold tracking-wide">
+                    Teacher / Admin
+                </span>
+                {% else %}
+                <span class="role-badge-student text-xs px-3 py-1 rounded-full font-bold tracking-wide">
+                    Student
+                </span>
+                {% endif %}
+
+                <!-- Plan badge -->
+                {% if profile.plan == 'PREMIUM' %}
+                <span class="bg-purple-500/30 border border-purple-400/40 text-white text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                    ✦ Premium
+                </span>
+                {% elif profile.plan == 'BASIC' %}
+                <span class="bg-indigo-400/30 border border-indigo-300/40 text-white text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                    Basic
+                </span>
+                {% else %}
+                <span class="bg-white/15 border border-white/25 text-white text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                    Free
+                </span>
+                {% endif %}
+
             </div>
         </div>
+    </div>
+</div>
 
-        <form method="post" action="{% url 'profile_update' %}" class="space-y-4">
-            {% csrf_token %}
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    <input type="text" name="first_name" value="{{ request.user.first_name }}"
-                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- ═══════════════════════════════════
+         EDIT PROFILE FORM
+         2-column desktop: left=avatar info, right=fields
+    ═══════════════════════════════════ -->
+    <div class="profile-card overflow-hidden" data-aos="fade-up" data-aos-delay="0">
+
+        <!-- Card header -->
+        <div class="px-6 pt-6 pb-4 border-b border-indigo-50 flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                 style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">Edit Profile</h2>
+        </div>
+
+        <!-- 2-column body -->
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row gap-8">
+
+                <!-- LEFT column: avatar + static info -->
+                <div class="flex flex-col items-center md:items-start gap-4 md:w-40 flex-shrink-0">
+                    <!-- Avatar -->
+                    <div class="info-col-avatar">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                    <div class="text-center md:text-left">
+                        <p class="text-sm font-bold text-gray-900">{{ request.user.username }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ request.user.email|default:"—" }}</p>
+                    </div>
+                    <!-- Role display chip -->
+                    <div class="text-xs font-semibold px-2.5 py-1 rounded-full
+                        {% if profile.is_superadmin %}bg-purple-100 text-purple-700
+                        {% elif profile.role == 'ADMIN' %}bg-amber-100 text-amber-700
+                        {% else %}bg-indigo-100 text-indigo-700{% endif %}">
+                        {% if profile.is_superadmin %}
+                            👑 Superadmin
+                        {% elif profile.role == 'ADMIN' %}
+                            Teacher
+                        {% else %}
+                            Student
+                        {% endif %}
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    <input type="text" name="last_name" value="{{ request.user.last_name }}"
-                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+
+                <!-- RIGHT column: editable fields -->
+                <div class="flex-1 min-w-0">
+                    <form method="post" action="{% url 'profile_update' %}" class="space-y-4">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                                <input type="text" name="first_name" value="{{ request.user.first_name }}"
+                                    class="form-input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                <input type="text" name="last_name" value="{{ request.user.last_name }}"
+                                    class="form-input">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                            <input type="email" name="email" value="{{ request.user.email }}"
+                                class="form-input">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Username</label>
+                            <input type="text" value="{{ request.user.username }}" disabled
+                                class="form-input">
+                            <p class="text-xs text-gray-400 mt-1.5">Username পরিবর্তন করা যাবে না।</p>
+                        </div>
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
+                            style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Save Changes
+                        </button>
+                    </form>
                 </div>
+
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" name="email" value="{{ request.user.email }}"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                <input type="text" value="{{ request.user.username }}" disabled
-                    class="w-full border border-gray-100 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-400">
-                <p class="text-xs text-gray-400 mt-1">Username পরিবর্তন করা যাবে না।</p>
-            </div>
-            <button type="submit"
-                class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition">
-                Save Changes
-            </button>
-        </form>
+        </div>
     </div>
 
-    <!-- Account Info -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 class="font-semibold text-gray-900 mb-4">Account Info</h2>
-        <div class="space-y-3 text-sm">
-            <div class="flex justify-between">
-                <span class="text-gray-500">Member since</span>
-                <span class="text-gray-900">{{ request.user.date_joined|date:"d M Y" }}</span>
+    <!-- ═══════════════════════════════════
+         ACCOUNT INFO
+    ═══════════════════════════════════ -->
+    <div class="profile-card p-6" data-aos="fade-up" data-aos-delay="80">
+        <div class="flex items-center gap-2 mb-5">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-violet-100">
+                <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
             </div>
-            <div class="flex justify-between">
-                <span class="text-gray-500">Plan</span>
-                <span class="text-gray-900">{{ profile.plan }}</span>
+            <h2 class="text-base font-bold text-gray-900">Account Info</h2>
+        </div>
+
+        <div class="space-y-3">
+            <div class="flex items-center justify-between py-2.5 border-b border-indigo-50">
+                <span class="text-sm text-gray-500 font-medium">Member since</span>
+                <span class="text-sm font-semibold text-gray-900">{{ request.user.date_joined|date:"d M Y" }}</span>
             </div>
-            <div class="flex justify-between">
-                <span class="text-gray-500">Role</span>
-                <span class="text-gray-900">{{ profile.get_role_display }}</span>
+            <div class="flex items-center justify-between py-2.5 border-b border-indigo-50">
+                <span class="text-sm text-gray-500 font-medium">Plan</span>
+                <span class="text-sm font-semibold">
+                    {% if profile.plan == 'PREMIUM' %}
+                    <span class="plan-pill-premium px-2.5 py-0.5 rounded-full text-xs font-bold">{{ profile.plan }}</span>
+                    {% elif profile.plan == 'BASIC' %}
+                    <span class="plan-pill-basic px-2.5 py-0.5 rounded-full text-xs font-bold">{{ profile.plan }}</span>
+                    {% else %}
+                    <span class="plan-pill-free px-2.5 py-0.5 rounded-full text-xs font-bold">{{ profile.plan }}</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex items-center justify-between py-2.5">
+                <span class="text-sm text-gray-500 font-medium">Role</span>
+                <!-- Colored role badge in account info too -->
+                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full
+                    {% if profile.is_superadmin %}bg-purple-100 text-purple-700
+                    {% elif profile.role == 'ADMIN' %}bg-amber-100 text-amber-700
+                    {% else %}bg-indigo-100 text-indigo-700{% endif %}">
+                    {% if profile.is_superadmin %}
+                        👑 Superadmin
+                    {% else %}
+                        {{ profile.get_role_display }}
+                    {% endif %}
+                </span>
             </div>
         </div>
+
         {% if profile.plan == 'FREE' %}
         <a href="{% url 'pricing' %}"
-            class="mt-4 block text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-md transition">
-            Upgrade to Premium →
+            class="mt-5 flex items-center justify-center gap-2 w-full text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition shadow-sm"
+            style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
+            ✦ Upgrade to Premium →
         </a>
         {% endif %}
     </div>
