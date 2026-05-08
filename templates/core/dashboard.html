@@ -178,9 +178,9 @@
                 </h1>
                 {% endif %}
 
-                <!-- Motivational Bangla quote -->
+                <!-- Motivational quote -->
                 <p class="text-blue-200 mt-1 text-sm italic hero-anim-2">
-                    "প্রতিদিনের ছোট ছোট অগ্রগতিই বড় সাফল্যের চাবিকাঠি।"
+                    {% if LANG == 'en' %}"Small daily progress is the key to great success."{% else %}"প্রতিদিনের ছোট ছোট অগ্রগতিই বড় সাফল্যের চাবিকাঠি।"{% endif %}
                 </p>
                 <p class="text-blue-300/80 mt-0.5 text-xs hero-anim-2">{{ streak_msg }}</p>
             </div>

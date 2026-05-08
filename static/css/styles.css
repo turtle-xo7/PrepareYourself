@@ -502,15 +502,7 @@ body {
    DARK MODE
    ════════════════════════════════════════════ */
 
-/* Theme toggle icon states */
-#theme-icon-sun  { display: none; }
-#theme-icon-moon { display: block; }
-html.dark #theme-icon-sun  { display: block; }
-html.dark #theme-icon-moon { display: none; }
-#theme-icon-sun-mobile  { display: none; }
-#theme-icon-moon-mobile { display: block; }
-html.dark #theme-icon-sun-mobile  { display: block; }
-html.dark #theme-icon-moon-mobile { display: none; }
+/* Theme toggle icons — visibility controlled by JS (inline style) for cross-browser reliability */
 
 html.dark { color-scheme: dark; }
 
@@ -816,6 +808,20 @@ html.dark .video-card {
   border-color: #334155 !important;
   border-top-color: #2dd4bf !important;
 }
+
+/* ── Dashboard cards ── */
+html.dark .dash-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+html.dark .acc-row.open { background: #263348 !important; }
+html.dark .goal-bar-track { background: #334155 !important; }
+html.dark .hm-0 { background: #1e293b !important; }
+html.dark .hm-1 { background: rgba(59,130,246,0.25) !important; }
+html.dark .ring::after { background: #1e293b !important; }
+html.dark .ring > span { color: #f1f5f9 !important; }
+html.dark .mini-bar { background: #334155 !important; }
+html.dark .quick-link-card { background: #1e293b !important; border-color: #334155 !important; }
 
 /* ── Study Notes: note card ── */
 html.dark .note-card {

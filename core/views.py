@@ -272,16 +272,17 @@ def dashboard(request):
     today_count = progress.filter(answered_at__date=today).count()
     goal_progress = min(round((today_count / daily_goal) * 100), 100) if daily_goal else 0
 
+    lang = getattr(request, 'LANG', 'bn')
     if current_streak >= 30:
-        streak_msg = "🔥 দারুণ! তুমি প্রায় unstoppable — keep the fire alive!"
+        streak_msg = "🔥 You're nearly unstoppable — keep the fire alive!" if lang == 'en' else "🔥 দারুণ! তুমি প্রায় অপ্রতিরোধ্য — এই আগুন ধরে রাখো!"
     elif current_streak >= 7:
-        streak_msg = "এক সপ্তাহ ধরে চালিয়ে যাচ্ছ। Consistency জেতে — keep going!"
+        streak_msg = "A full week of consistency — keep going!" if lang == 'en' else "এক সপ্তাহ ধরে ধারাবাহিকভাবে চালিয়ে যাচ্ছ — চালিয়ে যাও!"
     elif current_streak >= 3:
-        streak_msg = "ভালো streak তৈরি হচ্ছে। আজ আরও কয়েকটা প্রশ্ন practice করো।"
+        streak_msg = "Great streak building! Practice a few more questions today." if lang == 'en' else "ভালো ধারাবাহিকতা তৈরি হচ্ছে। আজ আরও কয়েকটা প্রশ্নের অনুশীলন করো।"
     elif current_streak >= 1:
-        streak_msg = "শুরু হয়েছে! আগামীকালও log in করে streak ধরে রাখো।"
+        streak_msg = "You've started! Log in tomorrow to keep your streak alive." if lang == 'en' else "শুরু হয়েছে! আগামীকালও লগ ইন করে ধারাবাহিকতা ধরে রাখো।"
     else:
-        streak_msg = "আজই শুরু করো — একটাই প্রশ্ন answer করো, streak শুরু হবে।"
+        streak_msg = "Start today — answer just one question to begin your streak!" if lang == 'en' else "আজই শুরু করো — একটাই প্রশ্নের উত্তর দাও, ধারাবাহিকতা শুরু হবে।"
 
     # ----- 30-day heatmap -----
     counts_30 = dict(

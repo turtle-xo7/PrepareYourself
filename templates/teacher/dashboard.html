@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Teacher Dashboard{% endblock %}
+{% block title %}{% if LANG == 'en' %}Teacher Dashboard{% else %}শিক্ষক ড্যাশবোর্ড{% endif %}{% endblock %}
 {% block content %}
 
 <!-- ══════════ GRADIENT HERO HEADER ══════════ -->
@@ -14,11 +14,11 @@
     <div>
       <div class="section-badge mb-3" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); color:white;" data-aos="fade-down">
         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/></svg>
-        Teacher Dashboard
+        {% if LANG == 'en' %}Teacher Dashboard{% else %}শিক্ষক ড্যাশবোর্ড{% endif %}
       </div>
-      <h1 class="text-3xl font-extrabold text-white tracking-tight" data-aos="fade-up" data-aos-delay="50">Teacher Dashboard</h1>
+      <h1 class="text-3xl font-extrabold text-white tracking-tight" data-aos="fade-up" data-aos-delay="50">{% if LANG == 'en' %}Teacher Dashboard{% else %}শিক্ষক ড্যাশবোর্ড{% endif %}</h1>
       <p class="text-blue-100 mt-1 text-sm" data-aos="fade-up" data-aos-delay="100">
-        সব student-এর progress একনজরে &mdash; {{ student_data|length }} জন নিবন্ধিত
+        {% if LANG == 'en' %}All students' progress at a glance &mdash; {{ student_data|length }} enrolled{% else %}সব শিক্ষার্থীর অগ্রগতি একনজরে &mdash; {{ student_data|length }} জন নিবন্ধিত{% endif %}
       </p>
     </div>
     <a href="{% url 'contest_create' %}"
@@ -39,7 +39,7 @@
       <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#6b7280,#9ca3af)">
         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z"/></svg>
       </div>
-      <p class="text-xs text-gray-400 font-medium">মোট Students</p>
+      <p class="text-xs text-gray-400 font-medium">{% if LANG == 'en' %}Total Students{% else %}মোট শিক্ষার্থী{% endif %}</p>
       <p class="text-3xl font-extrabold text-gray-900">{{ student_data|length }}</p>
     </div>
 
@@ -48,7 +48,7 @@
       <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#10b981,#34d399)">
         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
       </div>
-      <p class="text-xs text-green-500 font-medium">আজ Active</p>
+      <p class="text-xs text-green-500 font-medium">{% if LANG == 'en' %}Active Today{% else %}আজ সক্রিয়{% endif %}</p>
       <p class="text-3xl font-extrabold text-green-700">{{ active_today }}</p>
     </div>
 
@@ -57,7 +57,7 @@
       <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
       </div>
-      <p class="text-xs text-blue-400 font-medium">Class গড় Accuracy</p>
+      <p class="text-xs text-blue-400 font-medium">{% if LANG == 'en' %}Class Avg Accuracy{% else %}ক্লাসের গড় নির্ভুলতা{% endif %}</p>
       <p class="text-3xl font-extrabold text-blue-700">{{ avg_accuracy }}%</p>
     </div>
 
@@ -66,7 +66,7 @@
       <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#ef4444,#f87171)">
         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
       </div>
-      <p class="text-xs text-red-400 font-medium">At-Risk Students</p>
+      <p class="text-xs text-red-400 font-medium">{% if LANG == 'en' %}At-Risk Students{% else %}দুর্বল শিক্ষার্থী{% endif %}</p>
       <p class="text-3xl font-extrabold text-red-600">{{ at_risk_count }}</p>
     </div>
 
@@ -75,7 +75,7 @@
       <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-1 group-hover:scale-110 transition" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
       </div>
-      <p class="text-xs text-purple-400 font-medium">এই সপ্তাহে Feedback</p>
+      <p class="text-xs text-purple-400 font-medium">{% if LANG == 'en' %}Feedback This Week{% else %}এই সপ্তাহে মতামত{% endif %}</p>
       <p class="text-3xl font-extrabold text-purple-700">{{ feedbacks_this_week }}</p>
     </div>
 
@@ -88,11 +88,11 @@
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
       </div>
       <p class="text-xs {% if urgent_cq_count %}text-red-500{% else %}text-amber-500{% endif %} font-medium">
-        Pending CQ{% if urgent_cq_count %} (urgent){% endif %}
+        {% if LANG == 'en' %}Pending CQ{% if urgent_cq_count %} (urgent){% endif %}{% else %}অমীমাংসিত CQ{% if urgent_cq_count %} (জরুরি){% endif %}{% endif %}
       </p>
       <p class="text-3xl font-extrabold {% if urgent_cq_count %}text-red-700{% else %}text-amber-700{% endif %}">{{ pending_cq_count }}</p>
       {% if urgent_cq_count %}
-      <p class="text-xs text-red-400">{{ urgent_cq_count }}টি urgent</p>
+      <p class="text-xs text-red-400">{{ urgent_cq_count }}{% if LANG == 'en' %} urgent{% else %}টি জরুরি{% endif %}</p>
       {% endif %}
     </a>
   </div>
@@ -103,8 +103,8 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
          data-aos="fade-up" data-aos-delay="0">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-gray-900">At-Risk Students</h2>
-        <span class="text-xs bg-red-100 text-red-600 px-2.5 py-0.5 rounded-full font-semibold">এই সপ্তাহে &lt;50%</span>
+        <h2 class="font-bold text-gray-900">{% if LANG == 'en' %}At-Risk Students{% else %}দুর্বল শিক্ষার্থী{% endif %}</h2>
+        <span class="text-xs bg-red-100 text-red-600 px-2.5 py-0.5 rounded-full font-semibold">{% if LANG == 'en' %}This week &lt;50%{% else %}এই সপ্তাহে &lt;50%{% endif %}</span>
       </div>
       {% if at_risk %}
       <div class="space-y-3">
@@ -116,27 +116,27 @@
             </div>
             <div>
               <p class="text-sm font-semibold text-gray-900">{{ s.profile.user.username }}</p>
-              <p class="text-xs text-gray-400">{{ s.week_total }} প্রশ্ন এই সপ্তাহে</p>
+              <p class="text-xs text-gray-400">{{ s.week_total }} {% if LANG == 'en' %}questions this week{% else %}প্রশ্ন এই সপ্তাহে{% endif %}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-extrabold text-red-600">{{ s.week_accuracy }}%</span>
             <a href="{% url 'student_detail' s.profile.pk %}"
-               class="text-xs bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-lg hover:bg-red-100 transition font-medium">View</a>
+               class="text-xs bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-lg hover:bg-red-100 transition font-medium">{% if LANG == 'en' %}View{% else %}দেখুন{% endif %}</a>
           </div>
         </div>
         {% endfor %}
       </div>
       {% else %}
-      <p class="text-gray-400 text-sm text-center py-6">দারুণ! কোনো at-risk student নেই।</p>
+      <p class="text-gray-400 text-sm text-center py-6">{% if LANG == 'en' %}Great! No at-risk students.{% else %}দারুণ! কোনো দুর্বল শিক্ষার্থী নেই।{% endif %}</p>
       {% endif %}
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
          data-aos="fade-up" data-aos-delay="80">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-gray-900">Top Performers</h2>
-        <span class="text-xs bg-green-100 text-green-600 px-2.5 py-0.5 rounded-full font-semibold">সর্বোচ্চ accuracy</span>
+        <h2 class="font-bold text-gray-900">{% if LANG == 'en' %}Top Performers{% else %}সেরা শিক্ষার্থী{% endif %}</h2>
+        <span class="text-xs bg-green-100 text-green-600 px-2.5 py-0.5 rounded-full font-semibold">{% if LANG == 'en' %}Highest accuracy{% else %}সর্বোচ্চ নির্ভুলতা{% endif %}</span>
       </div>
       {% if top_performers %}
       <div class="space-y-3">
@@ -148,19 +148,19 @@
             </div>
             <div>
               <p class="text-sm font-semibold text-gray-900">{{ s.profile.user.username }}</p>
-              <p class="text-xs text-gray-400">{{ s.total }} প্রশ্ন মোট</p>
+              <p class="text-xs text-gray-400">{{ s.total }} {% if LANG == 'en' %}questions total{% else %}প্রশ্ন মোট{% endif %}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-extrabold text-green-600">{{ s.accuracy }}%</span>
             <a href="{% url 'student_detail' s.profile.pk %}"
-               class="text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-lg hover:bg-green-100 transition font-medium">View</a>
+               class="text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-lg hover:bg-green-100 transition font-medium">{% if LANG == 'en' %}View{% else %}দেখুন{% endif %}</a>
           </div>
         </div>
         {% endfor %}
       </div>
       {% else %}
-      <p class="text-gray-400 text-sm text-center py-6">যথেষ্ট data নেই।</p>
+      <p class="text-gray-400 text-sm text-center py-6">{% if LANG == 'en' %}Not enough data.{% else %}যথেষ্ট তথ্য নেই।{% endif %}</p>
       {% endif %}
     </div>
   </div>
@@ -170,7 +170,7 @@
 
     <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
          data-aos="fade-up" data-aos-delay="0">
-      <h2 class="font-bold text-gray-900 mb-4">Subject Performance (Class)</h2>
+      <h2 class="font-bold text-gray-900 mb-4">{% if LANG == 'en' %}Subject Performance (Class){% else %}বিষয়ভিত্তিক ফলাফল{% endif %}</h2>
       {% if subject_performance %}
       <div class="space-y-4">
         {% for sp in subject_performance %}
@@ -190,13 +190,13 @@
         {% endfor %}
       </div>
       {% else %}
-      <p class="text-gray-400 text-sm text-center py-6">কোনো data নেই।</p>
+      <p class="text-gray-400 text-sm text-center py-6">{% if LANG == 'en' %}No data available.{% else %}কোনো তথ্য নেই।{% endif %}</p>
       {% endif %}
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
          data-aos="fade-up" data-aos-delay="80">
-      <h2 class="font-bold text-gray-900 mb-4">Weekly Activity (Class-wide)</h2>
+      <h2 class="font-bold text-gray-900 mb-4">{% if LANG == 'en' %}Weekly Activity (Class-wide){% else %}সাপ্তাহিক কার্যক্রম{% endif %}</h2>
       <canvas id="classActivityChart" height="160"></canvas>
     </div>
   </div>
@@ -206,7 +206,7 @@
 
     <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
          data-aos="fade-up" data-aos-delay="0">
-      <h2 class="font-bold text-gray-900 mb-4">Actionable Insights</h2>
+      <h2 class="font-bold text-gray-900 mb-4">{% if LANG == 'en' %}Actionable Insights{% else %}গুরুত্বপূর্ণ পরামর্শ{% endif %}</h2>
       <div class="space-y-3">
         {% for insight in insights %}
         <div class="flex gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
@@ -219,7 +219,7 @@
 
     <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
          data-aos="fade-up" data-aos-delay="80">
-      <h2 class="font-bold text-gray-900 mb-4">সম্প্রতি পাঠানো Feedback</h2>
+      <h2 class="font-bold text-gray-900 mb-4">{% if LANG == 'en' %}Recent Feedback{% else %}সম্প্রতি পাঠানো মতামত{% endif %}</h2>
       {% if recent_feedbacks %}
       <div class="space-y-3">
         {% for fb in recent_feedbacks %}
@@ -241,7 +241,7 @@
         {% endfor %}
       </div>
       {% else %}
-      <p class="text-gray-400 text-sm text-center py-6">এখনো কোনো feedback পাঠানো হয়নি।</p>
+      <p class="text-gray-400 text-sm text-center py-6">{% if LANG == 'en' %}No feedback sent yet.{% else %}এখনো কোনো মতামত পাঠানো হয়নি।{% endif %}</p>
       {% endif %}
     </div>
   </div>
@@ -249,7 +249,7 @@
   <!-- ── 30-Day Heatmap ────────────────────────── -->
   <div class="bg-white rounded-2xl border border-gray-100 p-6 mb-8" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
        data-aos="fade-up">
-    <h2 class="font-bold text-gray-900 mb-4">Class Activity Heatmap &mdash; গত ৩০ দিন</h2>
+    <h2 class="font-bold text-gray-900 mb-4">{% if LANG == 'en' %}Class Activity Heatmap — Last 30 Days{% else %}ক্লাস কার্যক্রম হিটম্যাপ — গত ৩০ দিন{% endif %}</h2>
     <div class="flex gap-1.5 flex-wrap">
       {% for day in heatmap_days %}
       {% if day.count == 0 %}
@@ -276,13 +276,13 @@
       {% endfor %}
     </div>
     <div class="flex items-center gap-2 mt-4 text-xs text-gray-400">
-      <span>কম</span>
+      <span>{% if LANG == 'en' %}Less{% else %}কম{% endif %}</span>
       <div class="w-4 h-4 rounded bg-gray-100"></div>
       <div class="w-4 h-4 rounded bg-green-200"></div>
       <div class="w-4 h-4 rounded bg-green-400"></div>
       <div class="w-4 h-4 rounded bg-green-500"></div>
       <div class="w-4 h-4 rounded bg-green-700"></div>
-      <span>বেশি</span>
+      <span>{% if LANG == 'en' %}More{% else %}বেশি{% endif %}</span>
     </div>
   </div>
 
@@ -292,15 +292,15 @@
       <div>
         <div class="section-badge mb-1">
           <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
-          Exam Mode
+          {% if LANG == 'en' %}Exam Mode{% else %}পরীক্ষা মোড{% endif %}
         </div>
-        <h2 class="text-lg font-bold text-gray-800">Exam Mode</h2>
+        <h2 class="text-lg font-bold text-gray-800">{% if LANG == 'en' %}Exam Mode{% else %}পরীক্ষা মোড{% endif %}</h2>
       </div>
       <div class="flex gap-2">
         <a href="{% url 'manage_grade_list' %}"
            class="relative font-semibold text-sm text-white px-4 py-2 rounded-xl transition ripple"
            style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-          Grade Queue
+          {% if LANG == 'en' %}Grade Queue{% else %}মূল্যায়ন তালিকা{% endif %}
           {% if pending_cq_count > 0 %}
           <span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold badge-pulse">{{ pending_cq_count }}</span>
           {% endif %}
@@ -308,7 +308,7 @@
         <a href="{% url 'create_exam_paper' %}"
            class="font-semibold text-sm text-white px-4 py-2 rounded-xl transition ripple btn-glow"
            style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
-          + নতুন Exam Paper
+          {% if LANG == 'en' %}+ New Exam Paper{% else %}+ নতুন পরীক্ষার পেপার{% endif %}
         </a>
       </div>
     </div>
@@ -318,8 +318,8 @@
       <!-- Exam Papers List -->
       <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
         <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h3 class="font-bold text-gray-700 text-sm">Exam Papers</h3>
-          <span class="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">{{ exam_paper_data|length }}টি active</span>
+          <h3 class="font-bold text-gray-700 text-sm">{% if LANG == 'en' %}Exam Papers{% else %}পরীক্ষার পেপার{% endif %}</h3>
+          <span class="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">{{ exam_paper_data|length }}{% if LANG == 'en' %} active{% else %}টি সক্রিয়{% endif %}</span>
         </div>
         {% if exam_paper_data %}
         <div class="divide-y divide-gray-50">
@@ -329,25 +329,25 @@
               <div class="flex-1 min-w-0">
                 <p class="font-semibold text-gray-800 text-sm truncate">{{ ep.paper.title }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">
-                  {{ ep.paper.subject.name }} &bull; {{ ep.paper.class_obj.name }} &bull; {{ ep.paper.year }} সন
+                  {{ ep.paper.subject.name }} &bull; {{ ep.paper.class_obj.name }} &bull; {{ ep.paper.year }}{% if LANG == 'en' %}{% else %} সন{% endif %}
                 </p>
                 <div class="flex gap-3 mt-1.5 text-xs">
                   <span class="text-gray-400">MCQ: {{ ep.mcq_count }}</span>
                   <span class="text-gray-400">CQ: {{ ep.cq_count }}</span>
-                  <span class="text-blue-600 font-semibold">{{ ep.total }} attempt</span>
+                  <span class="text-blue-600 font-semibold">{{ ep.total }} {% if LANG == 'en' %}attempt{% else %}প্রচেষ্টা{% endif %}</span>
                   {% if ep.pending > 0 %}
-                  <span class="text-amber-600 font-bold">{{ ep.pending }} pending</span>
+                  <span class="text-amber-600 font-bold">{{ ep.pending }} {% if LANG == 'en' %}pending{% else %}অমীমাংসিত{% endif %}</span>
                   {% endif %}
                   {% if ep.graded > 0 %}
-                  <span class="text-green-600 font-semibold">{{ ep.graded }} graded</span>
+                  <span class="text-green-600 font-semibold">{{ ep.graded }} {% if LANG == 'en' %}graded{% else %}মূল্যায়িত{% endif %}</span>
                   {% endif %}
                 </div>
               </div>
               <div class="flex gap-1.5 shrink-0">
                 <a href="/admin/core/exampaper/{{ ep.paper.pk }}/change/" target="_blank"
-                   class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2.5 py-1 rounded-lg transition font-medium">Edit</a>
+                   class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2.5 py-1 rounded-lg transition font-medium">{% if LANG == 'en' %}Edit{% else %}সম্পাদনা{% endif %}</a>
                 <a href="{% url 'start_exam' ep.paper.pk %}"
-                   class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2.5 py-1 rounded-lg transition font-medium">Preview</a>
+                   class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2.5 py-1 rounded-lg transition font-medium">{% if LANG == 'en' %}Preview{% else %}প্রিভিউ{% endif %}</a>
               </div>
             </div>
           </div>
@@ -356,9 +356,9 @@
         {% else %}
         <div class="px-5 py-12 text-center text-gray-400">
           <p class="text-4xl mb-3">📄</p>
-          <p class="text-sm">কোনো exam paper নেই।</p>
+          <p class="text-sm">{% if LANG == 'en' %}No exam papers yet.{% else %}কোনো পরীক্ষার পেপার নেই।{% endif %}</p>
           <a href="/admin/core/exampaper/add/" target="_blank"
-             class="mt-3 inline-block text-indigo-500 text-sm hover:underline font-medium">প্রথম Exam Paper তৈরি করুন →</a>
+             class="mt-3 inline-block text-indigo-500 text-sm hover:underline font-medium">{% if LANG == 'en' %}Create your first Exam Paper →{% else %}প্রথম পরীক্ষার পেপার তৈরি করুন →{% endif %}</a>
         </div>
         {% endif %}
       </div>
@@ -366,9 +366,9 @@
       <!-- Pending Submissions -->
       <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
         <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h3 class="font-bold text-gray-700 text-sm">Pending Submissions</h3>
+          <h3 class="font-bold text-gray-700 text-sm">{% if LANG == 'en' %}Pending Submissions{% else %}অমীমাংসিত জমা{% endif %}</h3>
           {% if pending_cq_count > 0 %}
-          <a href="{% url 'manage_grade_list' %}" class="text-xs text-amber-600 hover:underline font-semibold">সব দেখুন →</a>
+          <a href="{% url 'manage_grade_list' %}" class="text-xs text-amber-600 hover:underline font-semibold">{% if LANG == 'en' %}View all →{% else %}সব দেখুন →{% endif %}</a>
           {% endif %}
         </div>
         {% if recent_exam_pending %}
@@ -388,27 +388,27 @@
             <a href="{% url 'grade_cq_submission' attempt.id %}"
                class="shrink-0 text-xs text-white px-3 py-1.5 rounded-lg transition font-bold ripple"
                style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-              Grade →
+              {% if LANG == 'en' %}Grade →{% else %}মূল্যায়ন →{% endif %}
             </a>
           </div>
           {% endfor %}
         </div>
         {% if recent_exam_pending|length >= 6 %}
         <div class="px-5 py-3 border-t border-gray-100 text-center">
-          <a href="{% url 'manage_grade_list' %}" class="text-sm text-amber-600 hover:underline font-medium">সব pending দেখুন</a>
+          <a href="{% url 'manage_grade_list' %}" class="text-sm text-amber-600 hover:underline font-medium">{% if LANG == 'en' %}View all pending{% else %}সব অমীমাংসিত দেখুন{% endif %}</a>
         </div>
         {% endif %}
         {% else %}
         <div class="px-5 py-10 text-center text-gray-400">
           <p class="text-3xl mb-2">✅</p>
-          <p class="text-sm">কোনো pending submission নেই।</p>
+          <p class="text-sm">{% if LANG == 'en' %}No pending submissions.{% else %}কোনো অমীমাংসিত জমা নেই।{% endif %}</p>
         </div>
         {% endif %}
 
         <!-- Recently Graded -->
         {% if recent_exam_graded %}
         <div class="border-t border-gray-200 px-5 py-4 bg-gray-50">
-          <p class="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">সম্প্রতি Graded</p>
+          <p class="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">{% if LANG == 'en' %}Recently Graded{% else %}সম্প্রতি মূল্যায়িত{% endif %}</p>
           <div class="space-y-2">
             {% for attempt in recent_exam_graded %}
             <div class="flex items-center justify-between text-xs">
@@ -443,8 +443,8 @@
   <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);"
        data-aos="fade-up">
     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4 flex-wrap">
-      <h2 class="font-bold text-gray-900">সকল Students</h2>
-      <input type="text" id="searchInput" placeholder="Student খুঁজুন..."
+      <h2 class="font-bold text-gray-900">{% if LANG == 'en' %}All Students{% else %}সকল শিক্ষার্থী{% endif %}</h2>
+      <input type="text" id="searchInput" placeholder="{% if LANG == 'en' %}Search students...{% else %}শিক্ষার্থী খুঁজুন...{% endif %}"
              onkeyup="filterTable()"
              class="border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-300 transition">
     </div>
@@ -452,16 +452,16 @@
       <table class="w-full text-sm" id="studentTable">
         <thead class="bg-gray-50">
           <tr>
-            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">Student</th>
+            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">{% if LANG == 'en' %}Student{% else %}শিক্ষার্থী{% endif %}</th>
             <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">Plan</th>
-            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">মোট</th>
-            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">সঠিক</th>
-            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">ভুল</th>
+            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</th>
+            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">{% if LANG == 'en' %}Correct{% else %}সঠিক{% endif %}</th>
+            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">{% if LANG == 'en' %}Wrong{% else %}ভুল{% endif %}</th>
             <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">Accuracy</th>
-            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">এই সপ্তাহ</th>
-            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">আজ</th>
+            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">{% if LANG == 'en' %}This Week{% else %}এই সপ্তাহ{% endif %}</th>
+            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">{% if LANG == 'en' %}Today{% else %}আজ{% endif %}</th>
             <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">Exam</th>
-            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">Detail</th>
+            <th class="text-left px-6 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wider">{% if LANG == 'en' %}Detail{% else %}বিস্তারিত{% endif %}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
@@ -548,13 +548,13 @@
               <a href="{% url 'student_detail' s.profile.pk %}"
                  class="text-xs text-white px-3 py-1.5 rounded-lg font-bold transition ripple btn-glow"
                  style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">
-                View
+                {% if LANG == 'en' %}View{% else %}দেখুন{% endif %}
               </a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="10" class="px-6 py-10 text-center text-gray-400">কোনো student নেই।</td>
+            <td colspan="10" class="px-6 py-10 text-center text-gray-400">{% if LANG == 'en' %}No students found.{% else %}কোনো শিক্ষার্থী নেই।{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>

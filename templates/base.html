@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prepare Yourself - {% block title %}Smart Learning{% endblock %}</title>
 
+    <!-- Tell browser this site manages its own color scheme (prevents Brave/Chrome forced dark) -->
+    <meta name="color-scheme" content="light dark">
+    <style>:root { color-scheme: light; } html.dark { color-scheme: dark; }</style>
+
     <!-- Dark mode: apply before paint to prevent flash -->
     <script>(function(){var t=localStorage.getItem('py-theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');})()</script>
 
@@ -186,6 +190,18 @@
 
     /* ─── Dark / Light mode toggle ──────────────────── */
     (function () {
+        function setIcons(dark) {
+            var ids = [
+                ['theme-icon-sun', 'theme-icon-moon'],
+                ['theme-icon-sun-mobile', 'theme-icon-moon-mobile']
+            ];
+            ids.forEach(function (pair) {
+                var sun  = document.getElementById(pair[0]);
+                var moon = document.getElementById(pair[1]);
+                if (sun)  sun.style.display  = dark ? 'block' : 'none';
+                if (moon) moon.style.display = dark ? 'none'  : 'block';
+            });
+        }
         function setTheme(dark) {
             if (dark) {
                 document.documentElement.classList.add('dark');
@@ -194,7 +210,11 @@
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('py-theme', 'light');
             }
+            setIcons(dark);
         }
+        /* Apply icons on page load based on current state */
+        setIcons(document.documentElement.classList.contains('dark'));
+
         function bindToggle(btnId) {
             var btn = document.getElementById(btnId);
             if (btn) btn.addEventListener('click', function () {
