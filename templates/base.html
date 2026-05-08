@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prepare Yourself - {% block title %}Smart Learning{% endblock %}</title>
 
+    <!-- Dark mode: apply before paint to prevent flash -->
+    <script>(function(){var t=localStorage.getItem('py-theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');})()</script>
+
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +15,7 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={darkMode:'class'}</script>
 
     <!-- AOS — Animate on Scroll -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
@@ -178,6 +182,27 @@
             btn.appendChild(wave);
             setTimeout(function () { wave.remove(); }, 700);
         });
+    })();
+
+    /* ─── Dark / Light mode toggle ──────────────────── */
+    (function () {
+        function setTheme(dark) {
+            if (dark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('py-theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('py-theme', 'light');
+            }
+        }
+        function bindToggle(btnId) {
+            var btn = document.getElementById(btnId);
+            if (btn) btn.addEventListener('click', function () {
+                setTheme(!document.documentElement.classList.contains('dark'));
+            });
+        }
+        bindToggle('theme-toggle');
+        bindToggle('theme-toggle-mobile');
     })();
 
     </script>

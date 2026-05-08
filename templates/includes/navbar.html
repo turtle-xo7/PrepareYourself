@@ -33,6 +33,19 @@
                 <!-- Desktop right icons -->
                 <div class="hidden md:flex items-center gap-2">
 
+                    <!-- Dark mode toggle -->
+                    <button id="theme-toggle"
+                            title="Toggle dark / light mode"
+                            class="w-9 h-9 flex items-center justify-center rounded-xl border transition-all duration-200 hover:scale-110 hover:shadow-md select-none"
+                            style="background:#f8fafc;border-color:#e2e8f0;color:#374151;">
+                        <svg id="theme-icon-sun" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707.707M6.343 6.343l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+                        </svg>
+                        <svg id="theme-icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </button>
+
                     <!-- Language toggle button -->
                     <a href="{% url 'toggle_language' %}"
                        title="{% if LANG == 'en' %}Switch to বাংলা{% else %}Switch to English{% endif %}"
@@ -111,6 +124,17 @@
             <a href="{% url 'dashboard' %}" class="mobile-nav-link {% if url_name == 'dashboard' %}mobile-nav-active{% endif %}">{% if LANG == 'en' %}Dashboard{% else %}ড্যাশবোর্ড{% endif %}</a>
 
             <div class="pt-2 border-t border-gray-100 mt-2 space-y-1">
+                <!-- Dark mode toggle (mobile) -->
+                <button id="theme-toggle-mobile" class="mobile-nav-link font-semibold flex items-center gap-2 w-full text-left">
+                    <svg id="theme-icon-sun-mobile" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707.707M6.343 6.343l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+                    </svg>
+                    <svg id="theme-icon-moon-mobile" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                    {% if LANG == 'en' %}Dark / Light Mode{% else %}ডার্ক / লাইট মোড{% endif %}
+                </button>
+
                 <!-- Language toggle (mobile) -->
                 <a href="{% url 'toggle_language' %}" class="mobile-nav-link font-semibold"
                    style="{% if LANG == 'en' %}color:#1d4ed8;{% else %}color:#7c3aed;{% endif %}">
