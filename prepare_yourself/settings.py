@@ -47,6 +47,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.user_role',
             ],
+            'libraries': {
+                'bn_filters': 'core.templatetags.bn_filters',
+            },
         },
     },
 ]

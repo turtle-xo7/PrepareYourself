@@ -228,5 +228,21 @@
     </script>
 
     {% block scripts %}{% endblock %}
+
+    {% if LANG == 'bn' %}
+    <script>
+    (function () {
+        var bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        function convertNode(node) {
+            if (node.nodeType === 3) {
+                node.nodeValue = node.nodeValue.replace(/[0-9]/g, function (d) { return bn[+d]; });
+            } else if (node.nodeType === 1 && !/^(SCRIPT|STYLE|INPUT|TEXTAREA|SELECT|CANVAS)$/.test(node.tagName)) {
+                for (var i = 0; i < node.childNodes.length; i++) convertNode(node.childNodes[i]);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function () { convertNode(document.body); });
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>

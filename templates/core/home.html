@@ -43,7 +43,7 @@
                 </p>
 
                 <div class="flex flex-wrap gap-3 mb-6" data-aos="fade-up" data-aos-delay="200">
-                    <a href="#" class="cta-btn ripple inline-flex items-center gap-2 bg-white text-blue-600 font-bold px-7 py-3.5 rounded-xl text-sm shadow-lg">
+                    <a href="{% url 'pricing' %}" class="cta-btn ripple inline-flex items-center gap-2 bg-white text-blue-600 font-bold px-7 py-3.5 rounded-xl text-sm shadow-lg">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         {% if LANG == 'en' %}Start Free Trial{% else %}বিনামূল্যে শুরু করুন{% endif %}
                     </a>
@@ -226,7 +226,7 @@
         </div>
 
         <div class="text-center mt-10" data-aos="fade-up">
-            <a href="#" class="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border border-gray-200">
+            <a href="{% url 'question_bank' %}" class="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border border-gray-200">
                 {% if LANG == 'en' %}Browse All Boards{% else %}সব বোর্ড দেখুন{% endif %}
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </a>
@@ -308,7 +308,7 @@
                 {% if LANG == 'en' %}Ready to Start Your<br>Board Exam Journey?{% else %}বোর্ড পরীক্ষার যাত্রা<br>শুরু করতে প্রস্তুত?{% endif %}
             </h2>
             <p class="text-xl text-blue-100 mb-10">{% if LANG == 'en' %}Join over 2.5 lakh students already scoring better marks.{% else %}ইতোমধ্যে ভালো নম্বর পাচ্ছে এমন ২.৫ লক্ষ+ শিক্ষার্থীর সাথে যোগ দিন।{% endif %}</p>
-            <a href="#" class="cta-btn ripple inline-flex items-center gap-3 bg-white text-blue-600 font-bold text-lg px-10 py-4 rounded-2xl shadow-2xl">
+            <a href="{% url 'pricing' %}" class="cta-btn ripple inline-flex items-center gap-3 bg-white text-blue-600 font-bold text-lg px-10 py-4 rounded-2xl shadow-2xl">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 {% if LANG == 'en' %}Get Started Free — 7 Days Trial{% else %}বিনামূল্যে শুরু করুন — ৭ দিনের ট্রায়াল{% endif %}
             </a>
