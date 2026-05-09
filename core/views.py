@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.conf import settings
-from .models import Board, Subject, Class, Question, UserProfile
+from .models import Board, Subject, Class, Question, UserProfile, UserProgress
 from datetime import datetime
 import json
 
@@ -171,6 +171,33 @@ SUBJECT_COLOR_HEX = {
     'purple': '#a855f7', 'orange': '#f97316', 'yellow': '#eab308',
     'pink': '#ec4899', 'teal': '#14b8a6', 'indigo': '#6366f1',
     'cyan': '#06b6d4', 'emerald': '#10b981',
+}
+
+_SUBJECT_EMOJI = {
+    'bangla': '✍️',
+    'বাংলা': '✍️',
+    'english': '💬',
+    'higher math': '📐',
+    'higher mathematics': '📐',
+    'উচ্চতর গণিত': '📐',
+    'physics': '⚛️',
+    'পদার্থবিজ্ঞান': '⚛️',
+    'chemistry': '🧪',
+    'রসায়ন': '🧪',
+    'biology': '🧬',
+    'জীববিজ্ঞান': '🧬',
+    'ict': '💻',
+    'information and communication technology': '💻',
+    'math': '🔢',
+    'mathematics': '🔢',
+    'গণিত': '🔢',
+    'history': '🏛️',
+    'geography': '🌍',
+    'economics': '📊',
+    'accounting': '🧾',
+    'civics': '⚖️',
+    'islam': '🕌',
+    'religion': '🙏',
 }
 
 
@@ -350,6 +377,8 @@ def dashboard(request):
         ).annotate(
             total=Count('id'),
             correct=Count('id', filter=Q(is_correct=True)),
+            written_correct=Count('id', filter=Q(is_correct=True, question__question_type='WRITTEN')),
+            mcq_correct=Count('id', filter=Q(is_correct=True, question__question_type='MCQ')),
         ).order_by('-total')
     )
     diff_rows = list(
@@ -386,16 +415,18 @@ def dashboard(request):
         for w in weekly:
             w['height'] = round((w['count'] / max_in_week) * 100) if max_in_week else 0
         color_name = s['question__subject__color'] or 'blue'
+        marks = s['mcq_correct'] * 1 + s['written_correct'] * 10
         subjects_data.append({
             'id': sid,
             'name': s['question__subject__name'],
-            'icon': s['question__subject__icon'] or '📚',
+            'icon': s['question__subject__icon'] or _SUBJECT_EMOJI.get(s['question__subject__name'].lower(), '📚'),
             'color': color_name,
             'hex': SUBJECT_COLOR_HEX.get(color_name, '#3b82f6'),
             'total': total,
             'correct': correct,
             'wrong': wrong,
             'accuracy': acc,
+            'marks': marks,
             'difficulty': diff_map[sid],
             'weekly': weekly,
         })
@@ -621,6 +652,14 @@ def question_bank(request):
     if not is_premium:
         questions = questions[:10]
 
+    # Map question_id → WrittenSolveSubmission for the current user
+    written_solves = {}
+    if request.user.is_authenticated:
+        from .models import WrittenSolveSubmission
+        q_ids = [q.pk for q in questions]
+        for sub in WrittenSolveSubmission.objects.filter(student=request.user, question_id__in=q_ids):
+            written_solves[sub.question_id] = sub
+
     return render(request, 'core/question_bank.html', {
         'boards': boards,
         'subjects': subjects,
@@ -628,6 +667,7 @@ def question_bank(request):
         'questions': questions,
         'years': YEARS,
         'is_premium': is_premium,
+        'written_solves': written_solves,
     })
 
 
@@ -743,6 +783,9 @@ def question_add(request):
             correct_option=request.POST.get('correct_option') or None,
             answer_hint=request.POST.get('answer_hint', ''),
         )
+        if request.FILES.get('stimulus_image'):
+            q.stimulus_image = request.FILES['stimulus_image']
+            q.save()
         _notify_all_students(
             'question',
             f'New Question Added — {q.subject.name}',
@@ -756,6 +799,43 @@ def question_add(request):
     return render(request, 'manage/question_form.html', {
         'boards': boards, 'subjects': subjects,
         'classes': classes, 'years': YEARS, 'action': 'Add'
+    })
+
+
+@login_required
+def submit_written_solve(request, question_id):
+    if request.method != 'POST':
+        return redirect('question_bank')
+    from .models import WrittenSolveSubmission
+    question = get_object_or_404(Question, pk=question_id, question_type='WRITTEN', is_active=True)
+    photos = {
+        'photo_ka': request.FILES.get('photo_ka'),
+        'photo_kha': request.FILES.get('photo_kha'),
+        'photo_ga': request.FILES.get('photo_ga'),
+        'photo_gha': request.FILES.get('photo_gha'),
+    }
+    if not all(photos.values()):
+        lang = getattr(request, 'LANG', 'bn')
+        messages.error(request, 'All 4 parts (ক, খ, গ, ঘ) must be uploaded.' if lang == 'en' else 'সব ৪টি অংশ (ক, খ, গ, ঘ) আপলোড করো।')
+        return redirect('question_bank')
+    sub, _ = WrittenSolveSubmission.objects.get_or_create(student=request.user, question=question)
+    for field, file in photos.items():
+        setattr(sub, field, file)
+    sub.save()
+    UserProgress.objects.get_or_create(user=request.user, question=question, defaults={'is_correct': True})
+    lang = getattr(request, 'LANG', 'bn')
+    messages.success(request, '✓ Answer submitted! You earned 10 marks.' if lang == 'en' else '✓ উত্তর জমা হয়েছে! ১০ নম্বর পেয়েছো।')
+    return redirect('written_question_practice', question_id=question.pk)
+
+
+@login_required
+def written_question_practice(request, question_id):
+    from .models import WrittenSolveSubmission
+    question = get_object_or_404(Question, pk=question_id, question_type='WRITTEN', is_active=True)
+    submission = WrittenSolveSubmission.objects.filter(student=request.user, question=question).first() if request.user.is_authenticated else None
+    return render(request, 'core/written_question_practice.html', {
+        'question': question,
+        'submission': submission,
     })
 
 
@@ -780,6 +860,8 @@ def question_edit(request, pk):
         question.option4 = request.POST.get('option4', '')
         question.correct_option = request.POST.get('correct_option') or None
         question.answer_hint = request.POST.get('answer_hint', '')
+        if request.FILES.get('stimulus_image'):
+            question.stimulus_image = request.FILES['stimulus_image']
         question.save()
         messages.success(request, 'Question updated!')
         return redirect('manage_questions')
@@ -2286,7 +2368,7 @@ def export_excel(request):
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment
     from django.http import HttpResponse
-    from .models import UserProgress, TeacherFeedback, StudyNote, Contest, ContestSubmission, NoteBookmark, ExamPaper, ExamAttempt
+    from .models import UserProgress, TeacherFeedback, StudyNote, Contest, ContestSubmission, NoteBookmark, ExamPaper, ExamAttempt, NoteRequest, WrittenSolveSubmission
 
     wb = openpyxl.Workbook()
 
@@ -2421,6 +2503,36 @@ def export_excel(request):
             attempt.grade or '',
             attempt.started_at.strftime('%d-%m-%Y %H:%M'),
             attempt.cq_submitted_at.strftime('%d-%m-%Y %H:%M') if attempt.cq_submitted_at else '',
+        ])
+
+    ws11 = wb.create_sheet('Note Requests')
+    headers11 = ['Student', 'Subject', 'Topic', 'Details', 'Status', 'Requested At', 'Fulfilled At', 'Fulfilled By', 'Fulfilled Note']
+    style_header(ws11, headers11)
+    for nr in NoteRequest.objects.select_related('student', 'subject', 'fulfilled_by', 'fulfilled_note').all():
+        ws11.append([
+            nr.student.username,
+            nr.subject.name if nr.subject else '',
+            nr.topic,
+            nr.details,
+            nr.status,
+            nr.created_at.strftime('%d-%m-%Y %H:%M'),
+            nr.fulfilled_at.strftime('%d-%m-%Y %H:%M') if nr.fulfilled_at else '',
+            nr.fulfilled_by.username if nr.fulfilled_by else '',
+            nr.fulfilled_note.title if nr.fulfilled_note else '',
+        ])
+
+    ws12 = wb.create_sheet('Written CQ Submissions')
+    headers12 = ['Student', 'Question', 'Subject', 'Chapter', 'Board', 'Year', 'Submitted At']
+    style_header(ws12, headers12)
+    for ws in WrittenSolveSubmission.objects.select_related('student', 'question', 'question__subject', 'question__board').all():
+        ws12.append([
+            ws.student.username,
+            ws.question.question_text[:60],
+            ws.question.subject.name,
+            ws.question.chapter or '',
+            ws.question.board.name,
+            ws.question.year,
+            ws.submitted_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
     from django.utils import timezone

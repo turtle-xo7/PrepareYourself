@@ -61,6 +61,8 @@
     .acc-arrow { transition: transform .25s ease; }
     .acc-row.open .acc-arrow { transform: rotate(180deg); }
     .acc-row.open { background: #f8fafc; }
+    html.dark .acc-row.open { background: #1e293b; }
+    html.dark .acc-toggle:hover { background: rgba(255,255,255,0.04) !important; }
 
     /* Mini accuracy ring */
     .ring {
@@ -73,6 +75,9 @@
         display: grid; place-items: center;
         position: relative;
     }
+    html.dark .ring {
+        background: conic-gradient(var(--c) calc(var(--p) * 1%), #334155 0);
+    }
     .ring::after {
         content: '';
         position: absolute;
@@ -80,6 +85,9 @@
         background: #fff;
         border-radius: 50%;
     }
+    html.dark .ring::after { background: #1e293b; }
+    .acc-row.open .ring::after { background: #f8fafc; }
+    html.dark .acc-row.open .ring::after { background: #1e293b; }
     .ring > span {
         position: relative;
         z-index: 1;
@@ -87,6 +95,17 @@
         font-weight: 700;
         color: #0f172a;
     }
+    html.dark .ring > span { color: #e2e8f0; }
+
+    /* Mini bar dark */
+    html.dark .mini-bar { background: #334155; }
+
+    /* Heatmap dark */
+    html.dark .hm-0 { background: #1e293b; }
+
+    /* Dash card dark */
+    html.dark .dash-card { background: #1e293b; border-color: #334155; }
+    html.dark .dash-card:hover { border-color: rgba(99,102,241,0.35); }
 
     /* Trend chips */
     .trend-up   { color: #059669; }
@@ -537,10 +556,10 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2 mb-1.5">
-                            <span class="font-semibold text-gray-900 truncate">{{ s.name }}</span>
-                            <span class="text-xs text-gray-500 whitespace-nowrap">{{ s.correct }} / {{ s.total }} {% if LANG == 'en' %}correct{% else %}সঠিক{% endif %}</span>
+                            <span class="font-semibold text-gray-900 dark:text-white truncate">{{ s.name }}</span>
+                            <span class="text-xs text-gray-500 dark:text-slate-400 whitespace-nowrap">{{ s.correct }} / {{ s.total }} {% if LANG == 'en' %}correct{% else %}সঠিক{% endif %}</span>
                         </div>
-                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-700"
                                  style="width: {{ s.accuracy }}%; background: {{ s.hex }};"></div>
                         </div>
@@ -558,49 +577,55 @@
                     <div class="px-3 pb-5 pt-1">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                             <div class="md:col-span-1 grid grid-cols-3 md:grid-cols-1 gap-3">
-                                <div class="rounded-xl border border-gray-100 p-3">
-                                    <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</p>
-                                    <p class="text-xl font-bold text-gray-900 mt-0.5">{{ s.total }}</p>
+                                <div class="rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-3">
+                                    <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</p>
+                                    <p class="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{{ s.total }}</p>
                                 </div>
-                                <div class="rounded-xl border border-green-100 bg-green-50/50 p-3">
-                                    <p class="text-[10px] uppercase tracking-wider text-green-700 font-medium">{% if LANG == 'en' %}Correct{% else %}সঠিক{% endif %}</p>
-                                    <p class="text-xl font-bold text-green-700 mt-0.5">{{ s.correct }}</p>
+                                <div class="rounded-xl border border-green-100 bg-green-50/50 dark:border-emerald-800 dark:bg-emerald-900/20 p-3">
+                                    <p class="text-[10px] uppercase tracking-wider text-green-700 dark:text-emerald-400 font-medium">{% if LANG == 'en' %}Correct{% else %}সঠিক{% endif %}</p>
+                                    <p class="text-xl font-bold text-green-700 dark:text-emerald-400 mt-0.5">{{ s.correct }}</p>
                                 </div>
-                                <div class="rounded-xl border border-red-100 bg-red-50/50 p-3">
-                                    <p class="text-[10px] uppercase tracking-wider text-red-700 font-medium">{% if LANG == 'en' %}Wrong{% else %}ভুল{% endif %}</p>
-                                    <p class="text-xl font-bold text-red-700 mt-0.5">{{ s.wrong }}</p>
+                                <div class="rounded-xl border border-red-100 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20 p-3">
+                                    <p class="text-[10px] uppercase tracking-wider text-red-700 dark:text-red-400 font-medium">{% if LANG == 'en' %}Wrong{% else %}ভুল{% endif %}</p>
+                                    <p class="text-xl font-bold text-red-700 dark:text-red-400 mt-0.5">{{ s.wrong }}</p>
                                 </div>
+                                {% if s.marks %}
+                                <div class="rounded-xl border border-purple-100 bg-purple-50/50 dark:border-purple-800 dark:bg-purple-900/20 p-3">
+                                    <p class="text-[10px] uppercase tracking-wider text-purple-700 dark:text-purple-400 font-medium">{% if LANG == 'en' %}Marks{% else %}নম্বর{% endif %}</p>
+                                    <p class="text-xl font-bold text-purple-700 dark:text-purple-400 mt-0.5">{{ s.marks }}</p>
+                                </div>
+                                {% endif %}
                             </div>
 
-                            <div class="md:col-span-1 rounded-xl border border-gray-100 p-4">
-                                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">{% if LANG == 'en' %}Difficulty breakdown{% else %}কঠিনতার বিভাজন{% endif %}</p>
+                            <div class="md:col-span-1 rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-4">
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium mb-3">{% if LANG == 'en' %}Difficulty breakdown{% else %}কঠিনতার বিভাজন {% endif %}</p>
                                 <div class="space-y-2.5">
                                     <div>
                                         <div class="flex items-center justify-between text-xs mb-1">
-                                            <span class="text-gray-700">{% if LANG == 'en' %}Easy{% else %}সহজ{% endif %}</span>
-                                            <span class="text-gray-500">{{ s.difficulty.Easy }}</span>
+                                            <span class="text-gray-700 dark:text-slate-300">{% if LANG == 'en' %}Easy{% else %}সহজ{% endif %}</span>
+                                            <span class="text-gray-500 dark:text-slate-400">{{ s.difficulty.Easy }}</span>
                                         </div>
-                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                             <div class="h-full bg-green-400 rounded-full"
                                                  style="width: {% if s.total %}{% widthratio s.difficulty.Easy s.total 100 %}{% else %}0{% endif %}%"></div>
                                         </div>
                                     </div>
                                     <div>
                                         <div class="flex items-center justify-between text-xs mb-1">
-                                            <span class="text-gray-700">{% if LANG == 'en' %}Medium{% else %}মাঝারি{% endif %}</span>
-                                            <span class="text-gray-500">{{ s.difficulty.Medium }}</span>
+                                            <span class="text-gray-700 dark:text-slate-300">{% if LANG == 'en' %}Medium{% else %}মাঝারি{% endif %}</span>
+                                            <span class="text-gray-500 dark:text-slate-400">{{ s.difficulty.Medium }}</span>
                                         </div>
-                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                             <div class="h-full bg-yellow-400 rounded-full"
                                                  style="width: {% if s.total %}{% widthratio s.difficulty.Medium s.total 100 %}{% else %}0{% endif %}%"></div>
                                         </div>
                                     </div>
                                     <div>
                                         <div class="flex items-center justify-between text-xs mb-1">
-                                            <span class="text-gray-700">{% if LANG == 'en' %}Hard{% else %}কঠিন{% endif %}</span>
-                                            <span class="text-gray-500">{{ s.difficulty.Hard }}</span>
+                                            <span class="text-gray-700 dark:text-slate-300">{% if LANG == 'en' %}Hard{% else %}কঠিন{% endif %}</span>
+                                            <span class="text-gray-500 dark:text-slate-400">{{ s.difficulty.Hard }}</span>
                                         </div>
-                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                             <div class="h-full bg-red-400 rounded-full"
                                                  style="width: {% if s.total %}{% widthratio s.difficulty.Hard s.total 100 %}{% else %}0{% endif %}%"></div>
                                         </div>
@@ -608,8 +633,8 @@
                                 </div>
                             </div>
 
-                            <div class="md:col-span-1 rounded-xl border border-gray-100 p-4">
-                                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">{% if LANG == 'en' %}Last 7 days{% else %}শেষ ৭ দিন{% endif %}</p>
+                            <div class="md:col-span-1 rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-4">
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium mb-3">{% if LANG == 'en' %}Last 7 days{% else %}শেষ ৭ দিন{% endif %}</p>
                                 <div class="flex items-end justify-between gap-1.5 h-16">
                                     {% for w in s.weekly %}
                                     <div class="flex-1 flex flex-col items-center gap-1">
@@ -618,7 +643,7 @@
                                              title="{{ w.day }} — {{ w.count }}">
                                             <span style="height: {{ w.height }}%;"></span>
                                         </div>
-                                        <span class="text-[10px] text-gray-400">{{ w.day|slice:":1" }}</span>
+                                        <span class="text-[10px] text-gray-400 dark:text-slate-500">{{ w.day|slice:":1" }}</span>
                                     </div>
                                     {% endfor %}
                                 </div>

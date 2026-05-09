@@ -22,7 +22,7 @@
     {% endfor %}
     {% endif %}
 
-    <form method="post" class="space-y-5">
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
       {% csrf_token %}
 
       <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
@@ -138,11 +138,32 @@
         </div>
       </div>
 
-      <div id="written_fields" class="hidden bg-white rounded-xl border border-gray-200 p-6">
-        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide mb-3">Answer Hint</h2>
-        <textarea name="answer_hint" rows="4"
-          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="উত্তরের hint লিখুন...">{{ question.answer_hint }}</textarea>
+      <div id="written_fields" class="hidden bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Written CQ</h2>
+
+        <!-- Stimulus image -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            উদ্দীপক Image
+            <span class="text-gray-400 text-xs font-normal ml-1">(optional — the passage/image students write on)</span>
+          </label>
+          {% if question.stimulus_image %}
+          <div class="mb-2">
+            <img src="{{ question.stimulus_image.url }}" class="max-h-40 rounded-lg border border-gray-200" alt="Current stimulus">
+            <p class="text-xs text-gray-400 mt-1">Current image — upload a new one to replace</p>
+          </div>
+          {% endif %}
+          <input type="file" name="stimulus_image" accept="image/*"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Answer hint -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Answer Hint</label>
+          <textarea name="answer_hint" rows="3"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="উত্তরের hint লিখুন...">{{ question.answer_hint }}</textarea>
+        </div>
       </div>
 
       <div class="flex gap-3">

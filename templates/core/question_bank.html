@@ -196,10 +196,26 @@
                 </div>
                 {% endif %}
 
-                {% if q.question_type == 'WRITTEN' and q.answer_hint %}
-                <div class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-                    <p class="text-xs text-amber-600 font-semibold mb-1 flex items-center gap-1">💡 {% if LANG == 'en' %}Hint{% else %}ইঙ্গিত{% endif %}</p>
-                    <p class="text-sm text-amber-800">{{ q.answer_hint }}</p>
+                {% if q.question_type == 'WRITTEN' %}
+                <div class="mt-1">
+                    {% if user.is_authenticated and q.pk in written_solves %}
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700">
+                            ✅ {% if LANG == 'en' %}Submitted (+10 marks){% else %}জমা হয়েছে (+১০ নম্বর){% endif %}
+                        </span>
+                        <a href="{% url 'written_question_practice' q.pk %}"
+                           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                           style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                            ✍️ {% if LANG == 'en' %}View Submission →{% else %}উত্তর দেখো →{% endif %}
+                        </a>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'written_question_practice' q.pk %}"
+                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                       style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                        ✍️ {% if LANG == 'en' %}Practice this Question →{% else %}এই প্রশ্নে Practice করো →{% endif %}
+                    </a>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>

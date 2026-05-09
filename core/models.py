@@ -63,6 +63,7 @@ class Question(models.Model):
     option4 = models.CharField(max_length=500, blank=True)
     correct_option = models.PositiveSmallIntegerField(null=True, blank=True)
     answer_hint = models.TextField(blank=True)
+    stimulus_image = models.ImageField(upload_to='question_stimuli/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
@@ -129,6 +130,27 @@ class UserProgress(models.Model):
         ordering = ['-answered_at']
     def __str__(self):
         return f"{self.user.username} - {self.question.id}"
+
+
+class WrittenSolveSubmission(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='written_solves')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='written_submissions')
+    photo_ka = models.ImageField(upload_to='written_solves/', null=True, blank=True)
+    photo_kha = models.ImageField(upload_to='written_solves/', null=True, blank=True)
+    photo_ga = models.ImageField(upload_to='written_solves/', null=True, blank=True)
+    photo_gha = models.ImageField(upload_to='written_solves/', null=True, blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['student', 'question']
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.student.username} — Q{self.question.id}"
+
+    @property
+    def is_complete(self):
+        return bool(self.photo_ka and self.photo_kha and self.photo_ga and self.photo_gha)
 
 
 class TeacherFeedback(models.Model):
