@@ -41,6 +41,11 @@ urlpatterns = [
     path('practical-videos/add/', views.video_add, name='video_add'),
     path('practical-videos/<int:pk>/delete/', views.video_delete, name='video_delete'),
 
+    # Note Requests
+    path('note-requests/submit/', views.request_note, name='request_note'),
+    path('manage/note-requests/', views.manage_note_requests, name='manage_note_requests'),
+    path('manage/note-requests/<int:pk>/action/', views.fulfill_note_request, name='fulfill_note_request'),
+
     # Manage Panel
     path('manage/', views.manage_dashboard, name='manage_dashboard'),
     path('manage/questions/', views.manage_questions, name='manage_questions'),

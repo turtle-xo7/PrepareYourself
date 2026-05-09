@@ -18,6 +18,8 @@
     font-size: 0.875rem;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: white;
+    color: #111827;
 }
 .form-input:focus {
     border-color: #3b82f6;
@@ -29,6 +31,25 @@
     font-weight: 500;
     color: #374151;
     margin-bottom: 0.375rem;
+}
+
+/* ── Dark mode ── */
+.dark .form-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.dark .form-input {
+    background: #0f172a;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+.dark .form-input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
+}
+.dark .form-label {
+    color: #cbd5e1;
 }
 </style>
 
@@ -58,9 +79,30 @@
 
 <!-- Form -->
 <div class="max-w-3xl mx-auto px-4 py-8">
+
+    {% if linked_request %}
+    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-4 mb-4 flex items-start gap-3">
+        <span class="text-xl">📩</span>
+        <div>
+            <p class="font-bold text-amber-900 dark:text-amber-200 text-sm">
+                {% if LANG == 'en' %}Fulfilling note request from{% else %}এই request এর জন্য নোট লিখছো:{% endif %}
+                <span class="text-amber-700 dark:text-amber-300">{{ linked_request.student.username }}</span>
+            </p>
+            <p class="text-sm text-amber-800 dark:text-amber-300 mt-0.5">
+                {% if LANG == 'en' %}Topic:{% else %}বিষয়:{% endif %}
+                "<strong>{{ linked_request.topic }}</strong>"
+                {% if linked_request.details %} — {{ linked_request.details }}{% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="form-card" data-aos="fade-up" data-aos-delay="0">
         <form method="post" enctype="multipart/form-data" class="space-y-5">
             {% csrf_token %}
+            {% if linked_request %}
+            <input type="hidden" name="note_request_id" value="{{ linked_request.pk }}">
+            {% endif %}
 
             <!-- Title -->
             <div>
@@ -75,7 +117,7 @@
                 <div>
                     <label class="form-label">
                         বিষয়
-                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full ml-1 font-semibold border border-blue-100">Subject</span>
+                        <span class="inline-block bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full ml-1 font-semibold border border-blue-100 dark:border-blue-700">Subject</span>
                     </label>
                     <select name="subject" required class="form-input">
                         {% for s in subjects %}
@@ -86,7 +128,7 @@
                 <div>
                     <label class="form-label">
                         ক্লাস
-                        <span class="inline-block bg-purple-50 text-purple-700 text-xs px-2 py-0.5 rounded-full ml-1 font-semibold border border-purple-100">Class</span>
+                        <span class="inline-block bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs px-2 py-0.5 rounded-full ml-1 font-semibold border border-purple-100 dark:border-purple-700">Class</span>
                     </label>
                     <select name="class_obj" required class="form-input">
                         {% for c in classes %}
@@ -107,7 +149,7 @@
             <!-- Content (TinyMCE) -->
             <div>
                 <label class="form-label">Content</label>
-                <div class="rounded-xl border border-gray-200 overflow-hidden">
+                <div class="rounded-xl border border-gray-200 dark:border-slate-600 overflow-hidden">
                     <textarea name="content" id="content" rows="12"></textarea>
                 </div>
             </div>
@@ -118,10 +160,10 @@
                     PDF File
                     <span class="text-gray-400 text-xs font-normal ml-1">(optional)</span>
                 </label>
-                <div class="border border-dashed border-gray-300 rounded-xl px-4 py-4 text-sm text-gray-400 hover:border-blue-300 hover:bg-blue-50/30 transition">
+                <div class="border border-dashed border-gray-300 dark:border-slate-600 rounded-xl px-4 py-4 text-sm text-gray-400 dark:text-slate-400 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition">
                     <input type="file" name="pdf_file" accept=".pdf"
-                        class="w-full text-sm text-gray-600">
-                    <p class="text-xs text-gray-400 mt-1">PDF ফাইল আপলোড করো (সর্বোচ্চ 20MB)</p>
+                        class="w-full text-sm text-gray-600 dark:text-slate-300">
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">PDF ফাইল আপলোড করো (সর্বোচ্চ 20MB)</p>
                 </div>
             </div>
 
@@ -133,7 +175,7 @@
                     💾 Save Note
                 </button>
                 <a href="{% url 'study_notes' %}"
-                    class="inline-flex items-center gap-2 bg-gray-100 text-gray-700 font-semibold px-6 py-2.5 rounded-xl hover:bg-gray-200 transition">
+                    class="inline-flex items-center gap-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 font-semibold px-6 py-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition">
                     বাতিল
                 </a>
             </div>
@@ -143,14 +185,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
+var _isDark = document.documentElement.classList.contains('dark');
 tinymce.init({
     selector: '#content',
     plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
     toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
     height: 500,
     promotion: false,
-    skin: 'oxide',
-    content_css: 'default',
+    skin: _isDark ? 'oxide-dark' : 'oxide',
+    content_css: _isDark ? 'dark' : 'default',
 });
 
 document.querySelector('form').addEventListener('submit', function() {

@@ -73,6 +73,29 @@
       </div>
     </div>
 
+    <!-- ── Note Requests Banner ─────────────────── -->
+    {% if pending_note_request_count %}
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 mb-6 flex items-center justify-between gap-4 flex-wrap"
+         data-aos="fade-up">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center text-white text-lg shrink-0">📩</div>
+        <div>
+          <p class="font-bold text-amber-900">
+            {% if LANG == 'en' %}{{ pending_note_request_count }} Note Request(s) Pending{% else %}{{ pending_note_request_count }}টি Note Request অপেক্ষমাণ{% endif %}
+          </p>
+          <p class="text-xs text-amber-700 mt-0.5">
+            {% for req in pending_note_requests %}{{ req.student.username }} — "{{ req.topic }}"{% if not forloop.last %}, {% endif %}{% endfor %}
+          </p>
+        </div>
+      </div>
+      <a href="{% url 'manage_note_requests' %}"
+         class="shrink-0 text-sm font-bold text-white px-4 py-2 rounded-xl transition hover:opacity-90"
+         style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+        {% if LANG == 'en' %}View Requests{% else %}Requests দেখুন{% endif %} →
+      </a>
+    </div>
+    {% endif %}
+
     <!-- ── Student Progress Banner ──────────────── -->
     <div class="relative overflow-hidden rounded-2xl p-6 mb-8 flex items-center justify-between"
          style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);"

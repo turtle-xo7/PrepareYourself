@@ -840,3 +840,36 @@ html.dark .sticky.bg-white {
   background: #0f172a !important;
   border-color: #334155 !important;
 }
+
+/* ── Notifications page ── */
+html.dark .notif-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.3) !important;
+}
+html.dark .notif-card:hover {
+  box-shadow: 0 6px 24px rgba(59,130,246,0.15) !important;
+}
+/* Unread: inline style="background:{{ bg }}" overridden with !important */
+html.dark .notif-card.unread {
+  background: #162032 !important;
+  border-color: #334155 !important;
+}
+html.dark .notif-card.read-card {
+  border-left-color: #475569 !important;
+}
+html.dark .notif-section-header {
+  background: #0f172a !important;
+  border-bottom-color: #334155 !important;
+  color: #64748b !important;
+}
+html.dark .notif-section-header .section-line {
+  background: #334155 !important;
+}
+html.dark .notif-icon-badge {
+  background: #263348 !important;
+  border-color: #475569 !important;
+}
+html.dark .notif-card.read-card .notif-teacher-name {
+  color: #94a3b8 !important;
+}

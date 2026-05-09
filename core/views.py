@@ -690,7 +690,7 @@ def superadmin_dashboard(request):
 
 @admin_required
 def manage_dashboard(request):
-    from .models import PracticalVideo, ExamPaper, ExamAttempt
+    from .models import PracticalVideo, ExamPaper, ExamAttempt, NoteRequest
     total_questions = Question.objects.filter(is_active=True).count()
     total_videos = PracticalVideo.objects.filter(is_active=True).count()
     total_boards = Board.objects.filter(is_active=True).count()
@@ -699,6 +699,8 @@ def manage_dashboard(request):
     recent_questions = Question.objects.select_related('board', 'subject').order_by('-created_at')[:5]
     exam_paper_count = ExamPaper.objects.count()
     pending_cq_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
+    pending_note_requests = NoteRequest.objects.filter(status='PENDING').select_related('student', 'subject').order_by('-created_at')[:5]
+    pending_note_request_count = NoteRequest.objects.filter(status='PENDING').count()
     return render(request, 'manage/dashboard.html', {
         'total_questions': total_questions,
         'total_videos': total_videos,
@@ -708,6 +710,8 @@ def manage_dashboard(request):
         'recent_questions': recent_questions,
         'exam_paper_count': exam_paper_count,
         'pending_cq_count': pending_cq_count,
+        'pending_note_requests': pending_note_requests,
+        'pending_note_request_count': pending_note_request_count,
     })
 
 
@@ -723,7 +727,7 @@ def question_add(request):
     subjects = Subject.objects.filter(is_active=True)
     classes = Class.objects.all()
     if request.method == 'POST':
-        Question.objects.create(
+        q = Question.objects.create(
             board=get_object_or_404(Board, pk=request.POST.get('board')),
             subject=get_object_or_404(Subject, pk=request.POST.get('subject')),
             class_obj=get_object_or_404(Class, pk=request.POST.get('class_obj')),
@@ -738,6 +742,14 @@ def question_add(request):
             option4=request.POST.get('option4', ''),
             correct_option=request.POST.get('correct_option') or None,
             answer_hint=request.POST.get('answer_hint', ''),
+        )
+        _notify_all_students(
+            'question',
+            f'New Question Added — {q.subject.name}',
+            f'{q.subject.name}, {q.class_obj.name} — Chapter: {q.chapter} ({q.get_question_type_display()})',
+            link='/question-bank/',
+            title_bn=f'নতুন প্রশ্ন যোগ হয়েছে — {q.subject.name}',
+            message_bn=f'{q.subject.name}, {q.class_obj.name} — অধ্যায়: {q.chapter} ({q.get_question_type_display()})',
         )
         messages.success(request, 'Question added successfully!')
         return redirect('manage_questions')
@@ -1313,6 +1325,89 @@ def send_general_feedback(request, student_pk):
 
 
 @login_required
+def request_note(request):
+    if request.method != 'POST':
+        return redirect('study_notes')
+    from .models import NoteRequest, Notification, UserProfile
+    topic = request.POST.get('topic', '').strip()
+    if not topic:
+        messages.error(request, 'Topic দাও।' if request.LANG == 'bn' else 'Please enter a topic.')
+        return redirect('study_notes')
+    subject_id = request.POST.get('subject')
+    subject = Subject.objects.filter(pk=subject_id).first() if subject_id else None
+    note_req = NoteRequest.objects.create(
+        student=request.user,
+        subject=subject,
+        topic=topic,
+        details=request.POST.get('details', ''),
+    )
+    admin_ids = UserProfile.objects.filter(is_admin=True).values_list('user_id', flat=True)
+    Notification.objects.bulk_create([
+        Notification(
+            recipient_id=uid,
+            notif_type='request',
+            title=f'নতুন Note Request: {topic}' if request.LANG == 'bn' else f'New Note Request: {topic}',
+            message=f'{request.user.username} একটি note request করেছেন — "{topic}"' if request.LANG == 'bn' else f'{request.user.username} requested a note on "{topic}"',
+            link='/manage/note-requests/',
+        )
+        for uid in admin_ids
+    ])
+    messages.success(request, 'Request পাঠানো হয়েছে! 📩' if request.LANG == 'bn' else 'Request sent! 📩')
+    return redirect('study_notes')
+
+
+@admin_required
+def manage_note_requests(request):
+    from .models import NoteRequest
+    note_requests = NoteRequest.objects.select_related('student', 'subject', 'fulfilled_by', 'fulfilled_note').order_by('-created_at')
+    subjects = Subject.objects.filter(is_active=True)
+    return render(request, 'manage/note_requests.html', {
+        'note_requests': note_requests,
+        'subjects': subjects,
+        'pending_count': note_requests.filter(status='PENDING').count(),
+    })
+
+
+@admin_required
+def fulfill_note_request(request, pk):
+    from .models import NoteRequest, Notification
+    from django.utils import timezone
+    note_req = get_object_or_404(NoteRequest, pk=pk)
+    action = request.POST.get('action', 'fulfill')
+    if action == 'reject':
+        note_req.status = 'REJECTED'
+        note_req.fulfilled_at = timezone.now()
+        note_req.fulfilled_by = request.user
+        note_req.save()
+        Notification.objects.create(
+            recipient=note_req.student,
+            notif_type='request',
+            title='Note Request Update',
+            message=f'Your request for "{note_req.topic}" could not be fulfilled at this time.',
+            title_bn='Note Request আপডেট',
+            message_bn=f'"{note_req.topic}" বিষয়ে তোমার request টি এই মুহূর্তে পূরণ করা সম্ভব হয়নি।',
+            link='/student/notifications/',
+        )
+        messages.info(request, 'Request reject করা হয়েছে।' if request.LANG == 'bn' else 'Request rejected.')
+    else:
+        note_req.status = 'FULFILLED'
+        note_req.fulfilled_at = timezone.now()
+        note_req.fulfilled_by = request.user
+        note_req.save()
+        Notification.objects.create(
+            recipient=note_req.student,
+            notif_type='note',
+            title='Your Note Request is Fulfilled! 🎉',
+            message=f'A study note on "{note_req.topic}" has been added. Check it out!',
+            title_bn='তোমার Note Request পূরণ হয়েছে! 🎉',
+            message_bn=f'"{note_req.topic}" বিষয়ে study note যোগ করা হয়েছে। এখনই দেখো!',
+            link='/study-notes/',
+        )
+        messages.success(request, 'Request fulfilled করা হয়েছে।' if request.LANG == 'bn' else 'Request fulfilled.')
+    return redirect('manage_note_requests')
+
+
+@login_required
 def notifications(request):
     from .models import TeacherFeedback, Notification
     feedbacks = TeacherFeedback.objects.filter(
@@ -1399,9 +1494,13 @@ def study_note_detail(request, pk):
 
 @admin_required
 def study_note_add(request):
-    from .models import StudyNote
+    from .models import StudyNote, NoteRequest
     subjects = Subject.objects.filter(is_active=True)
     classes = Class.objects.all()
+    linked_request = None
+    req_id = request.GET.get('req') or request.POST.get('note_request_id')
+    if req_id:
+        linked_request = NoteRequest.objects.filter(pk=req_id, status='PENDING').first()
     if request.method == 'POST':
         note = StudyNote.objects.create(
             title=request.POST.get('title'),
@@ -1417,15 +1516,42 @@ def study_note_add(request):
             note.save()
         _notify_all_students(
             'note',
-            f'নতুন Study Note: {note.title}',
-            f'{request.user.username} একটি নতুন study note আপলোড করেছেন — "{note.title}" ({note.subject.name}, {note.class_obj.name})',
+            f'New Study Note: {note.title}',
+            f'{request.user.username} uploaded a new study note — "{note.title}" ({note.subject.name}, {note.class_obj.name})',
             link=f'/study-notes/{note.pk}/',
+            title_bn=f'নতুন Study Note: {note.title}',
+            message_bn=f'{request.user.username} একটি নতুন study note আপলোড করেছেন — "{note.title}" ({note.subject.name}, {note.class_obj.name})',
         )
+        # Fulfill a linked note request if specified
+        from .models import NoteRequest
+        from django.utils import timezone
+        req_id = request.POST.get('note_request_id')
+        if req_id:
+            try:
+                note_req = NoteRequest.objects.get(pk=req_id, status='PENDING')
+                note_req.status = 'FULFILLED'
+                note_req.fulfilled_at = timezone.now()
+                note_req.fulfilled_by = request.user
+                note_req.fulfilled_note = note
+                note_req.save()
+                from .models import Notification
+                Notification.objects.create(
+                    recipient=note_req.student,
+                    notif_type='note',
+                    title='Your Note Request is Fulfilled! 🎉',
+                    message=f'A new study note on "{note_req.topic}" has been added.',
+                    title_bn='তোমার Note Request পূরণ হয়েছে! 🎉',
+                    message_bn=f'"{note_req.topic}" বিষয়ে একটি নতুন study note যোগ করা হয়েছে।',
+                    link=f'/study-notes/{note.pk}/',
+                )
+            except NoteRequest.DoesNotExist:
+                pass
         messages.success(request, 'Note added!')
         return redirect('study_notes')
     return render(request, 'core/study_note_add.html', {
         'subjects': subjects,
         'classes': classes,
+        'linked_request': linked_request,
     })
 
 
@@ -1785,9 +1911,11 @@ def contest_create(request):
                 )
         _notify_all_students(
             'contest',
-            f'নতুন Contest: {contest.title}',
-            f'{request.user.username} একটি নতুন contest তৈরি করেছেন — "{contest.title}" ({contest.subject.name}, {contest.class_obj.name})',
+            f'New Contest: {contest.title}',
+            f'{request.user.username} created a new contest — "{contest.title}" ({contest.subject.name}, {contest.class_obj.name})',
             link=f'/contests/{contest.pk}/',
+            title_bn=f'নতুন Contest: {contest.title}',
+            message_bn=f'{request.user.username} একটি নতুন contest তৈরি করেছেন — "{contest.title}" ({contest.subject.name}, {contest.class_obj.name})',
         )
         messages.success(request, 'Contest created!')
         return redirect('contest_detail', pk=contest.pk)
@@ -2655,11 +2783,16 @@ def _is_exam_staff(user):
         return False
 
 
-def _notify_all_students(notif_type, title, message, link=''):
+def _notify_all_students(notif_type, title, message, link='', title_bn='', message_bn=''):
     from .models import Notification, UserProfile
     student_ids = UserProfile.objects.filter(role='STUDENT').values_list('user_id', flat=True)
     Notification.objects.bulk_create([
-        Notification(recipient_id=uid, notif_type=notif_type, title=title, message=message, link=link)
+        Notification(
+            recipient_id=uid, notif_type=notif_type,
+            title=title, message=message,
+            title_bn=title_bn, message_bn=message_bn,
+            link=link,
+        )
         for uid in student_ids
     ])
 
@@ -2782,9 +2915,11 @@ def create_exam_paper(request):
 
         _notify_all_students(
             'exam',
-            f'নতুন Exam Paper: {paper.title}',
-            f'{request.user.username} একটি নতুন exam paper আপলোড করেছেন — "{paper.title}" ({paper.subject.name}, {paper.class_obj.name})',
+            f'New Exam Paper: {paper.title}',
+            f'{request.user.username} uploaded a new exam paper — "{paper.title}" ({paper.subject.name}, {paper.class_obj.name})',
             link=f'/exam-papers/{paper.pk}/',
+            title_bn=f'নতুন Exam Paper: {paper.title}',
+            message_bn=f'{request.user.username} একটি নতুন exam paper আপলোড করেছেন — "{paper.title}" ({paper.subject.name}, {paper.class_obj.name})',
         )
         messages.success(
             request,

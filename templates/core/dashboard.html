@@ -432,7 +432,7 @@
                     <div class="text-xl">⭐</div>
                     <div class="flex-1">
                         <p class="text-xs text-amber-700 font-semibold uppercase tracking-wider">{% if LANG == 'en' %}Best day{% else %}সেরা দিন{% endif %}</p>
-                        <p class="text-sm text-gray-800 mt-0.5">{% if LANG == 'en' %}You're most active on <span class="font-semibold">{{ best_day }}</span>.{% else %}<span class="font-semibold">{{ best_day }}</span>-এ আপনি সবচেয়ে বেশি সক্রিয়।{% endif %}</p>
+                        <p class="text-sm text-gray-800 mt-0.5">{% if LANG == 'en' %}You're most active on <span class="font-semibold">{{ best_day }}</span>.{% else %}<span class="font-semibold">{% if best_day == 'Sunday' %}রবিবার{% elif best_day == 'Monday' %}সোমবার{% elif best_day == 'Tuesday' %}মঙ্গলবার{% elif best_day == 'Wednesday' %}বুধবার{% elif best_day == 'Thursday' %}বৃহস্পতিবার{% elif best_day == 'Friday' %}শুক্রবার{% elif best_day == 'Saturday' %}শনিবার{% else %}{{ best_day }}{% endif %}</span>-এ আপনি সবচেয়ে বেশি সক্রিয়।{% endif %}</p>
                     </div>
                 </div>
                 {% else %}
@@ -769,6 +769,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 (function () {
+    /* ---------- Bengali digit helpers ---------- */
+    {% if LANG == 'bn' %}
+    const _bnD = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+    function toBn(s) { return String(s).replace(/[0-9]/g, d => _bnD[+d]); }
+    const _dayMapBn = {'Sun':'রবি','Mon':'সোম','Tue':'মঙ্গল','Wed':'বুধ','Thu':'বৃহ','Fri':'শুক্র','Sat':'শনি'};
+    const _monMapBn = {'Jan':'জান','Feb':'ফেব','Mar':'মার','Apr':'এপ্র','May':'মে','Jun':'জুন','Jul':'জুল','Aug':'আগ','Sep':'সেপ','Oct':'অক্ট','Nov':'নভ','Dec':'ডিস'};
+    function dateLabelBn(label) {
+        const p = label.split(' ');
+        return toBn(p[0]) + ' ' + (_monMapBn[p[1]] || p[1]);
+    }
+    {% else %}
+    function toBn(s) { return String(s); }
+    {% endif %}
+
     /* ---------- Animated counters ---------- */
     function animateCounter(el) {
         const target = parseFloat(el.dataset.target || '0');
@@ -779,9 +793,9 @@
             const t = Math.min((now - start) / duration, 1);
             const eased = 1 - Math.pow(1 - t, 3);
             const v = target * eased;
-            el.textContent = decimals ? v.toFixed(decimals) : Math.round(v).toLocaleString();
+            el.textContent = toBn(decimals ? v.toFixed(decimals) : Math.round(v));
             if (t < 1) requestAnimationFrame(tick);
-            else el.textContent = decimals ? target.toFixed(decimals) : Math.round(target).toLocaleString();
+            else el.textContent = toBn(decimals ? target.toFixed(decimals) : Math.round(target));
         }
         requestAnimationFrame(tick);
     }
@@ -817,7 +831,11 @@
     Chart.defaults.color = '#64748b';
 
     // Accuracy trend (line, 30 days) — navy blue palette
+    {% if LANG == 'bn' %}
+    const trendLabels = [{% for d in accuracy_trend %}'{{ d.day }}',{% endfor %}].map(dateLabelBn);
+    {% else %}
     const trendLabels = [{% for d in accuracy_trend %}'{{ d.day }}',{% endfor %}];
+    {% endif %}
     const trendData = [{% for d in accuracy_trend %}{% if d.accuracy is None %}null{% else %}{{ d.accuracy }}{% endif %},{% endfor %}];
     const trendCtx = document.getElementById('accuracyTrendChart');
     if (trendCtx) {
@@ -879,7 +897,7 @@
         new Chart(weeklyCtx, {
             type: 'bar',
             data: {
-                labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
+                labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}]{% if LANG == 'bn' %}.map(d => _dayMapBn[d] || d){% endif %},
                 datasets: [
                     {
                         label: '{% if LANG == "en" %}Total{% else %}মোট{% endif %}',

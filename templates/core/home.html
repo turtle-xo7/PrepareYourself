@@ -324,6 +324,13 @@
   var counters = document.querySelectorAll('.count-up');
   if (!counters.length) return;
 
+  {% if LANG == 'bn' %}
+  var bnD = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+  function fmt(str) { return String(str).replace(/[0-9]/g, function(d){ return bnD[+d]; }); }
+  {% else %}
+  function fmt(str) { return String(str); }
+  {% endif %}
+
   function animateCounter(el) {
     var target   = parseFloat(el.dataset.target);
     var divisor  = parseFloat(el.dataset.divisor || '1');
@@ -334,7 +341,7 @@
       var progress = Math.min((now - start) / duration, 1);
       var ease     = 1 - Math.pow(1 - progress, 3);
       var value    = target * ease;
-      el.textContent = divisor !== 1 ? (value / divisor).toFixed(1) : Math.round(value);
+      el.textContent = fmt(divisor !== 1 ? (value / divisor).toFixed(1) : Math.round(value));
       if (progress < 1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);

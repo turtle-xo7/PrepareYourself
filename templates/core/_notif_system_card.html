@@ -2,31 +2,32 @@
 Partial: system notification card (exam / contest / note).
 Variables: notif, icon, accent, bg, border, unread (bool)
 {% endcomment %}
+{% load bn_filters %}
 <div class="notif-card {% if unread %}unread{% else %}read-card{% endif %} p-5" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0"
      style="{% if unread %}border-left: 4px solid {{ accent }};background: {{ bg }};{% else %}border-left: 4px solid #e5e7eb;{% endif %}">
 
     <div class="flex items-start justify-between gap-3">
         <div class="flex items-center gap-3 flex-1 min-w-0">
             <!-- Icon badge -->
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+            <div class="notif-icon-badge w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
                  style="background: {{ bg }}; border: 1.5px solid {{ border }};">
                 {{ icon }}
             </div>
             <div class="min-w-0">
-                <p class="font-bold text-sm text-gray-900 leading-snug truncate">{{ notif.title }}</p>
-                <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ notif.message }}</p>
+                <p class="font-bold text-sm text-gray-900 leading-snug truncate">{% notif_title notif %}</p>
+                <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{% notif_message notif %}</p>
                 <p class="text-[10px] text-gray-400 mt-1">{{ notif.created_at|date:"d M Y H:i" }}</p>
             </div>
         </div>
         <div class="flex flex-col items-end gap-2 flex-shrink-0">
             {% if unread %}
             <span class="text-xs px-2.5 py-0.5 rounded-full font-bold"
-                  style="background: {{ bg }}; color: {{ accent }}; border: 1px solid {{ border }};">নতুন</span>
+                  style="background: {{ bg }}; color: {{ accent }}; border: 1px solid {{ border }};">{% if LANG == 'bn' %}নতুন{% else %}New{% endif %}</span>
             {% endif %}
             {% if notif.link %}
             <a href="{{ notif.link }}"
                class="text-xs font-semibold underline underline-offset-2 transition hover:opacity-70"
-               style="color: {{ accent }};">দেখো →</a>
+               style="color: {{ accent }};">{% if LANG == 'bn' %}দেখো →{% else %}View →{% endif %}</a>
             {% endif %}
         </div>
     </div>

@@ -378,16 +378,43 @@ class CQSubmission(models.Model):
         return f"{self.attempt.student.username} - CQ{self.cq_question.id}"
 
 
+class NoteRequest(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('FULFILLED', 'Fulfilled'),
+        ('REJECTED', 'Rejected'),
+    ]
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note_requests')
+    subject = models.ForeignKey('Subject', on_delete=models.SET_NULL, null=True, blank=True, related_name='note_requests')
+    topic = models.CharField(max_length=300)
+    details = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    fulfilled_at = models.DateTimeField(null=True, blank=True)
+    fulfilled_note = models.ForeignKey('StudyNote', on_delete=models.SET_NULL, null=True, blank=True, related_name='from_requests')
+    fulfilled_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='fulfilled_requests')
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.student.username} — {self.topic}"
+
+
 class Notification(models.Model):
     TYPE_CHOICES = [
         ('exam', 'Exam Paper'),
         ('contest', 'Contest'),
         ('note', 'Study Note'),
+        ('request', 'Note Request'),
+        ('question', 'New Question'),
     ]
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     notif_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     title = models.CharField(max_length=300)
     message = models.TextField()
+    title_bn = models.CharField(max_length=300, blank=True)
+    message_bn = models.TextField(blank=True)
     link = models.CharField(max_length=200, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

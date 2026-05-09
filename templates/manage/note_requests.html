@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load bn_filters %}
+{% block title %}{% if LANG == 'en' %}Note Requests{% else %}Note Requests{% endif %}{% endblock %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div>
+      <h1 class="text-2xl font-extrabold text-gray-900">
+        📩 {% if LANG == 'en' %}Student Note Requests{% else %}শিক্ষার্থীদের Note Request{% endif %}
+      </h1>
+      <p class="text-sm text-gray-400 mt-1">
+        {% if LANG == 'en' %}{{ pending_count }} pending request(s){% else %}{% if LANG == 'bn' %}{{ pending_count|bn_num }}{% else %}{{ pending_count }}{% endif %} টি request অপেক্ষমাণ{% endif %}
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'study_note_add' %}"
+         class="text-sm font-semibold text-white px-4 py-2 rounded-xl transition"
+         style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+        + {% if LANG == 'en' %}Add Note{% else %}নোট যোগ করুন{% endif %}
+      </a>
+      <a href="{% url 'manage_dashboard' %}"
+         class="text-sm text-gray-600 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-50 transition">
+        ← {% if LANG == 'en' %}Dashboard{% else %}ড্যাশবোর্ড{% endif %}
+      </a>
+    </div>
+  </div>
+
+  {% if note_requests %}
+  <div class="space-y-3">
+    {% for req in note_requests %}
+    <div class="bg-white rounded-2xl border p-5 flex items-start justify-between gap-4 hover:shadow-md transition
+      {% if req.status == 'PENDING' %}border-amber-200 bg-amber-50{% elif req.status == 'FULFILLED' %}border-green-200 bg-green-50{% else %}border-gray-200{% endif %}">
+
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap mb-1">
+          <span class="font-bold text-gray-900">{{ req.topic }}</span>
+          {% if req.status == 'PENDING' %}
+          <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">
+            {% if LANG == 'en' %}Pending{% else %}অপেক্ষমাণ{% endif %}
+          </span>
+          {% elif req.status == 'FULFILLED' %}
+          <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+            {% if LANG == 'en' %}Fulfilled{% else %}পূরণ হয়েছে{% endif %}
+          </span>
+          {% else %}
+          <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-semibold">
+            {% if LANG == 'en' %}Rejected{% else %}প্রত্যাখ্যাত{% endif %}
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="text-sm text-gray-500 flex flex-wrap gap-3 mt-1">
+          <span>👤 {{ req.student.username }}</span>
+          {% if req.subject %}<span>📘 {{ req.subject.name }}</span>{% endif %}
+          <span>🕐 {{ req.created_at|date:"d M Y, g:i A" }}</span>
+        </div>
+
+        {% if req.details %}
+        <p class="text-sm text-gray-600 mt-2 bg-white rounded-xl px-3 py-2 border border-gray-100">{{ req.details }}</p>
+        {% endif %}
+
+        {% if req.status == 'FULFILLED' and req.fulfilled_note %}
+        <a href="{% url 'study_note_detail' req.fulfilled_note.pk %}"
+           class="inline-flex items-center gap-1.5 mt-2 text-xs text-green-700 font-semibold hover:underline">
+          📄 {% if LANG == 'en' %}View fulfilled note{% else %}পূরণকৃত নোট দেখুন{% endif %} →
+        </a>
+        {% endif %}
+      </div>
+
+      {% if req.status == 'PENDING' %}
+      <div class="flex flex-col gap-2 shrink-0">
+        <!-- Fulfill by adding a note linked to this request -->
+        <a href="{% url 'study_note_add' %}?req={{ req.pk }}"
+           class="text-xs font-bold text-white px-3 py-2 rounded-xl text-center transition hover:opacity-90"
+           style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+          ✏️ {% if LANG == 'en' %}Add Note{% else %}নোট লিখুন{% endif %}
+        </a>
+        <!-- Quick fulfill (mark without adding note) -->
+        <form method="post" action="{% url 'fulfill_note_request' req.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="fulfill">
+          <button type="submit"
+            class="w-full text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 px-3 py-2 rounded-xl transition">
+            ✓ {% if LANG == 'en' %}Mark Fulfilled{% else %}সম্পন্ন করুন{% endif %}
+          </button>
+        </form>
+        <form method="post" action="{% url 'fulfill_note_request' req.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reject">
+          <button type="submit"
+            class="w-full text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition">
+            ✕ {% if LANG == 'en' %}Reject{% else %}বাতিল করুন{% endif %}
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-20 text-gray-400">
+    <p class="text-5xl mb-4">📭</p>
+    <p class="text-lg font-semibold">{% if LANG == 'en' %}No note requests yet.{% else %}এখনো কোনো note request নেই।{% endif %}</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
