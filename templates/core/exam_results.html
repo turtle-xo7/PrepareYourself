@@ -30,7 +30,7 @@
 {% elif attempt.status == 'GRADED' %}
 <!-- ===== GRADED STATE ===== -->
 
-{% with grade=attempt.grade total=attempt.total_score %}
+{% with grade=live_grade total=attempt.total_score %}
 <!-- Grade Banner -->
 <div class="rounded-2xl shadow-lg p-8 mb-6 text-center
   {% if grade == 'A+' %}bg-gradient-to-br from-green-500 to-emerald-600
@@ -42,7 +42,8 @@
   {% else %}bg-gradient-to-br from-gray-500 to-gray-700{% endif %}
   text-white">
   <div class="text-6xl font-extrabold mb-2 drop-shadow">{{ grade }}</div>
-  <div class="text-2xl font-semibold opacity-90">{{ total }}/100 নম্বর</div>
+  <div class="text-2xl font-semibold opacity-90">{{ total }}/{{ max_marks }} নম্বর</div>
+  <div class="text-sm opacity-90">({{ percentage }}%)</div>
   <div class="text-sm opacity-75 mt-1">{{ attempt.exam_paper.title }}</div>
 </div>
 
@@ -55,18 +56,18 @@
         <p class="font-semibold text-gray-700">MCQ পর্ব</p>
         <p class="text-xs text-gray-400">৩০টি MCQ, প্রতিটি ১ নম্বর</p>
       </div>
-      <span class="text-2xl font-bold text-blue-700">{{ attempt.mcq_score }}</span>
+      <span class="text-2xl font-bold text-blue-700">{{ attempt.mcq_score }}/30</span>
     </div>
     <div class="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
       <div>
         <p class="font-semibold text-gray-700">CQ পর্ব</p>
         <p class="text-xs text-gray-400">{{ cq_submissions|length }}টি সৃজনশীল প্রশ্ন</p>
       </div>
-      <span class="text-2xl font-bold text-purple-700">{{ attempt.cq_score }}</span>
+      <span class="text-2xl font-bold text-purple-700">{{ attempt.cq_score }}/70</span>
     </div>
     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border-2 border-gray-300">
       <span class="font-bold text-gray-700 text-lg">মোট</span>
-      <span class="text-2xl font-extrabold text-gray-800">{{ total }}/100</span>
+      <span class="text-2xl font-extrabold text-gray-800">{{ total }}/{{ max_marks }} <span class="text-sm font-semibold text-gray-500">({{ percentage }}%)</span></span>
     </div>
   </div>
 </div>

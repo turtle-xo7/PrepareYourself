@@ -458,8 +458,7 @@ def dashboard(request):
     unread_count = TeacherFeedback.objects.filter(student=user, is_read=False).count()
 
     # ----- Exam results grouped by subject -----
-    from .models import ExamAttempt, ExamPaperMCQ, CQQuestion
-    from django.db.models import Sum
+    from .models import ExamAttempt
 
     graded_attempts = list(
         ExamAttempt.objects.filter(student=user, status='GRADED')
@@ -469,25 +468,9 @@ def dashboard(request):
 
     exam_results_by_subject = []
     if graded_attempts:
-        paper_ids = {a.exam_paper_id for a in graded_attempts}
-        mcq_totals = dict(
-            ExamPaperMCQ.objects.filter(exam_paper_id__in=paper_ids)
-                                .values('exam_paper_id')
-                                .annotate(total=Sum('marks'))
-                                .values_list('exam_paper_id', 'total')
-        )
-        cq_marks_map = {}
-        for cq in CQQuestion.objects.filter(exam_paper_id__in=paper_ids).values(
-            'id', 'marks_a', 'marks_b', 'marks_c', 'marks_d'
-        ):
-            cq_marks_map[cq['id']] = cq['marks_a'] + cq['marks_b'] + cq['marks_c'] + cq['marks_d']
-
         subject_groups = {}
         for a in graded_attempts:
-            mcq_total = mcq_totals.get(a.exam_paper_id, 0)
-            selected = a.selected_cqs or []
-            cq_total = sum(cq_marks_map.get(int(cqid), 0) for cqid in selected)
-            max_marks = mcq_total + cq_total
+            max_marks = EXAM_TOTAL_MAX
             score = a.total_score or 0
             pct = round(score / max_marks * 100, 1) if max_marks else 0
 
@@ -2788,24 +2771,13 @@ def _calculate_grade(score, max_marks):
     return 'F'
 
 
-def _exam_max_marks(attempt):
-    from .models import ExamPaperMCQ, CQQuestion
-    from django.db.models import Sum, F
-    mcq_max = ExamPaperMCQ.objects.filter(
-        exam_paper_id=attempt.exam_paper_id
-    ).aggregate(s=Sum('marks'))['s'] or 0
-    selected = attempt.selected_cqs or []
-    cq_max = 0
-    if selected:
-        try:
-            ids = [int(x) for x in selected]
-        except (TypeError, ValueError):
-            ids = []
-        if ids:
-            cq_max = CQQuestion.objects.filter(
-                exam_paper_id=attempt.exam_paper_id, id__in=ids
-            ).aggregate(s=Sum(F('marks_a') + F('marks_b') + F('marks_c') + F('marks_d')))['s'] or 0
-    return mcq_max + cq_max
+EXAM_MCQ_MAX = 30
+EXAM_CQ_MAX = 70
+EXAM_TOTAL_MAX = 100
+
+
+def _exam_max_marks(attempt=None):
+    return EXAM_TOTAL_MAX
 
 
 def _auto_submit_mcq(attempt):
@@ -3046,9 +3018,19 @@ def exam_results(request, attempt_id):
     from .models import ExamAttempt
     attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user)
     cq_submissions = attempt.cq_submissions.select_related('cq_question').all()
+    max_marks = _exam_max_marks(attempt)
+    score = attempt.total_score or 0
+    percentage = round((score / max_marks) * 100, 1) if max_marks else 0
+    live_grade = _calculate_grade(score, max_marks) if attempt.status == 'GRADED' else attempt.grade
+    if attempt.status == 'GRADED' and live_grade != attempt.grade:
+        attempt.grade = live_grade
+        attempt.save(update_fields=['grade'])
     return render(request, 'core/exam_results.html', {
         'attempt': attempt,
         'cq_submissions': cq_submissions,
+        'max_marks': max_marks,
+        'percentage': percentage,
+        'live_grade': live_grade,
     })
 
 
