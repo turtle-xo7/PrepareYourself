@@ -457,6 +457,78 @@ def dashboard(request):
     )
     unread_count = TeacherFeedback.objects.filter(student=user, is_read=False).count()
 
+    # ----- Exam results grouped by subject -----
+    from .models import ExamAttempt, ExamPaperMCQ, CQQuestion
+    from django.db.models import Sum
+
+    graded_attempts = list(
+        ExamAttempt.objects.filter(student=user, status='GRADED')
+                           .select_related('exam_paper', 'exam_paper__subject')
+                           .order_by('-graded_at')
+    )
+
+    exam_results_by_subject = []
+    if graded_attempts:
+        paper_ids = {a.exam_paper_id for a in graded_attempts}
+        mcq_totals = dict(
+            ExamPaperMCQ.objects.filter(exam_paper_id__in=paper_ids)
+                                .values('exam_paper_id')
+                                .annotate(total=Sum('marks'))
+                                .values_list('exam_paper_id', 'total')
+        )
+        cq_marks_map = {}
+        for cq in CQQuestion.objects.filter(exam_paper_id__in=paper_ids).values(
+            'id', 'marks_a', 'marks_b', 'marks_c', 'marks_d'
+        ):
+            cq_marks_map[cq['id']] = cq['marks_a'] + cq['marks_b'] + cq['marks_c'] + cq['marks_d']
+
+        subject_groups = {}
+        for a in graded_attempts:
+            mcq_total = mcq_totals.get(a.exam_paper_id, 0)
+            selected = a.selected_cqs or []
+            cq_total = sum(cq_marks_map.get(int(cqid), 0) for cqid in selected)
+            max_marks = mcq_total + cq_total
+            score = a.total_score or 0
+            pct = round(score / max_marks * 100, 1) if max_marks else 0
+
+            subj = a.exam_paper.subject
+            sid = subj.id if subj else 0
+            if sid not in subject_groups:
+                color_name = (subj.color if subj else None) or 'blue'
+                subject_groups[sid] = {
+                    'id': sid,
+                    'name': subj.name if subj else 'Other',
+                    'icon': (subj.icon if subj and subj.icon
+                             else _SUBJECT_EMOJI.get((subj.name if subj else '').lower(), '📚')),
+                    'color': color_name,
+                    'hex': SUBJECT_COLOR_HEX.get(color_name, '#3b82f6'),
+                    'attempts': [],
+                    'pct_sum': 0,
+                    'best_pct': 0,
+                    'count': 0,
+                }
+            subject_groups[sid]['attempts'].append({
+                'id': a.id,
+                'title': a.exam_paper.title,
+                'score': score,
+                'max': max_marks,
+                'pct': pct,
+                'grade': a.grade,
+                'date': a.graded_at,
+            })
+            subject_groups[sid]['pct_sum'] += pct
+            subject_groups[sid]['count'] += 1
+            if pct > subject_groups[sid]['best_pct']:
+                subject_groups[sid]['best_pct'] = pct
+
+        for s in subject_groups.values():
+            s['avg_pct'] = round(s['pct_sum'] / s['count'], 1) if s['count'] else 0
+            s['attempts'].sort(key=lambda x: x['date'])
+            for att in s['attempts']:
+                att['bar_height'] = max(4, min(100, int(att['pct'])))
+            exam_results_by_subject.append(s)
+        exam_results_by_subject.sort(key=lambda s: -s['count'])
+
     return render(request, 'core/dashboard.html', {
         # headline
         'total_answered': total_answered,
@@ -491,6 +563,8 @@ def dashboard(request):
         # feedback
         'feedbacks': feedbacks,
         'unread_count': unread_count,
+        # exam results
+        'exam_results_by_subject': exam_results_by_subject,
     })
 
 
@@ -2695,20 +2769,43 @@ def preview_exam(request, pk):
     })
 
 
-def _calculate_grade(total_score):
-    if total_score >= 80:
+def _calculate_grade(score, max_marks):
+    if not max_marks or max_marks <= 0:
+        return '—'
+    pct = (score / max_marks) * 100
+    if pct >= 80:
         return 'A+'
-    elif total_score >= 70:
+    elif pct >= 70:
         return 'A'
-    elif total_score >= 60:
+    elif pct >= 60:
         return 'A-'
-    elif total_score >= 50:
+    elif pct >= 50:
         return 'B'
-    elif total_score >= 40:
+    elif pct >= 40:
         return 'C'
-    elif total_score >= 33:
+    elif pct >= 33:
         return 'D'
     return 'F'
+
+
+def _exam_max_marks(attempt):
+    from .models import ExamPaperMCQ, CQQuestion
+    from django.db.models import Sum, F
+    mcq_max = ExamPaperMCQ.objects.filter(
+        exam_paper_id=attempt.exam_paper_id
+    ).aggregate(s=Sum('marks'))['s'] or 0
+    selected = attempt.selected_cqs or []
+    cq_max = 0
+    if selected:
+        try:
+            ids = [int(x) for x in selected]
+        except (TypeError, ValueError):
+            ids = []
+        if ids:
+            cq_max = CQQuestion.objects.filter(
+                exam_paper_id=attempt.exam_paper_id, id__in=ids
+            ).aggregate(s=Sum(F('marks_a') + F('marks_b') + F('marks_c') + F('marks_d')))['s'] or 0
+    return mcq_max + cq_max
 
 
 def _auto_submit_mcq(attempt):
@@ -2727,7 +2824,7 @@ def _auto_submit_mcq(attempt):
         attempt.status = 'GRADED'
         attempt.cq_score = 0
         attempt.total_score = score
-        attempt.grade = _calculate_grade(score)
+        attempt.grade = _calculate_grade(score, _exam_max_marks(attempt))
     attempt.save()
 
 
@@ -2770,7 +2867,7 @@ def start_exam(request, pk):
             attempt.status = 'GRADED'
             attempt.cq_score = 0
             attempt.total_score = 0
-            attempt.grade = _calculate_grade(0)
+            attempt.grade = _calculate_grade(0, _exam_max_marks(attempt))
             attempt.save()
             return redirect('exam_results', attempt_id=attempt.id)
         return redirect('exam_cq_phase', attempt_id=attempt.id)
@@ -2821,7 +2918,7 @@ def submit_mcq(request):
         attempt.status = 'GRADED'
         attempt.cq_score = 0
         attempt.total_score = score
-        attempt.grade = _calculate_grade(score)
+        attempt.grade = _calculate_grade(score, _exam_max_marks(attempt))
         redirect_url = f'/exam/{attempt.id}/results/'
     attempt.save()
 
@@ -3471,11 +3568,23 @@ def grade_cq_submission(request, attempt_id):
 
         attempt.cq_score = total_cq
         attempt.total_score = attempt.mcq_score + total_cq
-        attempt.grade = _calculate_grade(attempt.total_score)
+        attempt.grade = _calculate_grade(attempt.total_score, _exam_max_marks(attempt))
         attempt.status = 'GRADED'
         attempt.graded_by = request.user
         attempt.graded_at = timezone.now()
         attempt.save()
+
+        from .models import Notification
+        from django.urls import reverse
+        Notification.objects.create(
+            recipient=attempt.student,
+            notif_type='exam',
+            title=f'Result published: {attempt.exam_paper.title}',
+            message=f'Your exam has been graded. Score: {attempt.total_score}, Grade: {attempt.grade}.',
+            title_bn=f'ফলাফল প্রকাশিত: {attempt.exam_paper.title}',
+            message_bn=f'তোমার পরীক্ষার ফলাফল প্রকাশিত হয়েছে। নম্বর: {attempt.total_score}, গ্রেড: {attempt.grade}।',
+            link=reverse('exam_results', args=[attempt.id]),
+        )
 
         messages.success(request, f'Grading সম্পন্ন। Grade: {attempt.grade}')
         return redirect('manage_grade_list')
