@@ -6,9 +6,6 @@ __pycache__/
 *.so
 
 
-# Media uploads (user files)
-media/
-
 # Collected static files
 staticfiles/
 
