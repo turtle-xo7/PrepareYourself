@@ -14,12 +14,28 @@ echo   Prepare Yourself - Setup
 echo ============================================
 echo.
 
-REM 1. Check Python is installed
-where python >nul 2>&1
-if errorlevel 1 (
+REM 1. Find a working Python (prefer the py launcher to avoid the
+REM    Microsoft Store "python.exe" stub that ships with Windows).
+set "PYCMD="
+py -3 --version >nul 2>&1
+if not errorlevel 1 (
+    set "PYCMD=py -3"
+) else (
+    where python >nul 2>&1
+    if not errorlevel 1 (
+        python --version >nul 2>&1
+        if not errorlevel 1 set "PYCMD=python"
+    )
+)
+
+if not defined PYCMD (
     echo [ERROR] Python is not installed or not in PATH.
     echo Please install Python 3.11+ from https://www.python.org/downloads/
     echo and tick "Add Python to PATH" during installation.
+    echo.
+    echo If you see a Microsoft Store window when typing 'python',
+    echo open Settings ^> Apps ^> Advanced app settings ^> App execution
+    echo aliases and turn OFF python.exe and python3.exe.
     pause
     exit /b 1
 )
@@ -27,7 +43,7 @@ if errorlevel 1 (
 REM 2. Create a virtual environment in .venv if it does not already exist
 if not exist ".venv\Scripts\python.exe" (
     echo [1/4] Creating virtual environment in .venv ...
-    python -m venv .venv
+    %PYCMD% -m venv .venv
     if errorlevel 1 (
         echo [ERROR] Failed to create virtual environment.
         pause
