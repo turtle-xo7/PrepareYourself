@@ -164,6 +164,22 @@
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="উত্তরের hint লিখুন...">{{ question.answer_hint }}</textarea>
         </div>
+
+        <!-- Solution image -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Solution Image
+            <span class="text-gray-400 text-xs font-normal ml-1">(optional — students will see this after submitting their answer)</span>
+          </label>
+          {% if question.solution_image %}
+          <div class="mb-2">
+            <img src="{{ question.solution_image.url }}" class="max-h-40 rounded-lg border border-gray-200" alt="Current solution">
+            <p class="text-xs text-gray-400 mt-1">Current solution — upload a new one to replace</p>
+          </div>
+          {% endif %}
+          <input type="file" name="solution_image" accept="image/*"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
       </div>
 
       <div class="flex gap-3">

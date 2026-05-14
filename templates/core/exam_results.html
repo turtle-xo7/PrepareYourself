@@ -108,9 +108,11 @@
 </div>
 {% endif %}
 
+{% if attempt.graded_by %}
 <div class="text-sm text-gray-400 text-center mb-6">
   মূল্যায়ন করেছেন: {{ attempt.graded_by.get_full_name|default:attempt.graded_by.username }} • {{ attempt.graded_at|date:"d M Y, g:i A" }}
 </div>
+{% endif %}
 
 {% endwith %}
 

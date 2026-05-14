@@ -786,6 +786,9 @@ def question_add(request):
         if request.FILES.get('stimulus_image'):
             q.stimulus_image = request.FILES['stimulus_image']
             q.save()
+        if request.FILES.get('solution_image'):
+            q.solution_image = request.FILES['solution_image']
+            q.save()
         _notify_all_students(
             'question',
             f'New Question Added — {q.subject.name}',
@@ -832,11 +835,78 @@ def submit_written_solve(request, question_id):
 def written_question_practice(request, question_id):
     from .models import WrittenSolveSubmission
     question = get_object_or_404(Question, pk=question_id, question_type='WRITTEN', is_active=True)
-    submission = WrittenSolveSubmission.objects.filter(student=request.user, question=question).first() if request.user.is_authenticated else None
+    is_teacher = _is_exam_staff(request.user)
+    submission = None
+    student_submissions = None
+    if is_teacher:
+        student_submissions = (
+            WrittenSolveSubmission.objects
+            .filter(question=question)
+            .select_related('student')
+            .order_by('-submitted_at')
+        )
+    else:
+        submission = WrittenSolveSubmission.objects.filter(student=request.user, question=question).first()
     return render(request, 'core/written_question_practice.html', {
         'question': question,
         'submission': submission,
+        'is_teacher': is_teacher,
+        'student_submissions': student_submissions,
     })
+
+
+@login_required
+def upload_question_solution(request, question_id):
+    question = get_object_or_404(Question, pk=question_id, question_type='WRITTEN', is_active=True)
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'শুধু Teacher এই কাজটি করতে পারবে।')
+        return redirect('written_question_practice', question_id=question.pk)
+    if request.method == 'POST' and request.FILES.get('solution_image'):
+        question.solution_image = request.FILES['solution_image']
+        question.save()
+        lang = getattr(request, 'LANG', 'bn')
+        messages.success(request, '✓ Solution uploaded successfully.' if lang == 'en' else '✓ Solution upload হয়েছে।')
+    return redirect('written_question_practice', question_id=question.pk)
+
+
+@login_required
+def delete_question_solution(request, question_id):
+    question = get_object_or_404(Question, pk=question_id, question_type='WRITTEN', is_active=True)
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'শুধু Teacher এই কাজটি করতে পারবে।')
+        return redirect('written_question_practice', question_id=question.pk)
+    if request.method == 'POST' and question.solution_image:
+        question.solution_image.delete(save=False)
+        question.solution_image = None
+        question.save()
+        lang = getattr(request, 'LANG', 'bn')
+        messages.success(request, '✓ Solution deleted.' if lang == 'en' else '✓ Solution মুছে ফেলা হয়েছে।')
+    return redirect('written_question_practice', question_id=question.pk)
+
+
+@login_required
+def delete_student_submission(request, submission_id):
+    from .models import WrittenSolveSubmission
+    sub = get_object_or_404(WrittenSolveSubmission, pk=submission_id)
+    if not _is_exam_staff(request.user):
+        messages.error(request, 'শুধু Teacher এই কাজটি করতে পারবে।')
+        return redirect('written_question_practice', question_id=sub.question_id)
+    question_id = sub.question_id
+    if request.method == 'POST':
+        for field in ('photo_ka', 'photo_kha', 'photo_ga', 'photo_gha'):
+            photo = getattr(sub, field, None)
+            if photo:
+                photo.delete(save=False)
+        UserProgress.objects.filter(user=sub.student, question_id=question_id).delete()
+        student_name = sub.student.get_full_name() or sub.student.username
+        sub.delete()
+        lang = getattr(request, 'LANG', 'bn')
+        messages.success(
+            request,
+            f'✓ Submission of {student_name} deleted.' if lang == 'en'
+            else f'✓ {student_name} এর submission মুছে ফেলা হয়েছে।'
+        )
+    return redirect('written_question_practice', question_id=question_id)
 
 
 @admin_required
@@ -862,6 +932,8 @@ def question_edit(request, pk):
         question.answer_hint = request.POST.get('answer_hint', '')
         if request.FILES.get('stimulus_image'):
             question.stimulus_image = request.FILES['stimulus_image']
+        if request.FILES.get('solution_image'):
+            question.solution_image = request.FILES['solution_image']
         question.save()
         messages.success(request, 'Question updated!')
         return redirect('manage_questions')

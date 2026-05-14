@@ -64,6 +64,7 @@ class Question(models.Model):
     correct_option = models.PositiveSmallIntegerField(null=True, blank=True)
     answer_hint = models.TextField(blank=True)
     stimulus_image = models.ImageField(upload_to='question_stimuli/', null=True, blank=True)
+    solution_image = models.ImageField(upload_to='question_solutions/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
