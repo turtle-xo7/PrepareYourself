@@ -2956,7 +2956,17 @@ def submit_cq(request, attempt_id):
 
     from .models import ExamAttempt, CQQuestion, CQSubmission
     from django.utils import timezone
-    attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user, status='CQ_PHASE')
+    attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user)
+
+    if attempt.status in ('CQ_PENDING', 'GRADED'):
+        messages.info(request, 'এই পরীক্ষার উত্তর আগেই জমা হয়েছে।')
+        return redirect('exam_results', attempt_id=attempt.id)
+    if attempt.status == 'MCQ_PHASE':
+        messages.error(request, 'এখনো MCQ পর্ব শেষ হয়নি।')
+        return redirect('start_exam', pk=attempt.exam_paper.id)
+    if attempt.status not in ('CQ_PHASE', 'MCQ_DONE'):
+        messages.error(request, 'এই মুহূর্তে CQ submit করা যাচ্ছে না।')
+        return redirect('exam_results', attempt_id=attempt.id)
 
     selected_cq_ids = []
     for val in request.POST.getlist('selected_cqs'):
