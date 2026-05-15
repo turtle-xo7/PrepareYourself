@@ -2069,7 +2069,9 @@ def contest_list(request):
 
     participant_counts = {
         c['contest_id']: c['cnt']
-        for c in ContestSubmission.objects.filter(is_submitted=True).values('contest_id').annotate(cnt=Count('id'))
+        for c in ContestSubmission.objects.filter(
+            is_submitted=True, student__profile__role='STUDENT'
+        ).values('contest_id').annotate(cnt=Count('id'))
     }
 
     return render(request, 'core/contest_list.html', {
@@ -2140,7 +2142,11 @@ def contest_create(request):
 def contest_detail(request, pk):
     from .models import Contest, ContestSubmission
     from django.utils import timezone
-    contest = get_object_or_404(Contest, pk=pk)
+    try:
+        contest = Contest.objects.get(pk=pk)
+    except Contest.DoesNotExist:
+        messages.warning(request, 'এই contest আর available নেই (delete হয়ে গেছে)।')
+        return redirect('contest_list')
     now = timezone.now()
     has_submitted = ContestSubmission.objects.filter(contest=contest, student=request.user, is_submitted=True).exists()
     is_active = contest.start_time <= now <= contest.end_time
@@ -2156,7 +2162,17 @@ def contest_detail(request, pk):
 def contest_join(request, pk):
     from .models import Contest, ContestSubmission
     from django.utils import timezone
-    contest = get_object_or_404(Contest, pk=pk)
+    try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            messages.info(request, 'Teacher/Admin contest-এ অংশ নিতে পারবেন না — শুধু দেখতে পারবেন।')
+            return redirect('contest_detail', pk=pk)
+    except Exception:
+        pass
+    try:
+        contest = Contest.objects.get(pk=pk)
+    except Contest.DoesNotExist:
+        messages.warning(request, 'এই contest আর available নেই।')
+        return redirect('contest_list')
     now = timezone.now()
 
     if now < contest.start_time:
@@ -2186,6 +2202,12 @@ def contest_join(request, pk):
 def contest_submit(request, pk):
     from .models import Contest, ContestSubmission, ContestAnswer
     from django.utils import timezone
+    try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            messages.error(request, 'Teacher/Admin contest answer submit করতে পারবেন না।')
+            return redirect('contest_detail', pk=pk)
+    except Exception:
+        pass
     if request.method != 'POST':
         return redirect('contest_detail', pk=pk)
 
@@ -2238,6 +2260,11 @@ def contest_submit(request, pk):
 def contest_result(request, pk):
     from .models import Contest, ContestSubmission, ContestAnswer
     from django.db.models import Sum
+    try:
+        if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
+            return redirect('contest_leaderboard', pk=pk)
+    except Exception:
+        pass
     contest = get_object_or_404(Contest, pk=pk)
     submission = get_object_or_404(ContestSubmission, contest=contest, student=request.user, is_submitted=True)
     answers = ContestAnswer.objects.filter(submission=submission).select_related('question')
@@ -2245,7 +2272,8 @@ def contest_result(request, pk):
     correct_count = answers.filter(is_correct=True).count()
     percentage = round(submission.total_marks / max_marks * 100, 1) if max_marks > 0 else 0
     all_subs = list(ContestSubmission.objects.filter(
-        contest=contest, is_submitted=True
+        contest=contest, is_submitted=True,
+        student__profile__role='STUDENT',
     ).order_by('-total_marks', 'duration_taken').values_list('student_id', flat=True))
     rank = next((i + 1 for i, uid in enumerate(all_subs) if uid == request.user.id), None)
     return render(request, 'core/contest_result.html', {
@@ -2268,7 +2296,8 @@ def contest_leaderboard(request, pk):
     contest = get_object_or_404(Contest, pk=pk)
     now = timezone.now()
     submissions = ContestSubmission.objects.filter(
-        contest=contest, is_submitted=True
+        contest=contest, is_submitted=True,
+        student__profile__role='STUDENT',
     ).select_related('student').order_by('-total_marks', 'duration_taken')
     my_submission = ContestSubmission.objects.filter(
         contest=contest, student=request.user, is_submitted=True
@@ -2288,7 +2317,10 @@ def contest_stats(request, pk):
     from .models import Contest, ContestSubmission, ContestAnswer
     from django.db.models import Sum, Count, Q
     contest = get_object_or_404(Contest, pk=pk)
-    submissions = ContestSubmission.objects.filter(contest=contest, is_submitted=True).select_related('student')
+    submissions = ContestSubmission.objects.filter(
+        contest=contest, is_submitted=True,
+        student__profile__role='STUDENT',
+    ).select_related('student')
     total_participants = submissions.count()
     max_possible = contest.questions.aggregate(total=Sum('marks'))['total'] or 0
 

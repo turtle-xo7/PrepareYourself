@@ -38,23 +38,54 @@
                         </select>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Quick Start</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="quickStart(30)"
+                            class="px-4 py-2 rounded-xl text-sm font-semibold border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition">
+                            ⏱ Start Now — 30 min
+                        </button>
+                        <button type="button" onclick="quickStart(60)"
+                            class="px-4 py-2 rounded-xl text-sm font-semibold border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition">
+                            ⏱ Start Now — 60 min
+                        </button>
+                        <p id="quick-start-info" class="text-xs text-gray-500 self-center ml-2"></p>
+                    </div>
+                </div>
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
-                        <input type="number" name="duration_minutes" value="30" min="5" max="180" required
+                        <input id="id_duration_minutes" type="number" name="duration_minutes" value="30" min="5" max="180" required
                             class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                        <input type="datetime-local" name="start_time" required
+                        <input id="id_start_time" type="datetime-local" name="start_time" required
                             class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                        <input type="datetime-local" name="end_time" required
+                        <input id="id_end_time" type="datetime-local" name="end_time" required
                             class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
+                <script>
+                    function _fmtLocal(d) {
+                        const pad = n => String(n).padStart(2, '0');
+                        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+                             + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+                    }
+                    function quickStart(mins) {
+                        const start = new Date();
+                        const end = new Date(start.getTime() + mins * 60 * 1000);
+                        document.getElementById('id_start_time').value = _fmtLocal(start);
+                        document.getElementById('id_end_time').value = _fmtLocal(end);
+                        document.getElementById('id_duration_minutes').value = mins;
+                        const info = document.getElementById('quick-start-info');
+                        info.textContent = `Set: ${start.toLocaleTimeString()} → ${end.toLocaleTimeString()}`;
+                        info.classList.add('text-green-700');
+                    }
+                </script>
             </div>
         </div>
 

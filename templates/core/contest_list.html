@@ -24,6 +24,22 @@
         border-left-color: #9ca3af;
         opacity: 1;
     }
+    html.dark .contest-card {
+        background: #1e293b;
+        border-color: #334155;
+        border-left-color: #f59e0b;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+    }
+    html.dark .contest-card:hover {
+        box-shadow: 0 8px 32px rgba(245,158,11,0.18);
+        border-left-color: #fbbf24;
+    }
+    html.dark .contest-card.past-card {
+        border-left-color: #475569;
+    }
+    html.dark .contest-card.past-card:hover {
+        border-left-color: #64748b;
+    }
 
     @keyframes pulse-live {
         0%, 100% { opacity: 1; transform: scale(1); }
@@ -121,10 +137,17 @@
             <p class="text-xs text-gray-400 mb-5">{% if LANG == 'en' %}Ends:{% else %}শেষ:{% endif %} {{ contest.end_time|date:"d M Y H:i" }}</p>
 
             <div class="flex gap-2">
+                {% if is_admin or is_superadmin %}
+                <a href="{% url 'contest_detail' contest.pk %}"
+                   class="flex-1 text-center text-sm px-3 py-2 rounded-xl border border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100 transition font-semibold">
+                    {% if LANG == 'en' %}View Only &rarr;{% else %}শুধু দেখুন &rarr;{% endif %}
+                </a>
+                {% else %}
                 <a href="{% url 'contest_join' contest.pk %}"
                    class="flex-1 text-center text-sm px-3 py-2 amber-btn">
                     {% if LANG == 'en' %}Join Now &rarr;{% else %}যোগ দিন &rarr;{% endif %}
                 </a>
+                {% endif %}
                 <a href="{% url 'contest_leaderboard' contest.pk %}"
                    class="text-center bg-amber-50 text-amber-800 px-3 py-2 rounded-xl text-sm border border-amber-100 hover:bg-amber-100 transition font-semibold">
                     &#127942;

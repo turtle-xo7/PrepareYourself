@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}{{ contest.title }} - Stats{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'contest_list' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
+            <h1 class="text-2xl font-bold text-gray-900">📊 {{ contest.title }} — Stats</h1>
+        </div>
+        <a href="{% url 'contest_leaderboard' contest.pk %}"
+           class="text-sm font-semibold text-blue-700 hover:text-blue-900 px-4 py-2 rounded-lg border border-blue-200 hover:bg-blue-50 transition">
+            Leaderboard →
+        </a>
+    </div>
+
+    <!-- Headline stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Participants</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ total_participants }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-blue-100 bg-blue-50/40 p-4 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-blue-700 font-medium">Average</p>
+            <p class="text-2xl font-bold text-blue-700 mt-1">{{ avg_marks }}<span class="text-sm font-normal text-blue-500">/{{ max_possible }}</span></p>
+        </div>
+        <div class="bg-white rounded-2xl border border-green-100 bg-green-50/40 p-4 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-green-700 font-medium">Highest</p>
+            <p class="text-2xl font-bold text-green-700 mt-1">{{ highest }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-red-100 bg-red-50/40 p-4 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-red-700 font-medium">Lowest</p>
+            <p class="text-2xl font-bold text-red-700 mt-1">{{ lowest }}</p>
+        </div>
+    </div>
+
+    <!-- Pass rate card -->
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Pass Rate (≥ 50%)</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">{{ pass_rate }}%</p>
+                <p class="text-xs text-gray-500 mt-0.5">{{ pass_count }} / {{ total_participants }} passed</p>
+            </div>
+            <div class="text-4xl">
+                {% if pass_rate >= 70 %}🎉
+                {% elif pass_rate >= 50 %}👍
+                {% elif pass_rate >= 30 %}📚
+                {% else %}⚠️{% endif %}
+            </div>
+        </div>
+        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-700
+                {% if pass_rate >= 70 %}bg-green-500
+                {% elif pass_rate >= 50 %}bg-blue-500
+                {% elif pass_rate >= 30 %}bg-yellow-500
+                {% else %}bg-red-500{% endif %}"
+                 style="width: {{ pass_rate }}%;"></div>
+        </div>
+    </div>
+
+    <!-- Question-level stats (hardest first) -->
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
+        <h3 class="font-bold text-gray-800 mb-4 text-lg">প্রশ্নভিত্তিক Performance (কঠিন → সহজ)</h3>
+        {% if question_stats %}
+        <div class="space-y-3">
+            {% for q in question_stats %}
+            <div class="rounded-xl border border-gray-100 p-4">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <p class="font-semibold text-gray-900 flex-1">Q{{ forloop.counter }}. {{ q.question.question_text|truncatechars:120 }}</p>
+                    <span class="text-sm font-bold flex-shrink-0
+                        {% if q.accuracy >= 70 %}text-green-700
+                        {% elif q.accuracy >= 40 %}text-yellow-700
+                        {% else %}text-red-700{% endif %}">
+                        {{ q.accuracy }}%
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                    <span>{{ q.correct }} / {{ q.total }} correct</span>
+                    <span class="font-medium">{{ q.question.marks }} {% if q.question.marks == 1 %}mark{% else %}marks{% endif %}</span>
+                </div>
+                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-700
+                        {% if q.accuracy >= 70 %}bg-green-500
+                        {% elif q.accuracy >= 40 %}bg-yellow-500
+                        {% else %}bg-red-500{% endif %}"
+                         style="width: {{ q.accuracy }}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-gray-400 py-8">কোনো question data নেই।</p>
+        {% endif %}
+    </div>
+
+    <!-- Top 10 -->
+    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-6">
+        <div class="p-6 border-b border-gray-100">
+            <h3 class="font-bold text-gray-800 text-lg">🏆 Top 10</h3>
+        </div>
+        {% if top_submissions %}
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Rank</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Student</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Marks</th>
+                    <th class="text-left px-6 py-3 text-gray-500 font-medium">Time</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for sub in top_submissions %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3 font-bold">
+                        {% if forloop.counter == 1 %}🥇
+                        {% elif forloop.counter == 2 %}🥈
+                        {% elif forloop.counter == 3 %}🥉
+                        {% else %}#{{ forloop.counter }}{% endif %}
+                    </td>
+                    <td class="px-6 py-3 font-medium text-gray-900">{{ sub.student.username }}</td>
+                    <td class="px-6 py-3 font-bold text-blue-700">{{ sub.total_marks }}<span class="text-xs text-gray-400">/{{ max_possible }}</span></td>
+                    <td class="px-6 py-3 text-gray-600">{{ sub.duration_taken }}s</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center text-gray-400 py-8">এখনো কেউ submit করেনি।</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
