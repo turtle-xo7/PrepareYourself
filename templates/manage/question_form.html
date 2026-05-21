@@ -186,19 +186,25 @@ Option D</pre>
       <div id="written_fields" class="hidden bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Written CQ — ছবি ও hint</h2>
 
-        <!-- Stimulus image -->
+        <!-- Stimulus (image / PDF / DOC) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
-            উদ্দীপক Image
-            <span class="text-gray-400 text-xs font-normal ml-1">(optional — the passage/image students write on)</span>
+            উদ্দীপক <span class="text-gray-500">(Image / PDF / DOC)</span>
+            <span class="text-gray-400 text-xs font-normal ml-1">(optional — passage/image/file students write on)</span>
           </label>
           {% if question.stimulus_image %}
           <div class="mb-2">
+            {% if question.stimulus_is_image %}
             <img src="{{ question.stimulus_image.url }}" class="max-h-40 rounded-lg border border-gray-200" alt="Current stimulus">
-            <p class="text-xs text-gray-400 mt-1">Current image — upload a new one to replace</p>
+            {% else %}
+            <a href="{{ question.stimulus_image.url }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium hover:bg-blue-100">
+              📄 {{ question.stimulus_image.name|cut:"question_stimuli/" }}
+            </a>
+            {% endif %}
+            <p class="text-xs text-gray-400 mt-1">Current file — upload a new one to replace</p>
           </div>
           {% endif %}
-          <input type="file" name="stimulus_image" accept="image/*"
+          <input type="file" name="stimulus_image" accept="image/*,.pdf,.doc,.docx"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
@@ -210,19 +216,25 @@ Option D</pre>
             placeholder="উত্তরের hint লিখুন...">{{ question.answer_hint }}</textarea>
         </div>
 
-        <!-- Solution image -->
+        <!-- Solution (image / PDF / DOC) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
-            Solution Image
+            Solution <span class="text-gray-500">(Image / PDF / DOC)</span>
             <span class="text-gray-400 text-xs font-normal ml-1">(optional — students will see this after submitting their answer)</span>
           </label>
           {% if question.solution_image %}
           <div class="mb-2">
+            {% if question.solution_is_image %}
             <img src="{{ question.solution_image.url }}" class="max-h-40 rounded-lg border border-gray-200" alt="Current solution">
-            <p class="text-xs text-gray-400 mt-1">Current solution — upload a new one to replace</p>
+            {% else %}
+            <a href="{{ question.solution_image.url }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm font-medium hover:bg-green-100">
+              📄 {{ question.solution_image.name|cut:"question_solutions/" }}
+            </a>
+            {% endif %}
+            <p class="text-xs text-gray-400 mt-1">Current file — upload a new one to replace</p>
           </div>
           {% endif %}
-          <input type="file" name="solution_image" accept="image/*"
+          <input type="file" name="solution_image" accept="image/*,.pdf,.doc,.docx"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
       </div>

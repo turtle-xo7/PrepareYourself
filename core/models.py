@@ -71,8 +71,8 @@ class Question(models.Model):
     marks_c = models.IntegerField(default=3)
     marks_d = models.IntegerField(default=4)
     answer_hint = models.TextField(blank=True)
-    stimulus_image = models.ImageField(upload_to='question_stimuli/', null=True, blank=True)
-    solution_image = models.ImageField(upload_to='question_solutions/', null=True, blank=True)
+    stimulus_image = models.FileField(upload_to='question_stimuli/', null=True, blank=True)
+    solution_image = models.FileField(upload_to='question_solutions/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
@@ -80,6 +80,16 @@ class Question(models.Model):
         ordering = ['-year', 'subject', 'chapter']
     def __str__(self):
         return self.chapter
+
+    IMAGE_EXTS = ('.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp')
+
+    @property
+    def stimulus_is_image(self):
+        return bool(self.stimulus_image) and self.stimulus_image.name.lower().endswith(self.IMAGE_EXTS)
+
+    @property
+    def solution_is_image(self):
+        return bool(self.solution_image) and self.solution_image.name.lower().endswith(self.IMAGE_EXTS)
 
 
 class UserProfile(models.Model):
