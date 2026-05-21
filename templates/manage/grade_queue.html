@@ -9,84 +9,264 @@
     </div>
     <div class="flex items-center gap-3">
       <div class="bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-lg text-sm font-medium">
-        {{ pending|length }}টি pending
+        {{ total_pending }}টি pending
       </div>
       <a href="{% url 'manage_dashboard' %}" class="text-sm text-gray-500 hover:text-gray-700">← Manage Panel</a>
     </div>
   </div>
 
-  {% if pending %}
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-4 bg-gray-100 p-1 rounded-xl w-fit">
+    <button onclick="showTab('unclaimed')" id="tab-unclaimed"
+            class="tab-btn px-5 py-2 rounded-lg text-sm font-medium transition bg-white shadow text-gray-800">
+      Unclaimed
+      <span class="ml-1.5 bg-gray-200 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">{{ unclaimed|length }}</span>
+    </button>
+    <button onclick="showTab('myqueue')" id="tab-myqueue"
+            class="tab-btn px-5 py-2 rounded-lg text-sm font-medium transition text-gray-500 hover:text-gray-700">
+      My Queue
+      <span class="ml-1.5 bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded-full">{{ my_queue|length }}</span>
+    </button>
+    <button onclick="showTab('graded')" id="tab-graded"
+            class="tab-btn px-5 py-2 rounded-lg text-sm font-medium transition text-gray-500 hover:text-gray-700">
+      Graded by Me
+      <span class="ml-1.5 bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full">{{ graded_by_me|length }}</span>
+    </button>
+  </div>
+
   <!-- Legend -->
   <div class="flex items-center gap-4 mb-4 text-xs text-gray-500">
-    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Urgent (২৪ ঘণ্টার বেশি)</div>
+    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Urgent (২৪ ঘণ্টার বেশি পুরনো)</div>
     <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-white border border-gray-300 inline-block"></span> সাধারণ</div>
   </div>
 
-  <div class="bg-white rounded-2xl shadow overflow-hidden">
-    <table class="w-full">
-      <thead class="bg-gray-50 border-b border-gray-200">
-        <tr>
-          <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">#</th>
-          <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">শিক্ষার্থী</th>
-          <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">পরীক্ষার কাগজ</th>
-          <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">বিষয়</th>
-          <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">MCQ স্কোর</th>
-          <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">জমার সময়</th>
-          <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">অবস্থা</th>
-          <th class="py-3 px-4"></th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-        {% for attempt in pending %}
-        <tr class="hover:bg-gray-50 transition {% if attempt.is_urgent %}bg-red-50{% endif %}">
-          <td class="py-3 px-4 text-sm text-gray-500">{{ forloop.counter }}</td>
-          <td class="py-3 px-4">
-            <div class="font-medium text-gray-800">{{ attempt.student.get_full_name|default:attempt.student.username }}</div>
-            <div class="text-xs text-gray-400">@{{ attempt.student.username }}</div>
-          </td>
-          <td class="py-3 px-4">
-            <div class="text-sm font-medium text-gray-700">{{ attempt.exam_paper.title }}</div>
-            <div class="text-xs text-gray-400">{{ attempt.exam_paper.year }} সন</div>
-          </td>
-          <td class="py-3 px-4 text-sm text-gray-600">{{ attempt.exam_paper.subject.name }}</td>
-          <td class="py-3 px-4">
-            <span class="font-bold text-blue-700">{{ attempt.mcq_score }}</span>
-            <span class="text-xs text-gray-400">/30</span>
-          </td>
-          <td class="py-3 px-4">
-            <div class="text-sm text-gray-700">{{ attempt.cq_submitted_at|date:"d M Y" }}</div>
-            <div class="text-xs text-gray-400">{{ attempt.cq_submitted_at|date:"g:i A" }}</div>
-          </td>
-          <td class="py-3 px-4">
-            {% if attempt.is_urgent %}
-            <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-              🔴 Urgent
-            </span>
-            {% else %}
-            <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-              ⏳ Pending
-            </span>
-            {% endif %}
-          </td>
-          <td class="py-3 px-4 text-right">
-            <a href="{% url 'grade_cq_submission' attempt.id %}"
-               class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition whitespace-nowrap">
-              Grade করুন →
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Unclaimed Tab -->
+  <div id="panel-unclaimed">
+    {% if unclaimed %}
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">#</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">শিক্ষার্থী</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">পরীক্ষার কাগজ</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">বিষয়</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">MCQ স্কোর</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">জমার সময়</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">অবস্থা</th>
+            <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for attempt in unclaimed %}
+          <tr class="hover:bg-gray-50 transition {% if attempt.is_urgent %}bg-red-50{% endif %}">
+            <td class="py-3 px-4 text-sm text-gray-500">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">{{ attempt.student.get_full_name|default:attempt.student.username }}</div>
+              <div class="text-xs text-gray-400">@{{ attempt.student.username }}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="text-sm font-medium text-gray-700">{{ attempt.exam_paper.title }}</div>
+            </td>
+            <td class="py-3 px-4 text-sm text-gray-600">{{ attempt.exam_paper.subject.name }}</td>
+            <td class="py-3 px-4">
+              <span class="font-bold text-blue-700">{{ attempt.mcq_score }}</span>
+              <span class="text-xs text-gray-400">/30</span>
+            </td>
+            <td class="py-3 px-4">
+              <div class="text-sm text-gray-700">{{ attempt.cq_submitted_at|date:"d M Y" }}</div>
+              <div class="text-xs text-gray-400">{{ attempt.cq_submitted_at|date:"g:i A" }}</div>
+            </td>
+            <td class="py-3 px-4">
+              {% if attempt.is_urgent %}
+              <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">🔴 Urgent</span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full">⏳ Unclaimed</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-right">
+              <form method="post" action="{% url 'claim_cq_attempt' attempt.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                  Claim করুন
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-16 bg-white rounded-2xl shadow">
+      <div class="text-5xl mb-4">🎉</div>
+      <h3 class="text-xl font-bold text-gray-700 mb-2">কোনো unclaimed submission নেই</h3>
+      <p class="text-gray-400 text-sm">সব কিছু claim করা হয়েছে বা grading সম্পন্ন।</p>
+    </div>
+    {% endif %}
   </div>
 
-  {% else %}
-  <div class="text-center py-20 bg-white rounded-2xl shadow">
-    <div class="text-5xl mb-4">🎉</div>
-    <h3 class="text-xl font-bold text-gray-700 mb-2">সব কিছু ঠিক আছে!</h3>
-    <p class="text-gray-400">কোনো pending CQ submission নেই।</p>
+  <!-- My Queue Tab -->
+  <div id="panel-myqueue" class="hidden">
+    {% if my_queue %}
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">#</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">শিক্ষার্থী</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">পরীক্ষার কাগজ</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">বিষয়</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">MCQ স্কোর</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Claimed সময়</th>
+            <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for attempt in my_queue %}
+          <tr class="hover:bg-gray-50 transition {% if attempt.is_urgent %}bg-red-50{% endif %}">
+            <td class="py-3 px-4 text-sm text-gray-500">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">{{ attempt.student.get_full_name|default:attempt.student.username }}</div>
+              <div class="text-xs text-gray-400">@{{ attempt.student.username }}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="text-sm font-medium text-gray-700">{{ attempt.exam_paper.title }}</div>
+            </td>
+            <td class="py-3 px-4 text-sm text-gray-600">{{ attempt.exam_paper.subject.name }}</td>
+            <td class="py-3 px-4">
+              <span class="font-bold text-blue-700">{{ attempt.mcq_score }}</span>
+              <span class="text-xs text-gray-400">/30</span>
+            </td>
+            <td class="py-3 px-4">
+              {% if attempt.claimed_at %}
+              <div class="text-sm text-gray-700">{{ attempt.claimed_at|date:"d M Y" }}</div>
+              <div class="text-xs text-gray-400">{{ attempt.claimed_at|date:"g:i A" }}</div>
+              {% else %}
+              <span class="text-xs text-gray-400">—</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-right">
+              <div class="flex items-center gap-2 justify-end">
+                <form method="post" action="{% url 'release_cq_attempt' attempt.id %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                    Release
+                  </button>
+                </form>
+                <a href="{% url 'grade_cq_submission' attempt.id %}"
+                   class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                  Grade করুন →
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-16 bg-white rounded-2xl shadow">
+      <div class="text-5xl mb-4">📋</div>
+      <h3 class="text-xl font-bold text-gray-700 mb-2">আপনার কোনো claimed submission নেই</h3>
+      <p class="text-gray-400 text-sm">Unclaimed tab থেকে একটি claim করুন।</p>
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
+
+  <!-- Graded by Me Tab -->
+  <div id="panel-graded" class="hidden">
+    {% if graded_by_me %}
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">#</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">শিক্ষার্থী</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">পরীক্ষার কাগজ</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">বিষয়</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">MCQ</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">CQ</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">মোট</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Grade</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Graded সময়</th>
+            <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for attempt in graded_by_me %}
+          <tr class="hover:bg-gray-50 transition">
+            <td class="py-3 px-4 text-sm text-gray-500">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">{{ attempt.student.get_full_name|default:attempt.student.username }}</div>
+              <div class="text-xs text-gray-400">@{{ attempt.student.username }}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="text-sm font-medium text-gray-700">{{ attempt.exam_paper.title }}</div>
+            </td>
+            <td class="py-3 px-4 text-sm text-gray-600">{{ attempt.exam_paper.subject.name }}</td>
+            <td class="py-3 px-4 text-sm font-semibold text-blue-700">{{ attempt.mcq_score }}</td>
+            <td class="py-3 px-4 text-sm font-semibold text-purple-700">{{ attempt.cq_score|default:"—" }}</td>
+            <td class="py-3 px-4 text-sm font-bold text-gray-800">{{ attempt.total_score|default:"—" }}</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center justify-center min-w-[2rem] text-xs font-bold px-2 py-1 rounded-full
+                {% if attempt.grade == 'A+' %}bg-green-100 text-green-700
+                {% elif attempt.grade == 'A' %}bg-blue-100 text-blue-700
+                {% elif attempt.grade == 'A-' %}bg-sky-100 text-sky-700
+                {% elif attempt.grade == 'B' %}bg-yellow-100 text-yellow-700
+                {% elif attempt.grade == 'C' %}bg-orange-100 text-orange-700
+                {% elif attempt.grade == 'D' %}bg-red-100 text-red-700
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ attempt.grade|default:"—" }}
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              <div class="text-sm text-gray-700">{{ attempt.graded_at|date:"d M Y" }}</div>
+              <div class="text-xs text-gray-400">{{ attempt.graded_at|date:"g:i A" }}</div>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <a href="{% url 'grade_cq_submission' attempt.id %}"
+                 class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-xs font-medium px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                ✏️ Re-Grade
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-16 bg-white rounded-2xl shadow">
+      <div class="text-5xl mb-4">📊</div>
+      <h3 class="text-xl font-bold text-gray-700 mb-2">আপনি এখনো কাউকে grade করেননি</h3>
+      <p class="text-gray-400 text-sm">My Queue থেকে একটি submission grade করুন।</p>
+    </div>
+    {% endif %}
+  </div>
 
 </div>
+
+<script>
+function showTab(name) {
+  ['unclaimed', 'myqueue', 'graded'].forEach(t => {
+    document.getElementById('panel-' + t).classList.add('hidden');
+  });
+  document.getElementById('panel-' + name).classList.remove('hidden');
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('bg-white', 'shadow', 'text-gray-800');
+    btn.classList.add('text-gray-500');
+  });
+  const active = document.getElementById('tab-' + name);
+  active.classList.add('bg-white', 'shadow', 'text-gray-800');
+  active.classList.remove('text-gray-500');
+}
+
+// Auto-switch to My Queue if it has items and unclaimed is empty
+{% if my_queue and not unclaimed %}
+showTab('myqueue');
+{% endif %}
+</script>
 {% endblock %}
