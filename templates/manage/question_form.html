@@ -71,9 +71,9 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
-            <select name="question_type" id="q_type" onchange="toggleMCQ()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="question_type" id="q_type" onchange="toggleType()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="MCQ" {% if question.question_type == 'MCQ' %}selected{% endif %}>MCQ</option>
-              <option value="WRITTEN" {% if question.question_type == 'WRITTEN' %}selected{% endif %}>Written</option>
+              <option value="WRITTEN" {% if question.question_type == 'WRITTEN' or not question %}selected{% endif %}>Written (CQ)</option>
             </select>
           </div>
 
@@ -95,51 +95,96 @@
             placeholder="e.g. আলো ও প্রতিসরণ">
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
-          <textarea name="question_text" rows="3" required
+        <div id="cq_question_text_wrap">
+          <label class="block text-sm font-medium text-gray-700 mb-1">উদ্দীপক / Question Text <span class="text-red-400" id="qt_star">*</span></label>
+          <textarea name="question_text" id="cq_question_text" rows="3"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="প্রশ্নটি লিখুন...">{{ question.question_text }}</textarea>
+            placeholder="CQ-র উদ্দীপক লিখুন (MCQ-র জন্য প্রতিটি প্রশ্ন আলাদা ভাবে নিচে যোগ করুন)">{{ question.question_text }}</textarea>
         </div>
       </div>
 
-      <div id="mcq_fields" class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">MCQ Options</h2>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-gray-500 mb-1 block">ক — Option 1</label>
-            <input type="text" name="option1" value="{{ question.option1 }}"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <!-- MCQ Section (visible when type=MCQ) — supports bulk paste + multiple rows -->
+      <div id="mcq_fields" class="hidden space-y-4">
+        {% if action == 'Add' %}
+        <!-- Bulk Paste Card -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-emerald-800 flex items-center gap-2">
+              <span class="text-lg">📋</span> Bulk MCQ Paste
+            </h3>
+            <button type="button" onclick="parseBulk()"
+                    class="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-medium transition">
+              Parse → Add
+            </button>
           </div>
-          <div>
-            <label class="text-xs text-gray-500 mb-1 block">খ — Option 2</label>
-            <input type="text" name="option2" value="{{ question.option2 }}"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 mb-1 block">গ — Option 3</label>
-            <input type="text" name="option3" value="{{ question.option3 }}"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 mb-1 block">ঘ — Option 4</label>
-            <input type="text" name="option4" value="{{ question.option4 }}"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
+          <textarea id="bulk-mcq-text" rows="5" placeholder="MCQ-গুলো এখানে paste করুন…"
+                    class="w-full border border-emerald-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 bg-white"></textarea>
+
+          <!-- Format hints -->
+          <details class="mt-3" open>
+            <summary class="cursor-pointer text-xs font-semibold text-emerald-800">📖 Supported Formats</summary>
+            <div class="space-y-3 mt-3 text-xs">
+              <div>
+                <p class="font-semibold text-gray-700 mb-1">① With letter prefix — English (a/b/c/d)</p>
+                <pre class="bg-white p-3 rounded-lg border border-gray-200 overflow-x-auto whitespace-pre-wrap">1. What is Einstein's equation?
+a. E=mc²
+b. F=ma
+c. V=IR
+d. P=IV
+
+2. Next question?
+a. Option A
+b. Option B
+c. Option C
+d. Option D</pre>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-700 mb-1">② With letter prefix — Bengali (ক/খ/গ/ঘ)</p>
+                <pre class="bg-white p-3 rounded-lg border border-gray-200 overflow-x-auto whitespace-pre-wrap">১. আইনস্টাইনের সমীকরণ কোনটি?
+ক. E=mc²
+খ. F=ma
+গ. V=IR
+ঘ. P=IV</pre>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-700 mb-1">③ No prefix — plain lines (blank line required between questions)</p>
+                <pre class="bg-white p-3 rounded-lg border border-gray-200 overflow-x-auto whitespace-pre-wrap">What is Einstein's equation?
+E=mc²
+F=ma
+V=IR
+P=IV
+
+Next question here?
+Option A
+Option B
+Option C
+Option D</pre>
+              </div>
+              <p class="text-gray-500 italic">After filling, select the correct answer (✓) for each MCQ row.</p>
+            </div>
+          </details>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">সঠিক উত্তর</label>
-          <select name="correct_option" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="1" {% if question.correct_option == 1 %}selected{% endif %}>ক (Option 1)</option>
-            <option value="2" {% if question.correct_option == 2 %}selected{% endif %}>খ (Option 2)</option>
-            <option value="3" {% if question.correct_option == 3 %}selected{% endif %}>গ (Option 3)</option>
-            <option value="4" {% if question.correct_option == 4 %}selected{% endif %}>ঘ (Option 4)</option>
-          </select>
+        {% endif %}
+
+        <!-- MCQ List -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">
+              MCQ Questions <span id="mcq-count-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium ml-1">0টি</span>
+            </h2>
+            {% if action == 'Add' %}
+            <button type="button" onclick="addMCQ()"
+                    class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition">
+              + Add MCQ
+            </button>
+            {% endif %}
+          </div>
+          <div id="mcq-list" class="space-y-4"></div>
         </div>
       </div>
 
       <div id="written_fields" class="hidden bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Written CQ</h2>
+        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Written CQ — ছবি ও hint</h2>
 
         <!-- Stimulus image -->
         <div>
@@ -195,13 +240,167 @@
   </div>
 </div>
 
+<!-- MCQ ROW TEMPLATE -->
+<template id="mcq-template">
+  <div class="mcq-row border border-gray-200 rounded-2xl p-5 bg-gray-50 relative" data-idx="__IDX__">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm font-bold text-blue-700">MCQ #<span class="mcq-num">__NUM__</span></span>
+      <button type="button" onclick="removeMCQ(this)" class="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition">✕ সরান</button>
+    </div>
+    <div class="mb-3">
+      <label class="block text-xs font-medium text-gray-600 mb-1">প্রশ্ন <span class="text-red-400">*</span></label>
+      <textarea name="mcq_question_text" rows="2" placeholder="MCQ প্রশ্নটি লিখুন…"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none bg-white"></textarea>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">ক</span>)</label>
+        <input type="text" name="mcq_option1" placeholder="ক"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="0">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">খ</span>)</label>
+        <input type="text" name="mcq_option2" placeholder="খ"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="1">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">গ</span>)</label>
+        <input type="text" name="mcq_option3" placeholder="গ"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="2">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">ঘ</span>)</label>
+        <input type="text" name="mcq_option4" placeholder="ঘ"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="3">
+      </div>
+    </div>
+    <div class="flex items-center gap-4 flex-wrap">
+      <p class="text-xs font-medium text-gray-600">সঠিক উত্তর <span class="text-red-400">*</span></p>
+      <input type="hidden" name="mcq_correct_option" value="1" class="hidden-correct-input">
+      <div class="flex gap-3">
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="1" checked> <span class="mcq-lbl" data-i="0">ক</span>
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="2"> <span class="mcq-lbl" data-i="1">খ</span>
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="3"> <span class="mcq-lbl" data-i="2">গ</span>
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="4"> <span class="mcq-lbl" data-i="3">ঘ</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script>
-function toggleMCQ() {
-  const type = document.getElementById('q_type').value;
-  document.getElementById('mcq_fields').classList.toggle('hidden', type !== 'MCQ');
-  document.getElementById('written_fields').classList.toggle('hidden', type !== 'WRITTEN');
+const BN_LABELS = ['ক', 'খ', 'গ', 'ঘ'];
+const EN_LABELS = ['a', 'b', 'c', 'd'];
+let mcqCount = 0;
+
+function isBengali(text) { return /[ঀ-৿]/.test(text || ''); }
+
+function applyMCQLabels(row, bengali) {
+  const labels = bengali ? BN_LABELS : EN_LABELS;
+  row.querySelectorAll('.mcq-lbl').forEach(el => { el.textContent = labels[parseInt(el.dataset.i)]; });
+  row.querySelectorAll('.mcq-opt-ph').forEach(el => { el.placeholder = labels[parseInt(el.dataset.i)]; });
 }
-toggleMCQ();
+
+function refreshCount() {
+  const c = document.querySelectorAll('#mcq-list .mcq-row').length;
+  document.getElementById('mcq-count-badge').textContent = c + 'টি';
+}
+
+function addMCQ(prefill) {
+  mcqCount++;
+  const tpl = document.getElementById('mcq-template');
+  const html = tpl.innerHTML.replaceAll('__IDX__', mcqCount).replaceAll('__NUM__', mcqCount);
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html.trim();
+  const row = wrap.firstElementChild;
+  if (prefill) {
+    row.querySelector('textarea[name=mcq_question_text]').value = prefill.question_text || '';
+    row.querySelector('input[name=mcq_option1]').value = prefill.option1 || '';
+    row.querySelector('input[name=mcq_option2]').value = prefill.option2 || '';
+    row.querySelector('input[name=mcq_option3]').value = prefill.option3 || '';
+    row.querySelector('input[name=mcq_option4]').value = prefill.option4 || '';
+    const correct = parseInt(prefill.correct_option) || 1;
+    const radio = row.querySelector(`.mcq-radio[value="${correct}"]`);
+    if (radio) { radio.checked = true; row.querySelector('.hidden-correct-input').value = correct; }
+    applyMCQLabels(row, isBengali((prefill.question_text || '') + ' ' + (prefill.option1 || '')));
+  } else {
+    applyMCQLabels(row, true);
+  }
+  row.querySelector('textarea[name=mcq_question_text]').addEventListener('input', function() {
+    applyMCQLabels(row, isBengali(this.value));
+  });
+  row.querySelectorAll('.mcq-radio').forEach(r => {
+    r.addEventListener('change', function() {
+      row.querySelector('.hidden-correct-input').value = this.value;
+    });
+  });
+  document.getElementById('mcq-list').appendChild(row);
+  refreshCount();
+}
+
+function removeMCQ(btn) {
+  btn.closest('.mcq-row').remove();
+  refreshCount();
+}
+
+async function parseBulk() {
+  const txt = document.getElementById('bulk-mcq-text').value.trim();
+  if (!txt) { alert('Paste some text first.'); return; }
+  try {
+    const res = await fetch('{% url "parse_exam_text" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      },
+      body: JSON.stringify({ text: txt }),
+    });
+    const data = await res.json();
+    if (data.mcqs && data.mcqs.length) {
+      data.mcqs.forEach(m => addMCQ(m));
+      document.getElementById('bulk-mcq-text').value = '';
+    } else {
+      alert('No MCQs detected. Check the format hint.');
+    }
+  } catch (e) {
+    alert('Parse failed: ' + e.message);
+  }
+}
+
+function toggleType() {
+  const type = document.getElementById('q_type').value;
+  const isMCQ = type === 'MCQ';
+  document.getElementById('mcq_fields').classList.toggle('hidden', !isMCQ);
+  document.getElementById('written_fields').classList.toggle('hidden', isMCQ);
+  // Question Text is required only for CQ
+  const qt = document.getElementById('cq_question_text');
+  if (qt) { qt.required = !isMCQ; }
+  const star = document.getElementById('qt_star');
+  if (star) { star.style.display = isMCQ ? 'none' : 'inline'; }
+}
+
+{% if action == 'Edit' and question.question_type == 'MCQ' %}
+// Edit mode: pre-fill one MCQ row with existing data
+addMCQ({
+  question_text: "{{ question.question_text|escapejs }}",
+  option1: "{{ question.option1|escapejs }}",
+  option2: "{{ question.option2|escapejs }}",
+  option3: "{{ question.option3|escapejs }}",
+  option4: "{{ question.option4|escapejs }}",
+  correct_option: {{ question.correct_option|default:1 }}
+});
+{% elif action == 'Add' %}
+addMCQ();  // start with one empty MCQ row
+{% endif %}
+
+toggleType();
 </script>
 
 {% endblock %}
