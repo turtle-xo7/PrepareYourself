@@ -13,10 +13,23 @@
   {% endfor %}
   {% endif %}
 
+  {% if is_regrade %}
+  <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
+    <span class="text-xl">✏️</span>
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-amber-800">Re-grading mode</p>
+      <p class="text-xs text-amber-700">এই attempt আগে grade করা হয়েছিল। পরিবর্তন save করলে student notification পাবে।</p>
+    </div>
+    <span class="text-xs font-bold bg-white border border-amber-300 text-amber-700 px-2.5 py-1 rounded-full">
+      Current: {{ attempt.grade }} ({{ attempt.total_score }})
+    </span>
+  </div>
+  {% endif %}
+
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">CQ মূল্যায়ন</h1>
+      <h1 class="text-2xl font-bold text-gray-800">{% if is_regrade %}CQ পুনঃমূল্যায়ন{% else %}CQ মূল্যায়ন{% endif %}</h1>
       <p class="text-gray-500 text-sm">{{ attempt.student.get_full_name|default:attempt.student.username }} • {{ attempt.exam_paper.title }}</p>
     </div>
     <div class="flex items-center gap-3">
@@ -109,34 +122,99 @@
     </div>
 
     <!-- RIGHT PANEL: Scoring Form -->
-    <div class="w-80 shrink-0">
-      <div class="sticky top-20">
-        <h2 class="font-semibold text-gray-700 text-lg border-b pb-2 mb-4">✏️ নম্বর দিন</h2>
+    <div class="w-96 shrink-0">
+      <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
+        <h2 class="font-semibold text-gray-700 text-lg border-b pb-2 mb-4">✏️ নম্বর দিন (অংশভিত্তিক)</h2>
 
         <div class="space-y-4">
           {% for sub in cq_submissions %}
+          {% with q=sub.cq_question %}
           <div class="bg-white rounded-xl shadow p-4">
-            <div class="flex items-center justify-between mb-2">
-              <label class="text-sm font-semibold text-gray-700">CQ {{ forloop.counter }}</label>
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+              <label class="text-sm font-bold text-gray-700">CQ {{ forloop.counter }}</label>
               <span class="text-xs text-gray-400">
-                সর্বোচ্চ {{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }}
+                সর্বোচ্চ <span class="font-bold text-gray-600">{{ q.marks_a|add:q.marks_b|add:q.marks_c|add:q.marks_d }}</span>
               </span>
             </div>
-            <input
-              type="number"
-              name="marks_{{ sub.id }}"
-              min="0"
-              max="{{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }}"
-              value="{{ sub.marks_given|default:'' }}"
-              placeholder="নম্বর লিখুন"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 mb-2"
-              oninput="updateTotal()">
-            <textarea
-              name="comment_{{ sub.id }}"
-              placeholder="মন্তব্য (ঐচ্ছিক)"
-              rows="2"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none">{{ sub.teacher_comment }}</textarea>
+
+            {% if q.marks_a %}
+            <div class="part-row mb-3">
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-sm font-semibold text-purple-700 w-8">(ক)</span>
+                <input type="number" name="marks_{{ sub.id }}_a" min="0" max="{{ q.marks_a }}"
+                       value="{{ sub.marks_a|default_if_none:'' }}" placeholder="0"
+                       data-max="{{ q.marks_a }}" data-sub="{{ sub.id }}"
+                       class="part-input flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                       oninput="onPartChange(this)">
+                <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_a }}</span>
+              </div>
+              <div class="part-comment-wrap pl-10">
+                <textarea name="comment_{{ sub.id }}_a" placeholder="কেন full marks দেওয়া হয়নি? (ক অংশ)" rows="2"
+                          class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_a }}</textarea>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if q.marks_b %}
+            <div class="part-row mb-3">
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-sm font-semibold text-purple-700 w-8">(খ)</span>
+                <input type="number" name="marks_{{ sub.id }}_b" min="0" max="{{ q.marks_b }}"
+                       value="{{ sub.marks_b|default_if_none:'' }}" placeholder="0"
+                       data-max="{{ q.marks_b }}" data-sub="{{ sub.id }}"
+                       class="part-input flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                       oninput="onPartChange(this)">
+                <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_b }}</span>
+              </div>
+              <div class="part-comment-wrap pl-10">
+                <textarea name="comment_{{ sub.id }}_b" placeholder="কেন full marks দেওয়া হয়নি? (খ অংশ)" rows="2"
+                          class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_b }}</textarea>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if q.marks_c %}
+            <div class="part-row mb-3">
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-sm font-semibold text-purple-700 w-8">(গ)</span>
+                <input type="number" name="marks_{{ sub.id }}_c" min="0" max="{{ q.marks_c }}"
+                       value="{{ sub.marks_c|default_if_none:'' }}" placeholder="0"
+                       data-max="{{ q.marks_c }}" data-sub="{{ sub.id }}"
+                       class="part-input flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                       oninput="onPartChange(this)">
+                <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_c }}</span>
+              </div>
+              <div class="part-comment-wrap pl-10">
+                <textarea name="comment_{{ sub.id }}_c" placeholder="কেন full marks দেওয়া হয়নি? (গ অংশ)" rows="2"
+                          class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_c }}</textarea>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if q.marks_d %}
+            <div class="part-row mb-3">
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-sm font-semibold text-purple-700 w-8">(ঘ)</span>
+                <input type="number" name="marks_{{ sub.id }}_d" min="0" max="{{ q.marks_d }}"
+                       value="{{ sub.marks_d|default_if_none:'' }}" placeholder="0"
+                       data-max="{{ q.marks_d }}" data-sub="{{ sub.id }}"
+                       class="part-input flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                       oninput="onPartChange(this)">
+                <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_d }}</span>
+              </div>
+              <div class="part-comment-wrap pl-10">
+                <textarea name="comment_{{ sub.id }}_d" placeholder="কেন full marks দেওয়া হয়নি? (ঘ অংশ)" rows="2"
+                          class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_d }}</textarea>
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center justify-between bg-purple-50 rounded-lg px-3 py-2 mt-3">
+              <span class="text-xs font-medium text-purple-700">CQ মোট</span>
+              <span class="text-sm font-bold text-purple-700" id="cq-sum-{{ sub.id }}">0</span>
+            </div>
           </div>
+          {% endwith %}
           {% endfor %}
         </div>
 
@@ -158,7 +236,7 @@
 
         <button type="submit"
                 class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-sm transition">
-          মূল্যায়ন সম্পন্ন করুন ✓
+          {% if is_regrade %}পুনঃমূল্যায়ন save করুন ✓{% else %}মূল্যায়ন সম্পন্ন করুন ✓{% endif %}
         </button>
         <a href="{% url 'manage_grade_list' %}"
            class="mt-2 block text-center text-sm text-gray-400 hover:text-gray-600">বাতিল করুন</a>
@@ -187,10 +265,35 @@ function gradeColor(g) {
   return map[g] || 'text-gray-600';
 }
 
+function toggleCommentVisibility(input) {
+  const max = parseInt(input.dataset.max);
+  const raw = input.value.trim();
+  const val = raw === '' ? null : parseInt(raw);
+  const wrap = input.closest('.part-row').querySelector('.part-comment-wrap');
+  if (val !== null && val >= max) {
+    wrap.classList.add('hidden');
+    wrap.querySelector('textarea').value = '';
+  } else {
+    wrap.classList.remove('hidden');
+  }
+}
+
+function updateCqSum(subId) {
+  let sum = 0;
+  document.querySelectorAll(`.part-input[data-sub="${subId}"]`).forEach(i => {
+    sum += parseInt(i.value || 0);
+  });
+  const el = document.getElementById('cq-sum-' + subId);
+  if (el) el.textContent = sum;
+  return sum;
+}
+
 function updateTotal() {
   let cqTotal = 0;
-  document.querySelectorAll('input[type=number]').forEach(inp => {
-    cqTotal += parseInt(inp.value || 0);
+  const seen = new Set();
+  document.querySelectorAll('.part-input').forEach(i => {
+    const sid = i.dataset.sub;
+    if (!seen.has(sid)) { seen.add(sid); cqTotal += updateCqSum(sid); }
   });
   const grand = MCQ_SCORE + cqTotal;
   const g = gradeFromTotal(grand);
@@ -201,6 +304,13 @@ function updateTotal() {
   gEl.className = 'text-lg font-extrabold ' + gradeColor(g);
 }
 
+function onPartChange(input) {
+  toggleCommentVisibility(input);
+  updateTotal();
+}
+
+// Initial: hide comment for any part already at full marks
+document.querySelectorAll('.part-input').forEach(toggleCommentVisibility);
 updateTotal();
 </script>
 {% endblock %}

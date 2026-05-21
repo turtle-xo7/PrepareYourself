@@ -92,18 +92,61 @@
   <h3 class="font-semibold text-gray-700 mb-4">CQ বিস্তারিত মূল্যায়ন</h3>
   <div class="space-y-4">
     {% for sub in cq_submissions %}
+    {% with q=sub.cq_question %}
     <div class="border border-gray-200 rounded-xl p-4">
-      <div class="flex justify-between items-start mb-2">
-        <p class="text-sm font-semibold text-gray-700">{{ sub.cq_question.question_text|truncatechars:80 }}</p>
+      <div class="flex justify-between items-start mb-3">
+        <p class="text-sm font-semibold text-gray-700">{{ q.question_text|truncatechars:80 }}</p>
         <span class="text-lg font-bold text-purple-700 shrink-0 ml-3">
           {{ sub.marks_given|default:"—" }}
-          <span class="text-xs text-gray-400 font-normal">/{{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }}</span>
+          <span class="text-xs text-gray-400 font-normal">/{{ q.marks_a|add:q.marks_b|add:q.marks_c|add:q.marks_d }}</span>
         </span>
       </div>
+
+      <!-- Per-part breakdown -->
+      <div class="space-y-2 mb-2">
+        {% if q.marks_a %}
+        <div class="flex items-start gap-2 text-sm">
+          <span class="font-bold text-blue-700 w-6 shrink-0">(ক)</span>
+          <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_a|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_a }}</span></span>
+          {% if sub.comment_a %}
+          <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_a }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if q.marks_b %}
+        <div class="flex items-start gap-2 text-sm">
+          <span class="font-bold text-blue-700 w-6 shrink-0">(খ)</span>
+          <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_b|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_b }}</span></span>
+          {% if sub.comment_b %}
+          <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_b }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if q.marks_c %}
+        <div class="flex items-start gap-2 text-sm">
+          <span class="font-bold text-blue-700 w-6 shrink-0">(গ)</span>
+          <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_c|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_c }}</span></span>
+          {% if sub.comment_c %}
+          <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_c }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if q.marks_d %}
+        <div class="flex items-start gap-2 text-sm">
+          <span class="font-bold text-blue-700 w-6 shrink-0">(ঘ)</span>
+          <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_d|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_d }}</span></span>
+          {% if sub.comment_d %}
+          <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_d }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
       {% if sub.teacher_comment %}
-      <p class="text-xs text-gray-500 italic bg-gray-50 rounded p-2">💬 {{ sub.teacher_comment }}</p>
+      <p class="text-xs text-gray-500 italic bg-gray-50 rounded p-2 mt-2">💬 {{ sub.teacher_comment }}</p>
       {% endif %}
     </div>
+    {% endwith %}
     {% endfor %}
   </div>
 </div>
