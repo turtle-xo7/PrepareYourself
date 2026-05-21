@@ -62,6 +62,14 @@ class Question(models.Model):
     option3 = models.CharField(max_length=500, blank=True)
     option4 = models.CharField(max_length=500, blank=True)
     correct_option = models.PositiveSmallIntegerField(null=True, blank=True)
+    part_a = models.TextField(blank=True)
+    part_b = models.TextField(blank=True)
+    part_c = models.TextField(blank=True)
+    part_d = models.TextField(blank=True)
+    marks_a = models.IntegerField(default=1)
+    marks_b = models.IntegerField(default=2)
+    marks_c = models.IntegerField(default=3)
+    marks_d = models.IntegerField(default=4)
     answer_hint = models.TextField(blank=True)
     stimulus_image = models.ImageField(upload_to='question_stimuli/', null=True, blank=True)
     solution_image = models.ImageField(upload_to='question_solutions/', null=True, blank=True)
@@ -85,6 +93,13 @@ class UserProfile(models.Model):
     is_superadmin = models.BooleanField(default=False)
     preferred_language = models.CharField(max_length=5, choices=LANG_CHOICES, default='bn')
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    is_approved = models.BooleanField(default=True)
+    teacher_bio = models.TextField(blank=True)
+    subject_expertise = models.CharField(max_length=200, blank=True)
+    subjects = models.ManyToManyField('Subject', blank=True, related_name='teachers')
+    nid_document = models.FileField(upload_to='teacher_docs/nid/', blank=True, null=True)
+    qualification_document = models.FileField(upload_to='teacher_docs/qual/', blank=True, null=True)
+    rejection_reason = models.TextField(blank=True)
     def __str__(self):
         return self.user.username
     @property
@@ -363,6 +378,8 @@ class ExamAttempt(models.Model):
     selected_cqs = models.JSONField(default=list)
     graded_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='graded_attempts')
     graded_at = models.DateTimeField(null=True, blank=True)
+    assigned_teacher = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='claimed_attempts')
+    claimed_at = models.DateTimeField(null=True, blank=True)
     class Meta:
         unique_together = ['exam_paper', 'student']
         ordering = ['-started_at']
@@ -394,6 +411,14 @@ class CQSubmission(models.Model):
     photo_d = models.ImageField(upload_to='exam/cq_answers/', blank=True, null=True)
     marks_given = models.IntegerField(null=True, blank=True)
     teacher_comment = models.TextField(blank=True)
+    marks_a = models.IntegerField(null=True, blank=True)
+    marks_b = models.IntegerField(null=True, blank=True)
+    marks_c = models.IntegerField(null=True, blank=True)
+    marks_d = models.IntegerField(null=True, blank=True)
+    comment_a = models.TextField(blank=True)
+    comment_b = models.TextField(blank=True)
+    comment_c = models.TextField(blank=True)
+    comment_d = models.TextField(blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         unique_together = ['attempt', 'cq_question']

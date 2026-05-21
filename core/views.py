@@ -20,9 +20,12 @@ def admin_required(view_func):
         if not request.user.is_authenticated:
             return redirect('login')
         try:
-            if request.user.profile.role != 'ADMIN':
+            profile = request.user.profile
+            if profile.role != 'ADMIN':
                 messages.error(request, 'শুধু Teacher/Tutor/Institution এই page access করতে পারবে।')
                 return redirect('home')
+            if not profile.is_approved and not profile.is_superadmin:
+                return redirect('teacher_pending')
         except UserProfile.DoesNotExist:
             return redirect('home')
         return view_func(request, *args, **kwargs)
@@ -109,14 +112,31 @@ def signup_view(request):
             role = 'ADMIN'
             is_superadmin = True
 
-        UserProfile.objects.create(
+        is_approved = True
+        if role == 'ADMIN' and not is_superadmin:
+            is_approved = False
+
+        profile = UserProfile.objects.create(
             user=user,
             role=role,
             plan=plan,
-            is_superadmin=is_superadmin
+            is_superadmin=is_superadmin,
+            is_approved=is_approved,
         )
 
+        if role == 'ADMIN' and not is_superadmin:
+            profile.teacher_bio = request.POST.get('teacher_bio', '')
+            profile.subject_expertise = request.POST.get('subject_expertise', '')
+            if request.FILES.get('nid_document'):
+                profile.nid_document = request.FILES['nid_document']
+            if request.FILES.get('qualification_document'):
+                profile.qualification_document = request.FILES['qualification_document']
+            profile.save()
+
         login(request, user)
+
+        if role == 'ADMIN' and not is_superadmin:
+            return redirect('teacher_pending')
 
         if plan != 'FREE':
             return redirect(f'/checkout/?plan={plan}')
@@ -700,18 +720,39 @@ def question_bank(request):
         questions = questions.filter(year=year)
 
     is_premium = False
+    is_teacher = False
     if request.user.is_authenticated:
         try:
-            is_premium = request.user.profile.is_premium
+            profile = request.user.profile
+            is_premium = profile.is_premium
+            is_teacher = profile.role == 'ADMIN' or profile.is_superadmin
         except UserProfile.DoesNotExist:
             pass
 
-    if not is_premium:
+    if not is_premium and not is_teacher:
         questions = questions[:10]
+
+    # Per-question attempt stats for teachers
+    if is_teacher:
+        from .models import UserProgress
+        from django.db.models import Count, Q as DQ
+        questions = list(questions)
+        q_ids = [q.pk for q in questions]
+        stats_map = {}
+        for s in UserProgress.objects.filter(question_id__in=q_ids).values('question_id').annotate(
+            attempted=Count('id'),
+            correct=Count('id', filter=DQ(is_correct=True))
+        ):
+            pct = round(s['correct'] / s['attempted'] * 100) if s['attempted'] else 0
+            stats_map[s['question_id']] = (s['attempted'], pct)
+        for q in questions:
+            sv = stats_map.get(q.pk, (0, 0))
+            q.stats_attempted = sv[0]
+            q.stats_correct_pct = sv[1]
 
     # Map question_id → WrittenSolveSubmission for the current user
     written_solves = {}
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and not is_teacher:
         from .models import WrittenSolveSubmission
         q_ids = [q.pk for q in questions]
         for sub in WrittenSolveSubmission.objects.filter(student=request.user, question_id__in=q_ids):
@@ -724,6 +765,7 @@ def question_bank(request):
         'questions': questions,
         'years': YEARS,
         'is_premium': is_premium,
+        'is_teacher': is_teacher,
         'written_solves': written_solves,
     })
 
@@ -731,6 +773,12 @@ def question_bank(request):
 @login_required
 def track_progress(request):
     if request.method == 'POST':
+        try:
+            profile = request.user.profile
+            if profile.role == 'ADMIN' or profile.is_superadmin:
+                return JsonResponse({'status': 'ok'})
+        except UserProfile.DoesNotExist:
+            pass
         from .models import UserProgress
         data = json.loads(request.body)
         question_id = data.get('question_id')
@@ -765,6 +813,7 @@ def superadmin_dashboard(request):
     total_subjects = Subject.objects.filter(is_active=True).count()
     total_videos = PracticalVideo.objects.filter(is_active=True).count()
     recent_users = UserProfile.objects.filter(is_superadmin=False).select_related('user').order_by('-user__date_joined')[:10]
+    pending_teachers_count = UserProfile.objects.filter(role='ADMIN', is_approved=False, is_superadmin=False).count()
 
     return render(request, 'core/superadmin_dashboard.html', {
         'total_superadmins': total_superadmins,
@@ -780,7 +829,91 @@ def superadmin_dashboard(request):
         'total_subjects': total_subjects,
         'total_videos': total_videos,
         'recent_users': recent_users,
+        'pending_teachers_count': pending_teachers_count,
     })
+
+
+@login_required
+def teacher_pending(request):
+    try:
+        profile = request.user.profile
+        if profile.role != 'ADMIN':
+            return redirect('home')
+        if profile.is_approved or profile.is_superadmin:
+            return redirect('teacher_dashboard')
+    except Exception:
+        return redirect('home')
+    return render(request, 'core/teacher_pending.html', {'profile': profile})
+
+
+@superadmin_required
+def teacher_applications(request):
+    from .models import Subject
+    pending = UserProfile.objects.filter(
+        role='ADMIN', is_approved=False, is_superadmin=False
+    ).select_related('user').order_by('user__date_joined')
+    approved = UserProfile.objects.filter(
+        role='ADMIN', is_approved=True, is_superadmin=False
+    ).select_related('user').prefetch_related('subjects').order_by('-user__date_joined')[:30]
+    all_subjects = Subject.objects.filter(is_active=True).order_by('name')
+    return render(request, 'core/teacher_applications.html', {
+        'pending': pending,
+        'approved': approved,
+        'all_subjects': all_subjects,
+    })
+
+
+@superadmin_required
+def assign_teacher_subjects(request, pk):
+    if request.method == 'POST':
+        profile = get_object_or_404(UserProfile, pk=pk, role='ADMIN')
+        subject_ids = request.POST.getlist('subjects')
+        profile.subjects.set(subject_ids)
+        messages.success(request, f'Subjects updated for {profile.user.username}.')
+    return redirect('teacher_applications')
+
+
+@superadmin_required
+def approve_teacher(request, pk):
+    from django.shortcuts import get_object_or_404
+    from .models import Notification
+    profile = get_object_or_404(UserProfile, pk=pk, role='ADMIN')
+    profile.is_approved = True
+    profile.rejection_reason = ''
+    profile.save()
+    Notification.objects.create(
+        recipient=profile.user,
+        notif_type='question',
+        title='Teacher Application Approved!',
+        title_bn='শিক্ষক আবেদন অনুমোদিত!',
+        message='Your teacher application has been approved. You can now access your teacher dashboard.',
+        message_bn='আপনার শিক্ষক আবেদন অনুমোদিত হয়েছে। এখন আপনি Teacher Dashboard ব্যবহার করতে পারবেন।',
+        link='/teacher/dashboard/',
+    )
+    messages.success(request, f'{profile.user.username} approved successfully.')
+    return redirect('teacher_applications')
+
+
+@superadmin_required
+def reject_teacher(request, pk):
+    from django.shortcuts import get_object_or_404
+    from .models import Notification
+    if request.method == 'POST':
+        profile = get_object_or_404(UserProfile, pk=pk, role='ADMIN')
+        reason = request.POST.get('reason', 'No reason provided.')
+        profile.is_approved = False
+        profile.rejection_reason = reason
+        profile.save()
+        Notification.objects.create(
+            recipient=profile.user,
+            notif_type='question',
+            title='Teacher Application Update',
+            title_bn='শিক্ষক আবেদনের আপডেট',
+            message=f'Your teacher application was not approved. Reason: {reason}',
+            message_bn=f'আপনার শিক্ষক আবেদন অনুমোদিত হয়নি। কারণ: {reason}',
+        )
+        messages.info(request, f'{profile.user.username} application rejected.')
+    return redirect('teacher_applications')
 
 
 # -------- MANAGE PANEL (ADMIN ONLY) --------
@@ -824,20 +957,127 @@ def question_add(request):
     subjects = Subject.objects.filter(is_active=True)
     classes = Class.objects.all()
     if request.method == 'POST':
+        board_pk = request.POST.get('board')
+        subject_pk = request.POST.get('subject')
+        class_pk = request.POST.get('class_obj')
+        year_val = request.POST.get('year')
+        qtype = request.POST.get('question_type') or 'MCQ'
+        difficulty = request.POST.get('difficulty') or 'Medium'
+        chapter = request.POST.get('chapter', '')
+
+        def _int_or_default(val, default):
+            try: return int(val)
+            except (TypeError, ValueError): return default
+
+        try:
+            year_int = int(year_val)
+        except (TypeError, ValueError):
+            year_int = None
+
+        # MCQ branch: handle multiple MCQ rows
+        if qtype == 'MCQ':
+            mcq_texts = request.POST.getlist('mcq_question_text')
+            mcq_opt1 = request.POST.getlist('mcq_option1')
+            mcq_opt2 = request.POST.getlist('mcq_option2')
+            mcq_opt3 = request.POST.getlist('mcq_option3')
+            mcq_opt4 = request.POST.getlist('mcq_option4')
+            mcq_correct = request.POST.getlist('mcq_correct_option')
+
+            if not any(t.strip() for t in mcq_texts):
+                messages.error(request, 'কমপক্ষে ১টি MCQ যোগ করুন।')
+                return render(request, 'manage/question_form.html', {
+                    'boards': boards, 'subjects': subjects,
+                    'classes': classes, 'years': YEARS, 'action': 'Add',
+                })
+
+            # Build existing-text set for duplicate detection
+            existing_lower = set()
+            if board_pk and year_int and subject_pk and class_pk:
+                existing_lower = {
+                    t.strip().lower() for t in Question.objects.filter(
+                        board_id=board_pk, year=year_int,
+                        subject_id=subject_pk, class_obj_id=class_pk,
+                    ).values_list('question_text', flat=True)
+                }
+
+            added = 0
+            skipped = []
+            last_q = None
+            for i, text in enumerate(mcq_texts):
+                text = text.strip()
+                if not text:
+                    continue
+                if text.lower() in existing_lower:
+                    skipped.append(text[:60])
+                    continue
+                try:
+                    correct = int(mcq_correct[i]) if i < len(mcq_correct) else 1
+                except (ValueError, IndexError):
+                    correct = 1
+                last_q = Question.objects.create(
+                    board_id=board_pk, subject_id=subject_pk,
+                    class_obj_id=class_pk, year=year_int,
+                    chapter=chapter, question_text=text,
+                    question_type='MCQ', difficulty=difficulty,
+                    option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
+                    option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
+                    option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
+                    option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
+                    correct_option=correct,
+                )
+                existing_lower.add(text.lower())
+                added += 1
+
+            if added and last_q:
+                _notify_all_students(
+                    'question',
+                    f'New Questions Added — {last_q.subject.name}',
+                    f'{last_q.subject.name}, {last_q.class_obj.name} — Chapter: {chapter} (MCQ × {added})',
+                    link='/question-bank/',
+                    title_bn=f'নতুন প্রশ্ন যোগ হয়েছে — {last_q.subject.name}',
+                    message_bn=f'{last_q.subject.name}, {last_q.class_obj.name} — অধ্যায়: {chapter} (MCQ × {added})',
+                )
+                messages.success(request, f'{added}টি MCQ যোগ করা হয়েছে।')
+            if skipped:
+                messages.warning(
+                    request,
+                    f'{len(skipped)}টি duplicate skip করা হয়েছে: ' +
+                    '; '.join(skipped[:3]) + ('…' if len(skipped) > 3 else '')
+                )
+            return redirect('manage_questions')
+
+        # WRITTEN (CQ) branch: single question with stimulus + image + hint + solution
+        qtext = (request.POST.get('question_text') or '').strip()
+
+        # Duplicate check
+        if board_pk and year_int and subject_pk and class_pk and qtext:
+            existing = Question.objects.filter(
+                board_id=board_pk, year=year_int,
+                subject_id=subject_pk, class_obj_id=class_pk,
+                question_text__iexact=qtext,
+            ).select_related('board', 'subject').first()
+            if existing:
+                messages.error(
+                    request,
+                    f'এই question ইতিমধ্যে যোগ করা আছে। '
+                    f'Board: {existing.board.name}, Year: {existing.year}, '
+                    f'Subject: {existing.subject.name}, Chapter: {existing.chapter}'
+                )
+                return render(request, 'manage/question_form.html', {
+                    'boards': boards, 'subjects': subjects,
+                    'classes': classes, 'years': YEARS, 'action': 'Add',
+                    'post': request.POST,
+                })
+
         q = Question.objects.create(
-            board=get_object_or_404(Board, pk=request.POST.get('board')),
-            subject=get_object_or_404(Subject, pk=request.POST.get('subject')),
-            class_obj=get_object_or_404(Class, pk=request.POST.get('class_obj')),
-            year=request.POST.get('year'),
-            chapter=request.POST.get('chapter'),
-            question_text=request.POST.get('question_text'),
-            question_type=request.POST.get('question_type'),
-            difficulty=request.POST.get('difficulty'),
-            option1=request.POST.get('option1', ''),
-            option2=request.POST.get('option2', ''),
-            option3=request.POST.get('option3', ''),
-            option4=request.POST.get('option4', ''),
-            correct_option=request.POST.get('correct_option') or None,
+            board=get_object_or_404(Board, pk=board_pk),
+            subject=get_object_or_404(Subject, pk=subject_pk),
+            class_obj=get_object_or_404(Class, pk=class_pk),
+            year=year_int,
+            chapter=chapter,
+            question_text=qtext,
+            question_type='WRITTEN',
+            difficulty=difficulty,
             answer_hint=request.POST.get('answer_hint', ''),
         )
         if request.FILES.get('stimulus_image'):
@@ -859,6 +1099,110 @@ def question_add(request):
     return render(request, 'manage/question_form.html', {
         'boards': boards, 'subjects': subjects,
         'classes': classes, 'years': YEARS, 'action': 'Add'
+    })
+
+
+@admin_required
+def question_add_mcq_bulk(request):
+    boards = Board.objects.filter(is_active=True).order_by('name')
+    subjects = Subject.objects.filter(is_active=True).order_by('name')
+    classes = Class.objects.all().order_by('numeric_value')
+    years = list(YEARS)
+
+    if request.method == 'POST':
+        board_pk = request.POST.get('board')
+        subject_pk = request.POST.get('subject')
+        class_pk = request.POST.get('class_obj')
+        year_val = request.POST.get('year')
+        chapter = (request.POST.get('chapter') or '').strip()
+        difficulty = request.POST.get('difficulty') or 'Medium'
+
+        errors = []
+        if not board_pk: errors.append('Board বেছে নিন।')
+        if not subject_pk: errors.append('Subject বেছে নিন।')
+        if not class_pk: errors.append('Class বেছে নিন।')
+        if not year_val: errors.append('Year বেছে নিন।')
+        if not chapter: errors.append('Chapter দিন।')
+
+        mcq_texts = request.POST.getlist('mcq_question_text')
+        mcq_opt1 = request.POST.getlist('mcq_option1')
+        mcq_opt2 = request.POST.getlist('mcq_option2')
+        mcq_opt3 = request.POST.getlist('mcq_option3')
+        mcq_opt4 = request.POST.getlist('mcq_option4')
+        mcq_correct = request.POST.getlist('mcq_correct_option')
+        mcq_marks_list = request.POST.getlist('mcq_marks')
+
+        if not any(t.strip() for t in mcq_texts):
+            errors.append('কমপক্ষে ১টি MCQ যোগ করুন।')
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return render(request, 'manage/question_add_mcq.html', {
+                'boards': boards, 'subjects': subjects,
+                'classes': classes, 'years': years, 'post': request.POST,
+            })
+
+        try:
+            year_int = int(year_val)
+        except (TypeError, ValueError):
+            year_int = None
+
+        # Build existing-text set once to detect duplicates within this batch and DB
+        existing_texts = set(Question.objects.filter(
+            board_id=board_pk, year=year_int,
+            subject_id=subject_pk, class_obj_id=class_pk,
+        ).values_list('question_text', flat=True))
+        existing_lower = {t.strip().lower() for t in existing_texts}
+
+        added = 0
+        skipped_dupes = []
+        for i, text in enumerate(mcq_texts):
+            text = text.strip()
+            if not text:
+                continue
+            if text.lower() in existing_lower:
+                skipped_dupes.append(text[:60])
+                continue
+            try:
+                correct = int(mcq_correct[i]) if i < len(mcq_correct) else 1
+            except (ValueError, IndexError):
+                correct = 1
+            try:
+                marks = int(mcq_marks_list[i]) if i < len(mcq_marks_list) else 1
+            except (ValueError, IndexError):
+                marks = 1
+            Question.objects.create(
+                board_id=board_pk,
+                subject_id=subject_pk,
+                class_obj_id=class_pk,
+                year=year_int,
+                chapter=chapter,
+                question_text=text,
+                question_type='MCQ',
+                difficulty=difficulty,
+                option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
+                option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
+                option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
+                option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
+                correct_option=correct,
+            )
+            existing_lower.add(text.lower())
+            added += 1
+
+        if added:
+            messages.success(request, f'{added}টি MCQ যোগ করা হয়েছে।')
+        if skipped_dupes:
+            messages.warning(
+                request,
+                f'{len(skipped_dupes)}টি duplicate skip করা হয়েছে (একই Board+Year+Subject+Class এ ইতিমধ্যে আছে): ' +
+                '; '.join(skipped_dupes[:3]) + ('…' if len(skipped_dupes) > 3 else '')
+            )
+        return redirect('manage_questions')
+
+    return render(request, 'manage/question_add_mcq.html', {
+        'boards': boards, 'subjects': subjects,
+        'classes': classes, 'years': years,
     })
 
 
@@ -978,19 +1322,34 @@ def question_edit(request, pk):
         question.class_obj = get_object_or_404(Class, pk=request.POST.get('class_obj'))
         question.year = request.POST.get('year')
         question.chapter = request.POST.get('chapter')
-        question.question_text = request.POST.get('question_text')
         question.question_type = request.POST.get('question_type')
         question.difficulty = request.POST.get('difficulty')
-        question.option1 = request.POST.get('option1', '')
-        question.option2 = request.POST.get('option2', '')
-        question.option3 = request.POST.get('option3', '')
-        question.option4 = request.POST.get('option4', '')
-        question.correct_option = request.POST.get('correct_option') or None
-        question.answer_hint = request.POST.get('answer_hint', '')
-        if request.FILES.get('stimulus_image'):
-            question.stimulus_image = request.FILES['stimulus_image']
-        if request.FILES.get('solution_image'):
-            question.solution_image = request.FILES['solution_image']
+
+        if question.question_type == 'MCQ':
+            # Edit form uses the row-based naming (first row of the bulk template)
+            mcq_texts = request.POST.getlist('mcq_question_text')
+            mcq_opt1 = request.POST.getlist('mcq_option1')
+            mcq_opt2 = request.POST.getlist('mcq_option2')
+            mcq_opt3 = request.POST.getlist('mcq_option3')
+            mcq_opt4 = request.POST.getlist('mcq_option4')
+            mcq_correct = request.POST.getlist('mcq_correct_option')
+            if mcq_texts:
+                question.question_text = (mcq_texts[0] or '').strip()
+                question.option1 = mcq_opt1[0] if mcq_opt1 else ''
+                question.option2 = mcq_opt2[0] if mcq_opt2 else ''
+                question.option3 = mcq_opt3[0] if mcq_opt3 else ''
+                question.option4 = mcq_opt4[0] if mcq_opt4 else ''
+                try:
+                    question.correct_option = int(mcq_correct[0]) if mcq_correct else 1
+                except (ValueError, IndexError):
+                    question.correct_option = 1
+        else:
+            question.question_text = (request.POST.get('question_text') or '').strip()
+            question.answer_hint = request.POST.get('answer_hint', '')
+            if request.FILES.get('stimulus_image'):
+                question.stimulus_image = request.FILES['stimulus_image']
+            if request.FILES.get('solution_image'):
+                question.solution_image = request.FILES['solution_image']
         question.save()
         messages.success(request, 'Question updated!')
         return redirect('manage_questions')
@@ -2392,9 +2751,10 @@ def contest_delete(request, pk):
 
 @login_required
 def profile_view(request):
-    return render(request, 'core/profile.html', {
-        'profile': request.user.profile,
-    })
+    ctx = {'profile': request.user.profile}
+    if request.user.profile.role == 'ADMIN':
+        ctx['all_subjects'] = Subject.objects.filter(is_active=True).order_by('name')
+    return render(request, 'core/profile.html', ctx)
 
 
 @login_required
@@ -2421,15 +2781,22 @@ def profile_update(request):
             messages.success(request, 'প্রোফাইল ছবি আপডেট হয়েছে!')
             return redirect('profile')
 
+        if 'update_subjects' in request.POST:
+            subject_ids = request.POST.getlist('subjects')
+            profile.subjects.set(subject_ids)
+            messages.success(request, 'Teaching subjects updated!')
+            return redirect('profile')
+
         user.first_name = request.POST.get('first_name', user.first_name)
         user.last_name = request.POST.get('last_name', user.last_name)
         user.email = request.POST.get('email', user.email)
         user.save()
         messages.success(request, 'প্রোফাইল আপডেট হয়েছে!')
         return redirect('profile')
-    return render(request, 'core/profile.html', {
-        'profile': request.user.profile,
-    })
+    ctx = {'profile': request.user.profile}
+    if request.user.profile.role == 'ADMIN':
+        ctx['all_subjects'] = Subject.objects.filter(is_active=True).order_by('name')
+    return render(request, 'core/profile.html', ctx)
 
 
 # -------- SYLLABUS --------
@@ -3027,23 +3394,42 @@ def submit_cq(request, attempt_id):
     attempt.cq_submitted_at = timezone.now()
     attempt.save()
 
-    from django.core.mail import send_mail
-    staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
-    if staff_emails:
-        try:
-            send_mail(
-                subject=f'[PrepareYourself] CQ Grading Required: {attempt.exam_paper.title}',
-                message=(
-                    f'{attempt.student.get_full_name() or attempt.student.username} এর CQ উত্তর জমা হয়েছে।\n'
-                    f'Paper: {attempt.exam_paper.title}\n\n'
-                    f'Grade করতে যান: /manage/grade-queue/'
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=staff_emails,
-                fail_silently=True,
-            )
-        except Exception:
-            pass
+    # In-app notification — one per (teacher, exam paper) while unread, subject-filtered
+    from .models import Notification, UserProfile, ExamAttempt as _EA
+    paper_title = attempt.exam_paper.title
+    paper_subject = attempt.exam_paper.subject
+    grade_link = '/manage/grade-queue/'
+
+    subject_teachers = UserProfile.objects.filter(
+        role='ADMIN', is_approved=True, subjects=paper_subject
+    ).select_related('user')
+    # Fallback: if no teacher has subjects assigned yet, notify all approved teachers
+    if not subject_teachers.exists():
+        subject_teachers = UserProfile.objects.filter(
+            role='ADMIN', is_approved=True
+        ).select_related('user')
+    superadmin_profiles = UserProfile.objects.filter(is_superadmin=True).select_related('user')
+    notify_users = {p.user for p in subject_teachers} | {p.user for p in superadmin_profiles}
+
+    pending_count = _EA.objects.filter(exam_paper=attempt.exam_paper, status='CQ_PENDING').count()
+
+    for teacher in notify_users:
+        # Skip if this teacher already has an unread notification for this paper
+        already = Notification.objects.filter(
+            recipient=teacher, notif_type='exam', is_read=False,
+            title__contains=paper_title,
+        ).exists()
+        if already:
+            continue
+        Notification.objects.create(
+            recipient=teacher,
+            notif_type='exam',
+            title=f'CQ submissions waiting — {paper_title}',
+            title_bn=f'CQ জমা অপেক্ষায় — {paper_title}',
+            message=f'{pending_count} student(s) submitted CQ answers for "{paper_title}". Check the grade queue.',
+            message_bn=f'"{paper_title}" পরীক্ষায় {pending_count} জন CQ উত্তর জমা দিয়েছে। গ্রেড কিউ দেখুন।',
+            link=grade_link,
+        )
 
     messages.success(request, 'আপনার CQ উত্তর সফলভাবে জমা হয়েছে। Teacher এর মূল্যায়নের জন্য অপেক্ষা করুন।')
     return redirect('exam_results', attempt_id=attempt.id)
@@ -3128,6 +3514,25 @@ def create_exam_paper(request):
             errors.append('Subject বেছে নিন।')
         if not class_id:
             errors.append('Class বেছে নিন।')
+
+        # Duplicate check: Board + Year combination must be unique per subject/class
+        if board_id and year and subject_id and class_id:
+            try:
+                year_int = int(year)
+            except ValueError:
+                year_int = None
+            if year_int:
+                existing = ExamPaper.objects.filter(
+                    board_id=board_id, year=year_int,
+                    subject_id=subject_id, class_obj_id=class_id,
+                ).select_related('board', 'subject', 'class_obj', 'created_by').first()
+                if existing:
+                    creator = existing.created_by.get_full_name() or existing.created_by.username
+                    errors.append(
+                        f'এই Board ({existing.board.name}), Year ({year_int}), '
+                        f'Subject ({existing.subject.name}) এবং Class ({existing.class_obj.name}) এর paper '
+                        f'ইতিমধ্যে আছে: "{existing.title}" — তৈরি করেছেন {creator}.'
+                    )
 
         mcq_texts = request.POST.getlist('mcq_question_text')
         cq_texts = request.POST.getlist('cq_question_text')
@@ -3280,6 +3685,27 @@ def edit_exam_paper(request, pk):
         if not subject_id: errors.append('Subject বেছে নিন।')
         if not class_id: errors.append('Class বেছে নিন।')
 
+        # Duplicate check: Board + Year combination must be unique (excluding self)
+        if board_id and year and subject_id and class_id:
+            try:
+                year_int = int(year)
+            except ValueError:
+                year_int = None
+            if year_int:
+                existing = ExamPaper.objects.filter(
+                    board_id=board_id, year=year_int,
+                    subject_id=subject_id, class_obj_id=class_id,
+                ).exclude(pk=paper.pk).select_related(
+                    'board', 'subject', 'class_obj', 'created_by'
+                ).first()
+                if existing:
+                    creator = existing.created_by.get_full_name() or existing.created_by.username
+                    errors.append(
+                        f'এই Board ({existing.board.name}), Year ({year_int}), '
+                        f'Subject ({existing.subject.name}) এবং Class ({existing.class_obj.name}) এর paper '
+                        f'ইতিমধ্যে আছে: "{existing.title}" — তৈরি করেছেন {creator}.'
+                    )
+
         mcq_texts = request.POST.getlist('mcq_question_text')
         cq_texts = request.POST.getlist('cq_question_text')
         if not any(t.strip() for t in mcq_texts) and not any(t.strip() for t in cq_texts):
@@ -3418,83 +3844,94 @@ def delete_exam_paper(request, pk):
 
 def _parse_exam_questions(text):
     import re
-    lines = [l.strip() for l in text.splitlines() if l.strip()]
+
+    # Options: English a/b/c/d (any case) OR Bengali ক/খ/গ/ঘ, any bracket/dot/space delimiter
+    opt_re = re.compile(r'^[(（]?([aAbBcCdDকখগঘ])[)）\.\s]+(.*)', re.UNICODE)
+    # Numbered question prefix (Arabic or Bengali numerals)
+    q_num_re = re.compile(r'^[০-৯0-9]{1,2}[।\.)\s]+(.*)')
+
+    OPT_IDX = {
+        'a': 1, 'A': 1, 'ক': 1,
+        'b': 2, 'B': 2, 'খ': 2,
+        'c': 3, 'C': 3, 'গ': 3,
+        'd': 4, 'D': 4, 'ঘ': 4,
+    }
+
     mcqs = []
     cqs = []
 
-    # Bengali/Arabic numeral at line start = possible question
-    q_start = re.compile(r'^[০-৯0-9]{1,2}[।\.)\s]+(.*)')
-    # Option line: starts with ক/খ/গ/ঘ or (ক)/(খ) etc.
-    opt_line = re.compile(r'^[(（]?([কখগঘ])[)）\.\s]+(.*)')
-    # Marks hint: (2) or ২ in brackets after CQ part
-    marks_hint = re.compile(r'\(?(\d)\)?[\s]*$')
+    def flush(q_parts, opts):
+        if not opts:
+            # Fallback: no letter prefixes — first line = question, next 4 = options
+            if len(q_parts) >= 3:
+                q_text = q_parts[0]
+                options = q_parts[1:5]
+                if len(options) == 4:
+                    mcqs.append({
+                        'question_text': q_text,
+                        'option1': options[0], 'option2': options[1],
+                        'option3': options[2], 'option4': options[3],
+                        'correct_option': 1, 'marks': 1,
+                    })
+            return
+        q_text = ' '.join(q_parts).strip()
+        o1, o2, o3, o4 = opts.get(1,''), opts.get(2,''), opts.get(3,''), opts.get(4,'')
+        if o1 and o2 and o3 and o4:
+            mcqs.append({
+                'question_text': q_text,
+                'option1': o1, 'option2': o2, 'option3': o3, 'option4': o4,
+                'correct_option': 1, 'marks': 1,
+            })
+        elif o1 or o2:
+            cqs.append({
+                'question_text': q_text,
+                'part_a': o1, 'part_b': o2, 'part_c': o3, 'part_d': o4,
+                'marks_a': 1, 'marks_b': 2, 'marks_c': 3, 'marks_d': 4,
+            })
 
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        qm = q_start.match(line)
+    q_parts = []
+    opts = {}
+    in_options = False
+
+    for raw in text.splitlines():
+        line = raw.strip()
+
+        if not line:
+            # Blank line ends the current question block
+            if opts:
+                flush(q_parts, opts)
+                q_parts, opts, in_options = [], {}, False
+            continue
+
+        om = opt_re.match(line)
+        if om:
+            idx = OPT_IDX.get(om.group(1))
+            if idx:
+                opts[idx] = om.group(2).strip()
+                in_options = True
+            continue
+
+        # Non-option text line
+        qm = q_num_re.match(line)
         if qm:
-            q_text = qm.group(1).strip()
-            # Collect continuation lines before first option
-            j = i + 1
-            while j < len(lines) and not opt_line.match(lines[j]) and not q_start.match(lines[j]):
-                q_text += ' ' + lines[j]
-                j += 1
-            # Collect up to 4 options
-            opts = {}
-            marks = {}
-            while j < len(lines):
-                om = opt_line.match(lines[j])
-                if not om:
-                    break
-                letter = om.group(1)   # ক/খ/গ/ঘ
-                opt_text = om.group(2).strip()
-                # Extract marks hint like (2) at end
-                mm = marks_hint.search(opt_text)
-                mk = int(mm.group(1)) if mm else None
-                if mk:
-                    opt_text = opt_text[:mm.start()].strip()
-                opts[letter] = opt_text
-                if mk:
-                    marks[letter] = mk
-                j += 1
-
-            opt_ka = opts.get('ক', '')
-            opt_kha = opts.get('খ', '')
-            opt_ga = opts.get('গ', '')
-            opt_gha = opts.get('ঘ', '')
-
-            if opt_ka and opt_kha and opt_ga and opt_gha:
-                # All 4 options → MCQ
-                mcqs.append({
-                    'question_text': q_text,
-                    'option1': opt_ka,
-                    'option2': opt_kha,
-                    'option3': opt_ga,
-                    'option4': opt_gha,
-                    'correct_option': 1,
-                    'marks': 1,
-                })
-            elif opt_ka or opt_kha:
-                # Partial options → CQ sub-questions
-                cqs.append({
-                    'question_text': q_text,
-                    'part_a': opt_ka,
-                    'part_b': opt_kha,
-                    'part_c': opt_ga,
-                    'part_d': opt_gha,
-                    'marks_a': marks.get('ক', 1),
-                    'marks_b': marks.get('খ', 2),
-                    'marks_c': marks.get('গ', 3),
-                    'marks_d': marks.get('ঘ', 4),
-                })
-            else:
-                # Question with no options yet — might be CQ stimulus; skip for now
-                pass
-            i = j
+            # Numbered question — flush previous block first
+            if opts or in_options:
+                flush(q_parts, opts)
+                q_parts, opts, in_options = [], {}, False
+            q_parts.append(qm.group(1).strip())
         else:
-            i += 1
+            if in_options and len(opts) < 4:
+                # Already collecting options but this line has no prefix —
+                # treat it as the next sequential option
+                opts[len(opts) + 1] = line
+            elif in_options:
+                # All 4 options filled, plain text = new question block
+                flush(q_parts, opts)
+                q_parts, opts, in_options = [line], {}, False
+            else:
+                q_parts.append(line)
 
+    flush(q_parts, opts)
     return mcqs, cqs
 
 
@@ -3571,24 +4008,35 @@ def grade_cq_submission(request, attempt_id):
         messages.error(request, 'শুধু Teacher/Staff এই page access করতে পারবে।')
         return redirect('home')
 
-    attempt = get_object_or_404(ExamAttempt, id=attempt_id, status='CQ_PENDING')
+    attempt = get_object_or_404(
+        ExamAttempt.objects.filter(status__in=['CQ_PENDING', 'GRADED']),
+        id=attempt_id,
+    )
     cq_submissions = attempt.cq_submissions.select_related('cq_question').all()
+    is_regrade = (attempt.status == 'GRADED')
 
     if request.method == 'POST':
         from django.utils import timezone
         total_cq = 0
         for sub in cq_submissions:
-            try:
-                marks = int(request.POST.get(f'marks_{sub.id}') or 0)
-            except ValueError:
-                marks = 0
-            max_marks = (sub.cq_question.marks_a + sub.cq_question.marks_b +
-                         sub.cq_question.marks_c + sub.cq_question.marks_d)
-            marks = max(0, min(marks, max_marks))
-            sub.marks_given = marks
-            sub.teacher_comment = request.POST.get(f'comment_{sub.id}', '').strip()
+            q = sub.cq_question
+            cq_total = 0
+            for part, max_marks in (('a', q.marks_a), ('b', q.marks_b),
+                                    ('c', q.marks_c), ('d', q.marks_d)):
+                raw = request.POST.get(f'marks_{sub.id}_{part}', '').strip()
+                try:
+                    m = int(raw) if raw else 0
+                except ValueError:
+                    m = 0
+                m = max(0, min(m, max_marks))
+                setattr(sub, f'marks_{part}', m)
+                comment = request.POST.get(f'comment_{sub.id}_{part}', '').strip()
+                # Clear comment if student got full marks for this part
+                setattr(sub, f'comment_{part}', '' if m >= max_marks else comment)
+                cq_total += m
+            sub.marks_given = cq_total
             sub.save()
-            total_cq += marks
+            total_cq += cq_total
 
         attempt.cq_score = total_cq
         attempt.total_score = attempt.mcq_score + total_cq
@@ -3600,22 +4048,33 @@ def grade_cq_submission(request, attempt_id):
 
         from .models import Notification
         from django.urls import reverse
+        if is_regrade:
+            n_title = f'Result updated: {attempt.exam_paper.title}'
+            n_title_bn = f'ফলাফল আপডেট: {attempt.exam_paper.title}'
+            n_msg = f'Your result has been updated. New score: {attempt.total_score}, Grade: {attempt.grade}.'
+            n_msg_bn = f'তোমার ফলাফল আপডেট হয়েছে। নতুন নম্বর: {attempt.total_score}, গ্রেড: {attempt.grade}।'
+        else:
+            n_title = f'Result published: {attempt.exam_paper.title}'
+            n_title_bn = f'ফলাফল প্রকাশিত: {attempt.exam_paper.title}'
+            n_msg = f'Your exam has been graded. Score: {attempt.total_score}, Grade: {attempt.grade}.'
+            n_msg_bn = f'তোমার পরীক্ষার ফলাফল প্রকাশিত হয়েছে। নম্বর: {attempt.total_score}, গ্রেড: {attempt.grade}।'
         Notification.objects.create(
             recipient=attempt.student,
             notif_type='exam',
-            title=f'Result published: {attempt.exam_paper.title}',
-            message=f'Your exam has been graded. Score: {attempt.total_score}, Grade: {attempt.grade}.',
-            title_bn=f'ফলাফল প্রকাশিত: {attempt.exam_paper.title}',
-            message_bn=f'তোমার পরীক্ষার ফলাফল প্রকাশিত হয়েছে। নম্বর: {attempt.total_score}, গ্রেড: {attempt.grade}।',
+            title=n_title,
+            message=n_msg,
+            title_bn=n_title_bn,
+            message_bn=n_msg_bn,
             link=reverse('exam_results', args=[attempt.id]),
         )
 
-        messages.success(request, f'Grading সম্পন্ন। Grade: {attempt.grade}')
+        messages.success(request, f'{"Re-grading" if is_regrade else "Grading"} সম্পন্ন। Grade: {attempt.grade}')
         return redirect('manage_grade_list')
 
     return render(request, 'manage/grade_cq_submission.html', {
         'attempt': attempt,
         'cq_submissions': cq_submissions,
+        'is_regrade': is_regrade,
     })
 
 
@@ -3629,12 +4088,72 @@ def manage_grade_list(request):
     from django.utils import timezone
     from datetime import timedelta
 
-    pending = ExamAttempt.objects.filter(status='CQ_PENDING').select_related(
-        'student', 'exam_paper', 'exam_paper__subject'
+    is_super = getattr(getattr(request.user, 'profile', None), 'is_superadmin', False)
+    try:
+        my_subjects = list(request.user.profile.subjects.values_list('id', flat=True))
+    except Exception:
+        my_subjects = []
+
+    qs_pending = ExamAttempt.objects.filter(status='CQ_PENDING').select_related(
+        'student', 'exam_paper', 'exam_paper__subject', 'assigned_teacher'
     ).order_by('cq_submitted_at')
 
-    cutoff = timezone.now() - timedelta(hours=24)
-    for attempt in pending:
-        attempt.is_urgent = bool(attempt.cq_submitted_at and attempt.cq_submitted_at < cutoff)
+    # Unclaimed: filtered by teacher's current subject
+    unclaimed_qs = qs_pending.filter(assigned_teacher=None)
+    if not is_super and my_subjects:
+        unclaimed_qs = unclaimed_qs.filter(exam_paper__subject__id__in=my_subjects)
 
-    return render(request, 'manage/grade_queue.html', {'pending': pending})
+    # My queue: always show everything this teacher claimed, even if they changed subject
+    my_queue = qs_pending.filter(assigned_teacher=request.user)
+
+    # Graded by me: all attempts I've graded (most recent first)
+    graded_by_me = ExamAttempt.objects.filter(
+        status='GRADED', graded_by=request.user
+    ).select_related(
+        'student', 'exam_paper', 'exam_paper__subject'
+    ).order_by('-graded_at')[:100]
+
+    total_pending = unclaimed_qs.count() + my_queue.count()
+    unclaimed = unclaimed_qs
+
+    cutoff = timezone.now() - timedelta(hours=24)
+    for qs in [unclaimed, my_queue]:
+        for attempt in qs:
+            attempt.is_urgent = bool(attempt.cq_submitted_at and attempt.cq_submitted_at < cutoff)
+
+    return render(request, 'manage/grade_queue.html', {
+        'unclaimed': unclaimed,
+        'my_queue': my_queue,
+        'graded_by_me': graded_by_me,
+        'total_pending': total_pending,
+    })
+
+
+@login_required
+def claim_cq_attempt(request, attempt_id):
+    from .models import ExamAttempt
+    if not _is_exam_staff(request.user):
+        return redirect('home')
+    if request.method == 'POST':
+        attempt = get_object_or_404(ExamAttempt, id=attempt_id, status='CQ_PENDING')
+        if attempt.assigned_teacher is None:
+            from django.utils import timezone
+            attempt.assigned_teacher = request.user
+            attempt.claimed_at = timezone.now()
+            attempt.save()
+    return redirect('manage_grade_list')
+
+
+@login_required
+def release_cq_attempt(request, attempt_id):
+    from .models import ExamAttempt
+    if not _is_exam_staff(request.user):
+        return redirect('home')
+    if request.method == 'POST':
+        attempt = get_object_or_404(ExamAttempt, id=attempt_id, status='CQ_PENDING')
+        is_super = getattr(getattr(request.user, 'profile', None), 'is_superadmin', False)
+        if attempt.assigned_teacher == request.user or is_super:
+            attempt.assigned_teacher = None
+            attempt.claimed_at = None
+            attempt.save()
+    return redirect('manage_grade_list')
