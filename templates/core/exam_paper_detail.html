@@ -172,32 +172,7 @@
     </div>
   </div>
 
-  <!-- Sample MCQ preview (first 3) -->
-  {% if mcq_sample %}
-  <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-    <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
-      <span class="text-blue-600">📝</span> MCQ নমুনা প্রশ্ন
-    </h2>
-    <div class="space-y-4">
-      {% for mcq in mcq_sample %}
-      <div class="border border-gray-100 rounded-xl p-4 bg-gray-50">
-        <p class="text-sm font-medium text-gray-700 mb-3">
-          <span class="text-blue-600 font-bold mr-1">{{ forloop.counter }}.</span>{{ mcq.question_text }}
-        </p>
-        <div class="grid grid-cols-2 gap-2">
-          <span class="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-1.5">(ক) {{ mcq.option1 }}</span>
-          <span class="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-1.5">(খ) {{ mcq.option2 }}</span>
-          <span class="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-1.5">(গ) {{ mcq.option3 }}</span>
-          <span class="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-1.5">(ঘ) {{ mcq.option4 }}</span>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% if mcq_count > 3 %}
-    <p class="text-xs text-gray-400 mt-3 text-center">আরো {{ mcq_count|add:"-3" }}টি MCQ পরীক্ষায় থাকবে</p>
-    {% endif %}
-  </div>
-  {% endif %}
+  {# MCQ sample preview removed — questions are hidden until the exam starts #}
 
   <!-- Grading info -->
   <div class="bg-white rounded-2xl border border-gray-200 p-6">

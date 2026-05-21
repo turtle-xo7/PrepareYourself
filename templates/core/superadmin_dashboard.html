@@ -70,12 +70,28 @@
         </a>
     </div>
 
+    <!-- Teacher Applications Alert -->
+    {% if pending_teachers_count > 0 %}
+    <a href="{% url 'teacher_applications' %}"
+       class="flex items-center justify-between bg-amber-50 border border-amber-300 rounded-2xl px-6 py-4 mb-6 hover:bg-amber-100 transition">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">⏳</span>
+            <div>
+                <p class="font-semibold text-amber-800">Pending Teacher Applications</p>
+                <p class="text-xs text-amber-600">{{ pending_teachers_count }} teacher(s) waiting for approval</p>
+            </div>
+        </div>
+        <span class="bg-amber-500 text-white text-sm font-bold px-3 py-1 rounded-full">{{ pending_teachers_count }}</span>
+    </a>
+    {% endif %}
+
     <!-- Quick Actions -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <a href="{% url 'question_add' %}" class="bg-blue-600 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-blue-700 transition">+ Add Question</a>
         <a href="{% url 'video_add' %}" class="bg-purple-600 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-purple-700 transition">+ Add Video</a>
         <a href="{% url 'board_add' %}" class="bg-green-600 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-green-700 transition">+ Add Board</a>
         <a href="{% url 'subject_add' %}" class="bg-orange-500 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-orange-600 transition">+ Add Subject</a>
+        <a href="{% url 'teacher_applications' %}" class="bg-amber-500 text-white rounded-xl px-4 py-3 text-sm font-medium text-center hover:bg-amber-600 transition">👨‍🏫 Teacher Applications</a>
     </div>
 
     <!-- Recent Signups -->

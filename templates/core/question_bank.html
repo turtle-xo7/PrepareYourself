@@ -20,11 +20,17 @@
                     {% if LANG == 'en' %}Filter questions from all boards by year, subject, and class.{% else %}সব board এর প্রশ্ন — year, subject, class দিয়ে filter করো।{% endif %}
                 </p>
             </div>
-            <div class="flex gap-3" data-aos="fade-left" data-aos-delay="100">
+            <div class="flex gap-3 items-center" data-aos="fade-left" data-aos-delay="100">
                 <div class="bg-white/10 border border-white/20 rounded-2xl px-4 py-2 text-center backdrop-blur-sm">
                     <div class="text-xl font-extrabold text-white">{{ questions|length }}</div>
                     <div class="text-xs text-blue-200">{% if LANG == 'en' %}Questions{% else %}প্রশ্ন{% endif %}</div>
                 </div>
+                {% if is_teacher %}
+                <a href="{% url 'question_add' %}"
+                   class="flex items-center gap-2 bg-white text-blue-700 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-blue-50 transition shadow-sm">
+                    + {% if LANG == 'en' %}Add Question{% else %}প্রশ্ন যোগ করো{% endif %}
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -80,7 +86,8 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex gap-6 items-start">
 
-        <!-- Sidebar Navigator -->
+        <!-- Sidebar Navigator (students only) -->
+        {% if not is_teacher %}
         <div class="hidden lg:block w-60 shrink-0">
             <div class="bg-white rounded-2xl border border-gray-100 p-4 sticky top-32" style="box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
                 <div class="flex items-center gap-2 mb-4">
@@ -117,6 +124,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Question Cards -->
         <div class="flex-1 space-y-4">
@@ -142,6 +150,18 @@
                     </span>
                 </div>
 
+                <!-- Teacher stats -->
+                {% if is_teacher %}
+                <div class="flex items-center gap-2 mb-3 flex-wrap">
+                    <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-lg">
+                        👥 {{ q.stats_attempted }} attempted
+                    </span>
+                    <span class="inline-flex items-center gap-1 {% if q.stats_correct_pct >= 60 %}bg-green-50 text-green-700{% elif q.stats_correct_pct >= 30 %}bg-yellow-50 text-yellow-700{% else %}bg-red-50 text-red-600{% endif %} text-xs font-semibold px-2.5 py-1 rounded-lg">
+                        ✓ {{ q.stats_correct_pct }}% correct
+                    </span>
+                </div>
+                {% endif %}
+
                 <!-- Chapter -->
                 {% if q.chapter %}
                 <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">{{ q.chapter }}</p>
@@ -152,6 +172,12 @@
 
                 <!-- MCQ Options -->
                 {% if q.question_type == 'MCQ' %}
+                {% if is_teacher %}
+                <div class="flex items-center gap-2 mt-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm font-medium text-amber-700">
+                    <span>✅</span>
+                    <span>{% if LANG == 'en' %}Correct Answer: Option {% if q.correct_option == 1 %}ক — {{ q.option1 }}{% elif q.correct_option == 2 %}খ — {{ q.option2 }}{% elif q.correct_option == 3 %}গ — {{ q.option3 }}{% else %}ঘ — {{ q.option4 }}{% endif %}{% else %}সঠিক উত্তর: {% if q.correct_option == 1 %}ক — {{ q.option1 }}{% elif q.correct_option == 2 %}খ — {{ q.option2 }}{% elif q.correct_option == 3 %}গ — {{ q.option3 }}{% else %}ঘ — {{ q.option4 }}{% endif %}{% endif %}</span>
+                </div>
+                {% else %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3" id="opts-{{ forloop.counter }}">
                     {% if q.option1 %}
                     <button onclick="selectOpt('{{ forloop.counter }}', this, 0, {{ q.correct_option|add:'-1' }})"
@@ -191,12 +217,14 @@
                         class="check-btn text-sm font-semibold px-5 py-2 rounded-xl text-white transition-all duration-200
                                disabled:opacity-30 disabled:cursor-not-allowed"
                         style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
-                        {% if LANG == 'en' %}Check Answer{% else %}উত্তর দেখো{% endif %}
+                        {% if LANG == 'en' %}Check Answer{% else %}উত্তর দেখো {% endif %}
                     </button>
                 </div>
                 {% endif %}
+                {% endif %}
 
                 {% if q.question_type == 'WRITTEN' %}
+                {% if not is_teacher %}
                 <div class="mt-1">
                     {% if user.is_authenticated and q.pk in written_solves %}
                     <div class="flex flex-wrap items-center gap-3">
@@ -216,6 +244,24 @@
                         ✍️ {% if LANG == 'en' %}Practice this Question →{% else %}এই প্রশ্নে Practice করো →{% endif %}
                     </a>
                     {% endif %}
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <!-- Teacher edit/delete actions -->
+                {% if is_teacher %}
+                <div class="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <a href="{% url 'question_edit' q.pk %}"
+                       class="flex items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition">
+                        ✏️ Edit
+                    </a>
+                    <form method="post" action="{% url 'question_delete' q.pk %}" onsubmit="return confirm('Delete this question?')">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition">
+                            🗑️ Delete
+                        </button>
+                    </form>
                 </div>
                 {% endif %}
             </div>

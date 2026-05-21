@@ -117,18 +117,7 @@
         <div class="bg-white rounded-2xl shadow p-6">
           <h4 class="font-semibold text-gray-700 mb-4">📷 উত্তরের ছবি আপলোড করুন</h4>
 
-          <!-- Single photo for full question -->
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-600 mb-2">সম্পূর্ণ উত্তরের ছবি (একটি)</label>
-            <input type="file" name="photo_{{ cq.id }}" accept="image/*"
-                   class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
-                   onchange="previewImage(this, 'preview-full-{{ cq.id }}')">
-            <div id="preview-full-{{ cq.id }}" class="mt-2 flex gap-2 flex-wrap"></div>
-          </div>
-
-          <div class="border-t pt-4">
-            <p class="text-xs text-gray-400 mb-3">অথবা প্রতিটি অংশের জন্য আলাদা ছবি</p>
-            <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">(ক) অংশ</label>
                 <input type="file" name="photo_{{ cq.id }}_a" accept="image/*"
@@ -157,7 +146,6 @@
                        onchange="previewImage(this, 'preview-d-{{ cq.id }}')">
                 <div id="preview-d-{{ cq.id }}" class="mt-1"></div>
               </div>
-            </div>
           </div>
         </div>
       </div>

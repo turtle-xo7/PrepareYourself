@@ -40,7 +40,7 @@
                placeholder="যেমন: SSC 2024 Physics Board Exam"
                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Subject <span class="text-red-500">*</span></label>
           <select name="subject" required
@@ -62,22 +62,12 @@
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Board <span class="text-xs text-gray-400">(ঐচ্ছিক)</span></label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Board <span class="text-xs text-gray-400">(optional)</span></label>
           <select name="board"
                   class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
             <option value="">-- বেছে নিন --</option>
             {% for b in boards %}
             <option value="{{ b.id }}" {% if post.board == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Year <span class="text-xs text-gray-400">(ঐচ্ছিক)</span></label>
-          <select name="year"
-                  class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
-            <option value="">-- বেছে নিন --</option>
-            {% for y in years %}
-            <option value="{{ y }}" {% if post.year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
             {% endfor %}
           </select>
         </div>
@@ -127,6 +117,82 @@
     </div>
 
     <div id="ocr-error" class="hidden mt-3 text-sm text-red-600 font-medium"></div>
+  </div>
+
+  <!-- ── BULK MCQ PASTE ── -->
+  <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6">
+    <div class="flex items-start justify-between gap-4 flex-wrap mb-3">
+      <div>
+        <h2 class="font-bold text-gray-800 flex items-center gap-2">
+          <span class="text-lg">📋</span> Bulk MCQ Paste
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">Paste multiple MCQs at once — they will auto-fill into the form below.</p>
+      </div>
+      <button type="button" onclick="document.getElementById('bulk-paste-box').classList.toggle('hidden')"
+              class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium transition">
+        Show / Hide
+      </button>
+    </div>
+
+    <div id="bulk-paste-box" class="hidden">
+      <div class="bg-white border border-emerald-100 rounded-xl p-4 mb-3 text-xs text-gray-600 leading-relaxed space-y-3">
+        <p class="font-semibold text-gray-800 text-sm">Supported Formats</p>
+
+        <!-- Format 1 -->
+        <div>
+          <p class="font-medium text-gray-700 mb-1">① With letter prefix — English (a/b/c/d)</p>
+          <pre class="bg-gray-50 rounded-lg px-3 py-2 font-mono text-gray-600">1. What is Einstein's equation?
+a. E=mc²
+b. F=ma
+c. V=IR
+d. P=IV
+
+2. Next question?
+a. Option A
+b. Option B
+c. Option C
+d. Option D</pre>
+        </div>
+
+        <!-- Format 2 -->
+        <div>
+          <p class="font-medium text-gray-700 mb-1">② With letter prefix — Bengali (ক/খ/গ/ঘ)</p>
+          <pre class="bg-gray-50 rounded-lg px-3 py-2 font-mono text-gray-600">১. আইনস্টাইনের সমীকরণ কোনটি?
+ক. E=mc²
+খ. F=ma
+গ. V=IR
+ঘ. P=IV</pre>
+        </div>
+
+        <!-- Format 3 -->
+        <div>
+          <p class="font-medium text-gray-700 mb-1">③ No prefix — plain lines (blank line required between questions)</p>
+          <pre class="bg-gray-50 rounded-lg px-3 py-2 font-mono text-gray-600">What is Einstein's equation?
+E=mc²
+F=ma
+V=IR
+P=IV
+
+Next question here?
+Option A
+Option B
+Option C
+Option D</pre>
+        </div>
+
+        <p class="text-amber-600 font-medium">After filling, select the correct answer (✓) for each MCQ row.</p>
+      </div>
+      <textarea id="bulk-mcq-text" rows="10"
+                placeholder="Paste your MCQs here..."
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-y bg-white font-mono mb-3"></textarea>
+      <div class="flex items-center gap-3 flex-wrap">
+        <button type="button" onclick="parseBulkMCQ()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-sm font-bold transition">
+          Auto-fill MCQs →
+        </button>
+        <span id="bulk-mcq-status" class="text-sm text-gray-500"></span>
+      </div>
+    </div>
   </div>
 
   <!-- ── SECTION 2: MCQ Questions ── -->
@@ -210,24 +276,24 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(ক) বিকল্প</label>
-        <input type="text" name="mcq_option1" required placeholder="বিকল্প ক"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">ক</span>)</label>
+        <input type="text" name="mcq_option1" required placeholder="ক"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="0">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(খ) বিকল্প</label>
-        <input type="text" name="mcq_option2" required placeholder="বিকল্প খ"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">খ</span>)</label>
+        <input type="text" name="mcq_option2" required placeholder="খ"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="1">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(গ) বিকল্প</label>
-        <input type="text" name="mcq_option3" required placeholder="বিকল্প গ"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">গ</span>)</label>
+        <input type="text" name="mcq_option3" required placeholder="গ"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="2">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(ঘ) বিকল্প</label>
-        <input type="text" name="mcq_option4" required placeholder="বিকল্প ঘ"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">ঘ</span>)</label>
+        <input type="text" name="mcq_option4" required placeholder="ঘ"
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="3">
       </div>
     </div>
 
@@ -237,16 +303,16 @@
         <input type="hidden" name="mcq_correct_option" value="1" class="hidden-correct-input">
         <div class="flex gap-3">
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" value="1"> ক
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="1"> <span class="mcq-lbl" data-i="0">ক</span>
           </label>
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" value="2"> খ
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="2"> <span class="mcq-lbl" data-i="1">খ</span>
           </label>
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" value="3"> গ
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="3"> <span class="mcq-lbl" data-i="2">গ</span>
           </label>
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" value="4"> ঘ
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="4"> <span class="mcq-lbl" data-i="3">ঘ</span>
           </label>
         </div>
       </div>
@@ -334,10 +400,30 @@
 let mcqCount = 0;
 let cqCount = 0;
 
+const BN_LABELS = ['ক', 'খ', 'গ', 'ঘ'];
+const EN_LABELS = ['a', 'b', 'c', 'd'];
+
+function isBengali(text) {
+  return /[ঀ-৿]/.test(text || '');
+}
+
+function applyMCQLabels(row, bengali) {
+  const labels = bengali ? BN_LABELS : EN_LABELS;
+  row.querySelectorAll('.mcq-lbl').forEach(el => {
+    el.textContent = labels[parseInt(el.dataset.i)];
+  });
+  row.querySelectorAll('.mcq-opt-ph').forEach(el => {
+    el.placeholder = labels[parseInt(el.dataset.i)];
+  });
+}
+
 // ── MCQ ──────────────────────────────
 function addMCQ(prefill) {
   mcqCount++;
-  const frag = document.getElementById('mcq-template').content.cloneNode(true);
+  const html = document.getElementById('mcq-template').innerHTML.replaceAll('__IDX__', mcqCount);
+  const tpl = document.createElement('template');
+  tpl.innerHTML = html;
+  const frag = tpl.content.cloneNode(true);
   frag.querySelector('.mcq-num').textContent = mcqCount;
   const list = document.getElementById('mcq-list');
   list.appendChild(frag);
@@ -359,7 +445,16 @@ function addMCQ(prefill) {
     hiddenCorrect.value = co;
     const radio = row.querySelector(`.mcq-radio[value="${co}"]`);
     if (radio) radio.checked = true;
+    // detect language from question or first option
+    const useBengali = isBengali(prefill.question_text) || isBengali(prefill.option1);
+    applyMCQLabels(row, useBengali);
   }
+
+  // live update labels as teacher types the question
+  row.querySelector('textarea[name=mcq_question_text]').addEventListener('input', function() {
+    applyMCQLabels(row, isBengali(this.value));
+  });
+
   updateCounts();
   if (!prefill) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -423,12 +518,56 @@ function updateCounts() {
   document.getElementById('cq-empty-hint').style.display = cq ? 'none' : '';
 }
 
+function showFieldError(el, msg) {
+  el.classList.add('border-red-500', 'ring-2', 'ring-red-300');
+  let err = el.parentElement.querySelector('.field-err');
+  if (!err) {
+    err = document.createElement('p');
+    err.className = 'field-err text-xs text-red-600 mt-1';
+    el.parentElement.appendChild(err);
+  }
+  err.textContent = msg;
+}
+
+function clearFieldError(el) {
+  el.classList.remove('border-red-500', 'ring-2', 'ring-red-300');
+  const err = el.parentElement.querySelector('.field-err');
+  if (err) err.remove();
+}
+
 document.getElementById('exam-form').addEventListener('submit', function(e) {
+  // ── Client-side required field validation (keeps MCQ/CQ data intact) ──
+  let firstInvalid = null;
+  const titleEl   = document.querySelector('input[name=title]');
+  const subjectEl = document.querySelector('select[name=subject]');
+  const classEl   = document.querySelector('select[name=class_obj]');
+
+  [titleEl, subjectEl, classEl].forEach(el => clearFieldError(el));
+
+  if (!titleEl.value.trim()) {
+    showFieldError(titleEl, 'Title is required.');
+    firstInvalid = firstInvalid || titleEl;
+  }
+  if (!subjectEl.value) {
+    showFieldError(subjectEl, 'Subject is required.');
+    firstInvalid = firstInvalid || subjectEl;
+  }
+  if (!classEl.value) {
+    showFieldError(classEl, 'Class is required.');
+    firstInvalid = firstInvalid || classEl;
+  }
+  if (firstInvalid) {
+    e.preventDefault();
+    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    firstInvalid.focus();
+    return;
+  }
+
   const mc = document.querySelectorAll('.mcq-row').length;
   const cq = document.querySelectorAll('.cq-row').length;
   if (mc === 0 && cq === 0) {
     e.preventDefault();
-    alert('কমপক্ষে ১টি MCQ অথবা ১টি CQ প্রশ্ন যোগ করুন।');
+    alert('Add at least 1 MCQ or CQ question.');
     return;
   }
   let radioMissing = false;
@@ -440,7 +579,7 @@ document.getElementById('exam-form').addEventListener('submit', function(e) {
   });
   if (radioMissing) {
     e.preventDefault();
-    alert('প্রতিটি MCQ-তে সঠিক উত্তর চিহ্নিত করুন।');
+    alert('Select the correct answer for every MCQ.');
   }
 });
 
@@ -555,6 +694,37 @@ async function parseAndFill() {
     mcqs.forEach(m => addMCQ(m));
     cqs.forEach(c => addCQ(c));
     statusEl.textContent = `✅ ${mcqs.length}টি MCQ ও ${cqs.length}টি CQ form-এ যোগ হয়েছে।`;
+  } catch (err) {
+    statusEl.textContent = '❌ Error: ' + (err.message || err);
+  }
+}
+
+async function parseBulkMCQ() {
+  const text = document.getElementById('bulk-mcq-text').value.trim();
+  const statusEl = document.getElementById('bulk-mcq-status');
+  if (!text) { statusEl.textContent = '⚠️ No text pasted.'; return; }
+  statusEl.textContent = 'Parsing...';
+
+  const fd = new FormData();
+  fd.append('text', text);
+  fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+  try {
+    const resp = await fetch('{% url "parse_exam_text" %}', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) {
+      statusEl.textContent = '❌ ' + (data.error || 'Parse failed.');
+      return;
+    }
+    const { mcqs = [], cqs = [] } = data.data;
+    mcqs.forEach(m => addMCQ(m));
+    cqs.forEach(c => addCQ(c));
+    if (mcqs.length + cqs.length === 0) {
+      statusEl.textContent = '⚠️ No questions found. Check the format.';
+    } else {
+      statusEl.textContent = `✅ ${mcqs.length} MCQ(s) added. Remember to select the correct answer for each.`;
+      document.getElementById('bulk-mcq-text').value = '';
+    }
   } catch (err) {
     statusEl.textContent = '❌ Error: ' + (err.message || err);
   }

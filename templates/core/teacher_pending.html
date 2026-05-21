@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="{{ LANG }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Under Review - Prepare Yourself</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (localStorage.getItem('py-theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .dark body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%) !important; }
+    .dark .card { background: #1e293b !important; border-color: #334155 !important; }
+    .dark .text-gray-800 { color: #f1f5f9 !important; }
+    .dark .text-gray-500 { color: #94a3b8 !important; }
+    .dark .text-gray-600 { color: #cbd5e1 !important; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6"
+      style="background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);">
+
+  <div class="w-full max-w-lg mx-auto">
+    <div class="card bg-white rounded-3xl shadow-xl border border-gray-100 p-10 text-center">
+
+      <!-- Icon -->
+      <div class="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+           style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+        <span class="text-4xl">⏳</span>
+      </div>
+
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">
+        {% if LANG == 'en' %}Application Under Review{% else %}আবেদন পর্যালোচনাধীন{% endif %}
+      </h1>
+
+      <p class="text-gray-500 text-sm mb-6 leading-relaxed">
+        {% if LANG == 'en' %}
+          Thank you for applying as a teacher on <strong>Prepare Yourself</strong>.<br>
+          Your documents are being reviewed by our admin team.<br>
+          You will receive a notification once your account is approved.
+        {% else %}
+          <strong>Prepare Yourself</strong>-এ শিক্ষক হিসেবে আবেদন করার জন্য ধন্যবাদ।<br>
+          আপনার নথিপত্র আমাদের admin team পর্যালোচনা করছেন।<br>
+          অনুমোদিত হলে আপনাকে notification দেওয়া হবে।
+        {% endif %}
+      </p>
+
+      {% if profile.rejection_reason %}
+      <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-left">
+        <p class="text-sm font-semibold text-red-700 mb-1">
+          {% if LANG == 'en' %}Application Not Approved{% else %}আবেদন অনুমোদিত হয়নি{% endif %}
+        </p>
+        <p class="text-sm text-red-600">{{ profile.rejection_reason }}</p>
+        <p class="text-xs text-red-400 mt-2">
+          {% if LANG == 'en' %}Please update your documents and contact admin.{% else %}আপনার নথিপত্র আপডেট করে admin-এর সাথে যোগাযোগ করুন।{% endif %}
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- What you submitted -->
+      <div class="bg-gray-50 rounded-xl p-4 mb-6 text-left space-y-2">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          {% if LANG == 'en' %}Submitted Information{% else %}জমা দেওয়া তথ্য{% endif %}
+        </p>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">{% if LANG == 'en' %}Username{% else %}ইউজারনেম{% endif %}</span>
+          <span class="font-medium text-gray-700">{{ profile.user.username }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">{% if LANG == 'en' %}Subject Expertise{% else %}বিষয়{% endif %}</span>
+          <span class="font-medium text-gray-700">{{ profile.subject_expertise|default:"—" }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">NID Document</span>
+          <span class="font-medium {% if profile.nid_document %}text-green-600{% else %}text-red-500{% endif %}">
+            {% if profile.nid_document %}✓ Uploaded{% else %}✗ Missing{% endif %}
+          </span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">{% if LANG == 'en' %}Qualification{% else %}সনদ{% endif %}</span>
+          <span class="font-medium {% if profile.qualification_document %}text-green-600{% else %}text-red-500{% endif %}">
+            {% if profile.qualification_document %}✓ Uploaded{% else %}✗ Missing{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <a href="{% url 'notifications' %}"
+           class="w-full py-3 rounded-xl font-semibold text-white text-sm transition hover:opacity-90"
+           style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+          🔔 {% if LANG == 'en' %}Check Notifications{% else %}Notifications দেখুন{% endif %}
+        </a>
+        <a href="{% url 'logout' %}"
+           class="w-full py-3 rounded-xl font-semibold text-gray-600 text-sm border border-gray-200 hover:bg-gray-50 transition">
+          {% if LANG == 'en' %}Logout{% else %}লগআউট{% endif %}
+        </a>
+      </div>
+
+    </div>
+    <p class="text-center text-xs text-gray-400 mt-6">© 2026 Prepare Yourself</p>
+  </div>
+
+</body>
+</html>
