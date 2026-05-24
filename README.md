@@ -200,14 +200,12 @@ PrepareYourself/
 
 Built by a 4-person Scrum team:
 
-| Name | Role | GitHub |
-|------|------|--------|
-| *(Team Lead / Developer)* | Backend Lead | — |
-| *(Developer)* | Frontend / Full-stack | — |
-| *(Developer)* | Features / Integration | — |
-| **Shahariar** | QA / Testing (Unit + Selenium) | [@SHAHARIAR](https://github.com/SHAHARIAR) |
-
-> Fill in your teammates' names and GitHub handles above.
+| Name | Role |
+|------|------|
+| **Shad Bin Moshiur** | Project Manager & Lead Developer |
+| **Rajesh Majumder** | System Analyst & Developer |
+| **Fardin Rohit** | System Designer & Frontend Developer |
+| **Mohammad Shahariar** | Tester & QA Engineer |
 
 ---
 
