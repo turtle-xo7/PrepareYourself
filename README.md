@@ -200,12 +200,12 @@ PrepareYourself/
 
 Built by a 4-person Scrum team:
 
-| Name | Role |
-|------|------|
-| **Shad Bin Moshiur** | Project Manager & Lead Developer |
-| **Rajesh Majumder** | System Analyst & Developer |
-| **Fardin Rohit** | System Designer & Frontend Developer |
-| **Mohammad Shahariar** | Tester & QA Engineer |
+| Name | Role | GitHub |
+|------|------|--------|
+| **Shad Bin Moshiur** | Project Manager & Lead Developer | [@Moshiur1143](https://github.com/Moshiur1143) |
+| **Rajesh Majumder** | System Analyst & Developer | [@Rajash144](https://github.com/Rajash144) |
+| **Fardin Rohit** | System Designer & Frontend Developer | [@23101149-cmyk](https://github.com/23101149-cmyk) |
+| **Mohammad Shahariar** | Tester & QA Engineer | [@turtle-xo7](https://github.com/turtle-xo7) |
 
 ---
 
