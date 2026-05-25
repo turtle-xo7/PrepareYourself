@@ -28,7 +28,6 @@ class QuestionBankSeleniumTests(SeleniumMixin, LiveServerTestCase):
                 self.board, self.subject, self.class_obj,
                 text=f'Question {i + 1}: What is force?',
                 chapter=f'Chapter {i + 1}',
-                year=2024,
             )
 
     def test_question_bank_loads_without_login(self):

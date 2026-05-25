@@ -22,7 +22,7 @@
     {% endfor %}
     {% endif %}
 
-    <form method="post" id="bulk-mcq-form">
+    <form method="post" enctype="multipart/form-data" id="bulk-mcq-form">
     {% csrf_token %}
 
     <!-- BASIC INFO (shared across all MCQs) -->
@@ -32,7 +32,7 @@
         <h2 class="font-bold text-gray-800">Basic Info <span class="text-xs text-gray-400 font-normal">(এই batch এর সব MCQ এর জন্য)</span></h2>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Board <span class="text-red-400">*</span></label>
           <select name="board" required class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -61,21 +61,17 @@
             {% for y in years %}<option value="{{ y }}" {% if post.year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>{% endfor %}
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
-          <select name="difficulty" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-            <option value="Easy" {% if post.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
-            <option value="Medium" {% if post.difficulty == 'Medium' or not post.difficulty %}selected{% endif %}>Medium</option>
-            <option value="Hard" {% if post.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Chapter <span class="text-red-400">*</span></label>
-          <input type="text" name="chapter" required placeholder="অধ্যায়ের নাম"
-                 value="{{ post.chapter|default:'' }}"
-                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-        </div>
       </div>
+    </div>
+
+    <!-- FULL MCQ FILE (single shared file for the whole batch) -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+      <label class="block text-sm font-semibold text-gray-800 mb-1">
+        📎 Full MCQ File <span class="text-gray-400 font-normal text-xs">(Image / PDF / DOC — optional, shared across all MCQs below)</span>
+      </label>
+      <p class="text-xs text-gray-500 mb-2">পুরো MCQ set একটি PDF/ছবি/DOC ফাইলে দিতে চাইলে এখানে upload করুন। নিচের সব MCQ এর সাথে এই ফাইলটি যুক্ত থাকবে।</p>
+      <input type="file" name="mcq_question_file" accept="image/*,.pdf,.doc,.docx"
+             class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white">
     </div>
 
     <!-- BULK PASTE -->
@@ -219,11 +215,20 @@ function applyMCQLabels(row, bengali) {
   row.querySelectorAll('.mcq-opt-ph').forEach(el => { el.placeholder = labels[parseInt(el.dataset.i)]; });
 }
 
+function renumberMCQs() {
+  document.querySelectorAll('#mcq-list .mcq-row').forEach((row, idx) => {
+    const num = row.querySelector('.mcq-num');
+    if (num) num.textContent = idx + 1;
+  });
+}
+
 function refreshCount() {
   const c = document.querySelectorAll('#mcq-list .mcq-row').length;
   document.getElementById('mcq-count-badge').textContent = c + 'টি';
   document.getElementById('mcq-final-count').textContent = c;
   document.getElementById('mcq-empty-hint').style.display = c ? 'none' : 'block';
+  if (c === 0) mcqCount = 0;
+  renumberMCQs();
 }
 
 function addMCQ(prefill) {
@@ -272,17 +277,15 @@ async function parseBulk() {
   const txt = document.getElementById('bulk-mcq-text').value.trim();
   if (!txt) { alert('Paste some text first.'); return; }
   try {
-    const res = await fetch('{% url "parse_exam_text" %}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-      },
-      body: JSON.stringify({ text: txt }),
-    });
+    const fd = new FormData();
+    fd.append('text', txt);
+    fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    const res = await fetch('{% url "parse_exam_text" %}', { method: 'POST', body: fd });
     const data = await res.json();
-    if (data.mcqs && data.mcqs.length) {
-      data.mcqs.forEach(m => addMCQ(m));
+    if (!res.ok || !data.success) { alert(data.error || 'Parse failed.'); return; }
+    const mcqs = data.data.mcqs || [];
+    if (mcqs.length) {
+      mcqs.forEach(m => addMCQ(m));
       document.getElementById('bulk-mcq-text').value = '';
     } else {
       alert('No MCQs detected. Check the format hint.');

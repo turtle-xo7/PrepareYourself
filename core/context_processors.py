@@ -3,12 +3,14 @@ def user_role(request):
     is_superadmin = False
     unread_count = 0
     grade_queue_count = 0
+    coin_balance = 0
+    user_rating = None
     lang = getattr(request, 'LANG', 'bn')
     if request.user.is_authenticated:
         try:
             is_admin = request.user.profile.role == 'ADMIN'
             is_superadmin = request.user.profile.is_superadmin
-            from core.models import TeacherFeedback, Notification
+            from core.models import TeacherFeedback, Notification, UserRating
             if not is_admin and not is_superadmin:
                 unread_count = TeacherFeedback.objects.filter(
                     student=request.user, is_read=False
@@ -19,6 +21,12 @@ def user_role(request):
             if request.user.is_staff or is_superadmin or is_admin:
                 from core.models import ExamAttempt
                 grade_queue_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
+            try:
+                ur, _ = UserRating.objects.get_or_create(user=request.user)
+                coin_balance = ur.coin_balance
+                user_rating = ur
+            except Exception:
+                pass
         except Exception:
             pass
     return {
@@ -26,5 +34,7 @@ def user_role(request):
         'is_superadmin': is_superadmin,
         'unread_count': unread_count,
         'grade_queue_count': grade_queue_count,
+        'coin_balance': coin_balance,
+        'user_rating': user_rating,
         'LANG': lang,
     }

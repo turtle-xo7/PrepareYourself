@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}{% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}{% endblock %}
+{% load static %}
+{% load contest_filters %}
+{% block title %}Contests{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <style>
     .contest-card {
         background: #fff;
@@ -10,193 +13,242 @@
         border-radius: 1rem;
         box-shadow: 0 2px 12px rgba(0,0,0,0.05);
         transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease;
+        display: flex; flex-direction: column; height: 100%;
     }
     .contest-card:hover {
         box-shadow: 0 8px 32px rgba(180,83,9,0.13);
         border-left-color: #b45309;
         transform: translateY(-2px);
     }
-    .contest-card.past-card {
-        border-left-color: #d1d5db;
-        opacity: 0.85;
-    }
-    .contest-card.past-card:hover {
-        border-left-color: #9ca3af;
-        opacity: 1;
-    }
-    html.dark .contest-card {
-        background: #1e293b;
-        border-color: #334155;
+    .contest-card.past-card { border-left-color: #d1d5db; opacity: 0.92; }
+    .contest-card.live-card { border-left-color: #22c55e; }
+    .contest-card.featured-glow {
         border-left-color: #f59e0b;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+        box-shadow: 0 0 0 1px #fcd34d, 0 8px 32px rgba(245,158,11,0.2);
     }
-    html.dark .contest-card:hover {
-        box-shadow: 0 8px 32px rgba(245,158,11,0.18);
-        border-left-color: #fbbf24;
-    }
-    html.dark .contest-card.past-card {
-        border-left-color: #475569;
-    }
-    html.dark .contest-card.past-card:hover {
-        border-left-color: #64748b;
-    }
+    html.dark .contest-card { background:#1e293b; border-color:#334155; }
+    html.dark .contest-card.past-card { border-left-color:#475569; }
 
-    @keyframes pulse-live {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50%       { opacity: 0.6; transform: scale(1.3); }
-    }
-    .live-dot {
-        display: inline-block;
-        width: 8px; height: 8px;
-        border-radius: 50%;
-        background: #22c55e;
-        animation: pulse-live 1.4s ease-in-out infinite;
-    }
-
-    .amber-btn {
-        background: linear-gradient(135deg, #d97706, #b45309);
-        color: #fff;
-        font-weight: 700;
-        border-radius: 0.75rem;
-        transition: opacity .2s, box-shadow .2s, transform .15s;
-    }
-    .amber-btn:hover {
-        opacity: 0.92;
-        box-shadow: 0 6px 20px rgba(180,83,9,0.25);
-        transform: translateY(-1px);
-    }
-
-    .tag-amber {
-        background: #fef3c7;
-        color: #92400e;
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 2px 10px;
-        border-radius: 999px;
-        border: 1px solid #fde68a;
-    }
+    @keyframes pulse-live { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.6;transform:scale(1.3);} }
+    .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e; animation:pulse-live 1.4s infinite ease-in-out; }
+    .amber-btn { background:linear-gradient(135deg,#d97706,#b45309); color:#fff; font-weight:700; border-radius:.75rem; transition:.2s; }
+    .amber-btn:hover { opacity:.92; box-shadow:0 6px 20px rgba(180,83,9,.25); transform:translateY(-1px); }
+    .tag { font-size:.7rem; font-weight:700; padding:2px 10px; border-radius:999px; border:1px solid; display:inline-flex; align-items:center; gap:4px; }
+    .tag-amber  { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+    .tag-blue   { background:#dbeafe; color:#1e40af; border-color:#bfdbfe; }
+    .tag-green  { background:#d1fae5; color:#065f46; border-color:#a7f3d0; }
+    .tag-purple { background:#ede9fe; color:#5b21b6; border-color:#ddd6fe; }
+    .tag-gray   { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+    .tag-red    { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+    .filter-tab { padding:.5rem 1rem; border-radius:.75rem; font-size:.875rem; font-weight:600; transition:.2s; }
+    .filter-tab.active { background:linear-gradient(135deg,#d97706,#b45309); color:#fff; }
+    .filter-tab:not(.active) { color:#6b7280; background:#f9fafb; }
+    .filter-tab:not(.active):hover { background:#fef3c7; color:#92400e; }
+    .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:1rem; padding:1rem 1.25rem; }
+    html.dark .stat-card { background:#1e293b; border-color:#334155; }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Page Header — Amber-Gold -->
-<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%); min-height:180px; display:flex; align-items:center;">
-    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
-    <div class="float-shape absolute -top-10 -right-10 w-72 h-72 rounded-full" style="background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%); filter:blur(40px);"></div>
-    <div class="float-shape absolute -bottom-10 -left-10 w-52 h-52 rounded-full" style="background:radial-gradient(circle,rgba(251,191,36,0.25) 0%,transparent 70%); filter:blur(30px);"></div>
-
-    <div class="max-w-7xl mx-auto px-4 py-12 relative z-10 w-full text-center">
-        <span class="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 backdrop-blur-sm border border-white/20" data-aos="fade-down">
-            🏆 {% if LANG == 'en' %}Competitions{% else %}প্রতিযোগিতা{% endif %}
-        </span>
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-2" data-aos="fade-up" data-aos-delay="50">
-            🏆 {% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}
-        </h1>
-        <p class="text-amber-100 text-base font-medium" data-aos="fade-up" data-aos-delay="100">{% if LANG == 'en' %}Join competitions — test yourself{% else %}প্রতিযোগিতায় অংশ নিন — নিজেকে যাচাই করুন{% endif %}</p>
-
+<!-- Hero -->
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg,#78350f 0%,#b45309 50%,#d97706 100%); min-height:160px; display:flex; align-items:center;">
+    <div class="max-w-7xl mx-auto px-4 py-10 relative z-10 w-full text-center">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-1">🏆 Contests</h1>
+        <p class="text-amber-100 text-base font-medium">Compete. Climb the leaderboard. Earn PrepCoins.</p>
         {% if is_admin %}
-        <div class="mt-6" data-aos="fade-up" data-aos-delay="160">
-            <a href="{% url 'contest_create' %}"
-               class="inline-flex items-center gap-2 amber-btn px-6 py-2.5 text-sm">
-                + {% if LANG == 'en' %}Create Contest{% else %}কনটেস্ট তৈরি করুন{% endif %}
-            </a>
+        <div class="mt-5">
+            <a href="{% url 'contest_create' %}" class="inline-flex items-center gap-2 amber-btn px-5 py-2 text-sm">+ Create Contest</a>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Content -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- Active Contests -->
-    <div class="flex items-center gap-2 mb-6" data-aos="fade-up">
-        <span class="live-dot"></span>
-        <h2 class="font-extrabold text-gray-900 text-lg tracking-tight">{% if LANG == 'en' %}Active Contests{% else %}সক্রিয় কনটেস্ট{% endif %}</h2>
-        <span class="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-green-100 ml-1">
-            <span class="live-dot" style="width:6px;height:6px;"></span> {% if LANG == 'en' %}Live{% else %}লাইভ{% endif %}
-        </span>
+    <!-- Hero stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="stat-card">
+            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Total Contests</p>
+            <p class="text-2xl font-extrabold text-amber-700">{{ stats.total }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Live Now</p>
+            <p class="text-2xl font-extrabold text-green-600 flex items-center gap-2">
+                {{ stats.live }} {% if stats.live %}<span class="live-dot"></span>{% endif %}
+            </p>
+        </div>
+        <div class="stat-card">
+            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Total Participants</p>
+            <p class="text-2xl font-extrabold text-blue-700">{{ stats.participants }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Your Rating</p>
+            <p class="text-2xl font-extrabold" style="color: {{ my_rating.rank_title.color }}">
+                {{ my_rating.rating }}
+                <span class="text-xs font-bold align-middle">{{ my_rating.rank_title.title }}</span>
+            </p>
+        </div>
     </div>
 
-    {% if active_contests %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {% for contest in active_contests %}
-        <div class="contest-card p-5"
-             data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'1' }}00">
+    <!-- Featured -->
+    {% if featured %}
+    <a href="{% url 'contest_detail' featured.pk %}"
+       class="block contest-card featured-glow p-6 mb-6 relative overflow-hidden">
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="tag tag-amber"><i class="bi bi-star-fill"></i> FEATURED</span>
+            {% if featured.is_live %}<span class="tag tag-green"><span class="live-dot"></span> LIVE</span>{% endif %}
+            <span class="tag tag-blue">{{ featured.get_difficulty_display }}</span>
+            <span class="tag tag-purple">{{ featured.get_contest_type_display }}</span>
+            {% if featured.sponsor_name %}<span class="tag tag-gray">by {{ featured.sponsor_name }}</span>{% endif %}
+        </div>
+        <h3 class="text-2xl font-extrabold text-gray-900">{{ featured.title }}</h3>
+        <p class="text-sm text-gray-600 mt-1">{{ featured.subject.name }} • {{ featured.class_obj.name }} • {{ featured.duration_minutes }} min</p>
+        {% if featured.prize_description %}
+        <p class="mt-3 text-amber-700 font-semibold text-sm"><i class="bi bi-gift"></i> {{ featured.prize_description }}</p>
+        {% endif %}
+        <div class="mt-3 text-sm font-semibold text-amber-700 contest-timer" data-end="{{ featured.end_time|date:'c' }}">
+            Starts {{ featured.start_time|date:"d M H:i" }} • Ends {{ featured.end_time|date:"d M H:i" }}
+        </div>
+    </a>
+    {% endif %}
 
-            <!-- Status row -->
-            <div class="flex justify-between items-start mb-4">
-                <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full border border-green-100">
-                    <span class="live-dot" style="width:7px;height:7px;"></span> {% if LANG == 'en' %}Active{% else %}সক্রিয়{% endif %}
-                </span>
-                <span class="tag-amber">{{ contest.duration_minutes }} {% if LANG == 'en' %}min{% else %}মিনিট{% endif %}</span>
+    <!-- Tabs -->
+    <div class="flex flex-wrap gap-2 mb-4">
+        {% with cur=tab %}
+        <a class="filter-tab {% if cur == 'upcoming' %}active{% endif %}" href="?tab=upcoming">Upcoming</a>
+        <a class="filter-tab {% if cur == 'live' %}active{% endif %}" href="?tab=live">Live Now</a>
+        <a class="filter-tab {% if cur == 'past' %}active{% endif %}" href="?tab=past">Past</a>
+        <a class="filter-tab {% if cur == 'mine' %}active{% endif %}" href="?tab=mine">My Contests</a>
+        <a class="filter-tab {% if cur == 'virtual' %}active{% endif %}" href="?tab=virtual">Virtual</a>
+        {% endwith %}
+    </div>
+
+    <!-- Filter row -->
+    <form method="get" class="bg-white border border-gray-200 rounded-2xl p-4 mb-6 grid grid-cols-1 md:grid-cols-5 gap-3" style="box-shadow:0 2px 12px rgba(0,0,0,.04);">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by title…"
+               class="md:col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+        <select name="subject" class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+            <option value="">All subjects</option>
+            {% for s in subjects %}<option value="{{ s.id }}" {% if subject_id == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+        </select>
+        <select name="difficulty" class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+            <option value="">Any difficulty</option>
+            {% for k,v in DIFFICULTY %}<option value="{{ k }}" {% if difficulty == k %}selected{% endif %}>{{ v }}</option>{% endfor %}
+        </select>
+        <select name="type" class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+            <option value="">Any type</option>
+            {% for k,v in CONTEST_TYPE %}<option value="{{ k }}" {% if ctype == k %}selected{% endif %}>{{ v }}</option>{% endfor %}
+        </select>
+        <button class="md:col-span-5 amber-btn py-2 text-sm">Apply filters</button>
+    </form>
+
+    <!-- Contest grid -->
+    {% if contests %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for c in contests %}
+        <div class="contest-card {% if c.is_past %}past-card{% endif %} {% if c.is_live %}live-card{% endif %} p-5">
+
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+                {% if c.is_live %}
+                    <span class="tag tag-green"><span class="live-dot"></span> LIVE</span>
+                {% elif c.is_upcoming %}
+                    <span class="tag tag-blue"><i class="bi bi-clock"></i> Upcoming</span>
+                {% else %}
+                    <span class="tag tag-gray"><i class="bi bi-check2-circle"></i> Ended</span>
+                {% endif %}
+                <span class="tag tag-purple">{{ c.get_contest_type_display }}</span>
+                <span class="tag tag-amber">{{ c.get_difficulty_display }}</span>
+                {% if c.is_featured %}<span class="tag tag-red"><i class="bi bi-star-fill"></i> Featured</span>{% endif %}
+                {% if not c.is_rated %}<span class="tag tag-gray">Unrated</span>{% endif %}
             </div>
 
-            <h3 class="font-bold text-gray-900 text-base mb-1">{{ contest.title }}</h3>
-            <p class="text-sm text-gray-500 mb-1">{{ contest.subject.name }} &bull; {{ contest.class_obj.name }}</p>
-            <p class="text-xs text-gray-400 mb-5">{% if LANG == 'en' %}Ends:{% else %}শেষ:{% endif %} {{ contest.end_time|date:"d M Y H:i" }}</p>
+            <h3 class="font-bold text-gray-900 text-base mb-1 line-clamp-2">{{ c.title }}</h3>
+            <p class="text-sm text-gray-500 mb-2">{{ c.subject.name }} • {{ c.class_obj.name }}</p>
 
-            <div class="flex gap-2">
-                {% if is_admin or is_superadmin %}
-                <a href="{% url 'contest_detail' contest.pk %}"
-                   class="flex-1 text-center text-sm px-3 py-2 rounded-xl border border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100 transition font-semibold">
-                    {% if LANG == 'en' %}View Only &rarr;{% else %}শুধু দেখুন &rarr;{% endif %}
-                </a>
+            {% if c.tag_list %}
+            <div class="flex flex-wrap gap-1 mb-2">
+                {% for t in c.tag_list %}<span class="tag tag-gray text-xs">{{ t }}</span>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="text-xs text-gray-500 mb-3 contest-timer" data-end="{{ c.end_time|date:'c' }}" data-start="{{ c.start_time|date:'c' }}">
+                {% if c.is_live %}
+                    Ends {{ c.end_time|date:"d M H:i" }}
+                {% elif c.is_upcoming %}
+                    Starts {{ c.start_time|date:"d M H:i" }}
                 {% else %}
-                <a href="{% url 'contest_join' contest.pk %}"
-                   class="flex-1 text-center text-sm px-3 py-2 amber-btn">
-                    {% if LANG == 'en' %}Join Now &rarr;{% else %}যোগ দিন &rarr;{% endif %}
+                    Ended {{ c.end_time|date:"d M Y H:i" }}
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                <span><i class="bi bi-people"></i> {{ participant_counts|get_item:c.id|default:0 }} registered</span>
+                <span class="font-semibold {% if c.entry_requirement == 'premium' %}text-purple-700{% else %}text-gray-500{% endif %}">
+                    {% if c.entry_requirement == 'premium' %}🔒 Premium{% else %}FREE{% endif %}
+                </span>
+            </div>
+
+            {% if c.prize_description %}
+            <p class="text-xs text-amber-700 font-semibold mb-3 line-clamp-1"><i class="bi bi-gift"></i> {{ c.prize_description }}</p>
+            {% endif %}
+
+            <div class="mt-auto flex gap-2 pt-2">
+                <a href="{% url 'contest_detail' c.pk %}" class="flex-1 text-center amber-btn px-3 py-2 text-sm">
+                    {% if c.id in my_submissions %}
+                        Results →
+                    {% elif c.id in my_registered %}
+                        {% if c.is_live %}Enter →{% else %}Registered ✓{% endif %}
+                    {% elif c.is_past %}
+                        View →
+                    {% else %}
+                        View Details
+                    {% endif %}
+                </a>
+                <a href="{% url 'contest_leaderboard' c.pk %}"
+                   class="bg-amber-50 text-amber-800 px-3 py-2 rounded-xl text-sm border border-amber-100 hover:bg-amber-100 font-semibold" title="Leaderboard">
+                    <i class="bi bi-trophy"></i>
+                </a>
+                {% if c.allows_virtual and c.is_past %}
+                <a href="{% url 'virtual_contest' c.pk %}"
+                   class="bg-purple-50 text-purple-800 px-3 py-2 rounded-xl text-sm border border-purple-100 hover:bg-purple-100 font-semibold" title="Virtual replay">
+                    <i class="bi bi-play-circle"></i>
                 </a>
                 {% endif %}
-                <a href="{% url 'contest_leaderboard' contest.pk %}"
-                   class="text-center bg-amber-50 text-amber-800 px-3 py-2 rounded-xl text-sm border border-amber-100 hover:bg-amber-100 transition font-semibold">
-                    &#127942;
-                </a>
             </div>
         </div>
         {% endfor %}
     </div>
-    {% else %}
-    <div class="bg-white rounded-2xl border border-amber-100 p-12 text-center mb-12"
-         style="box-shadow: 0 2px 12px rgba(0,0,0,0.05);"
-         data-aos="fade-up">
-        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-             style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-            <span class="text-2xl">&#127942;</span>
-        </div>
-        <p class="text-gray-400 text-sm font-medium">{% if LANG == 'en' %}No active contests.{% else %}কোনো active contest নেই।{% endif %}</p>
+
+    <!-- Pagination -->
+    {% if page.has_other_pages %}
+    <div class="flex justify-center items-center gap-2 mt-8">
+        {% if page.has_previous %}
+            <a class="filter-tab" href="?tab={{ tab }}&q={{ q }}&subject={{ subject_id|default:'' }}&difficulty={{ difficulty }}&type={{ ctype }}&page={{ page.previous_page_number }}">‹ Prev</a>
+        {% endif %}
+        <span class="text-sm text-gray-600 px-3">Page {{ page.number }} of {{ paginator.num_pages }}</span>
+        {% if page.has_next %}
+            <a class="filter-tab" href="?tab={{ tab }}&q={{ q }}&subject={{ subject_id|default:'' }}&difficulty={{ difficulty }}&type={{ ctype }}&page={{ page.next_page_number }}">Next ›</a>
+        {% endif %}
     </div>
     {% endif %}
 
-    <!-- Past Contests -->
-    {% if past_contests %}
-    <div class="flex items-center gap-2 mb-6" data-aos="fade-up">
-        <span class="inline-block w-2.5 h-2.5 rounded-full bg-gray-400"></span>
-        <h2 class="font-extrabold text-gray-700 text-lg tracking-tight">{% if LANG == 'en' %}Past Contests{% else %}পুরানো কনটেস্ট{% endif %}</h2>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for contest in past_contests %}
-        <div class="contest-card past-card p-5"
-             data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'1' }}00">
-
-            <div class="flex justify-between items-start mb-4">
-                <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200">
-                    &#9200; {% if LANG == 'en' %}Ended{% else %}শেষ হয়েছে{% endif %}
-                </span>
-                <span class="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">{{ contest.duration_minutes }} {% if LANG == 'en' %}min{% else %}মিনিট{% endif %}</span>
-            </div>
-
-            <h3 class="font-bold text-gray-900 text-base mb-1">{{ contest.title }}</h3>
-            <p class="text-sm text-gray-500 mb-5">{{ contest.subject.name }} &bull; {{ contest.class_obj.name }}</p>
-
-            <a href="{% url 'contest_leaderboard' contest.pk %}"
-               class="block text-center bg-gray-50 text-gray-700 text-sm font-semibold px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-100 transition">
-                &#127942; {% if LANG == 'en' %}View Leaderboard{% else %}লিডারবোর্ড দেখো{% endif %}
-            </a>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-amber-100 p-12 text-center" style="box-shadow:0 2px 12px rgba(0,0,0,.05);">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
+            <span class="text-2xl">🏆</span>
         </div>
-        {% endfor %}
+        <p class="text-gray-500 text-sm font-medium">No contests match your filters yet.</p>
     </div>
     {% endif %}
 
 </div>
+
+<script src="{% static 'js/contest.js' %}"></script>
+<script>
+  document.querySelectorAll('.contest-timer[data-end]').forEach(el => {
+      if (window.startContestTimer) window.startContestTimer(el);
+  });
+</script>
 {% endblock %}

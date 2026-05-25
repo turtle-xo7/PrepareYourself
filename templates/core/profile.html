@@ -381,7 +381,7 @@
             </div>
         </div>
 
-        {% if profile.plan == 'FREE' %}
+        {% if profile.plan == 'FREE' and not profile.is_superadmin %}
         <a href="{% url 'pricing' %}"
             class="mt-5 flex items-center justify-center gap-2 w-full text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition shadow-sm"
             style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
@@ -393,7 +393,7 @@
     <!-- ═══════════════════════════════════
          TEACHING SUBJECTS  (teachers only)
     ═══════════════════════════════════ -->
-    {% if profile.role == 'ADMIN' and all_subjects %}
+    {% if profile.role == 'ADMIN' and not profile.is_superadmin and all_subjects %}
     <div class="profile-card p-6" data-aos="fade-up" data-aos-delay="120">
         <div class="flex items-center gap-2 mb-5">
             <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-indigo-100">

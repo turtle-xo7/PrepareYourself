@@ -187,8 +187,9 @@ class EndToEndSeleniumTests(SeleniumMixin, LiveServerTestCase):
         WebDriverWait(self.driver, 8).until(EC.url_contains('/question-bank/'))
 
         board_select = self.driver.find_element(By.NAME, 'board')
+        # The select has onchange="this.form.submit()" — clicking the option
+        # auto-submits, so don't call .submit() again on the now-stale element.
         board_select.find_element(By.CSS_SELECTOR, f'option[value="{self.board.pk}"]').click()
-        board_select.submit()
 
         WebDriverWait(self.driver, 8).until(
             EC.url_contains(f'board={self.board.pk}')

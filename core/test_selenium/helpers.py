@@ -24,7 +24,7 @@ from core.models import (
 def create_student(username='student1', email='student@test.com',
                    password='testpass123', plan='PREMIUM'):
     user = User.objects.create_user(username=username, email=email, password=password)
-    UserProfile.objects.create(user=user, role='STUDENT', plan=plan)
+    UserProfile.objects.create(user=user, role='STUDENT', plan=plan, preferred_language='en')
     return user
 
 
@@ -36,14 +36,14 @@ def create_free_student(username='freestudent', email='free@test.com',
 def create_teacher(username='teacher1', email='teacher@test.com',
                    password='testpass123'):
     user = User.objects.create_user(username=username, email=email, password=password)
-    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE')
+    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE', preferred_language='en')
     return user
 
 
 def create_superadmin(username='superadmin1', email='superadmin@test.com',
                       password='testpass123'):
     user = User.objects.create_user(username=username, email=email, password=password)
-    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE', is_superadmin=True)
+    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE', is_superadmin=True, preferred_language='en')
     return user
 
 
@@ -59,9 +59,21 @@ def create_class(name='Class 9', numeric_value=9):
     return Class.objects.create(name=name, numeric_value=numeric_value)
 
 
+# Counter so tests can call create_question/create_written_question many times
+# without colliding on the (board, subject, class, year, type) unique constraint.
+_QUESTION_YEAR_COUNTER = {'next': 1990}
+
+
+def _next_unique_year():
+    _QUESTION_YEAR_COUNTER['next'] += 1
+    return _QUESTION_YEAR_COUNTER['next']
+
+
 def create_question(board, subject, class_obj,
                     text='What is force?', answer_hint='Force is push or pull.',
-                    year=2024, chapter='Chapter 1', q_type='MCQ'):
+                    year=None, chapter='Chapter 1', q_type='MCQ'):
+    if year is None:
+        year = _next_unique_year()
     return Question.objects.create(
         board=board, subject=subject, class_obj=class_obj,
         year=year, chapter=chapter,
@@ -75,7 +87,9 @@ def create_question(board, subject, class_obj,
 
 
 def create_written_question(board, subject, class_obj,
-                             text='Explain Newton\'s laws.', year=2024, chapter='Chapter 2'):
+                             text='Explain Newton\'s laws.', year=None, chapter='Chapter 2'):
+    if year is None:
+        year = _next_unique_year()
     return Question.objects.create(
         board=board, subject=subject, class_obj=class_obj,
         year=year, chapter=chapter,
@@ -154,10 +168,10 @@ def create_practical_video(subject, class_obj, title='Test Video',
 
 def create_notification(user, title='Test Notification', message='Test message'):
     return Notification.objects.create(
-        user=user,
+        recipient=user,
         title=title, title_bn=title,
         message=message, message_bn=message,
-        notif_type='GENERAL',
+        notif_type='note',
         is_read=False,
     )
 
@@ -197,6 +211,11 @@ class SeleniumMixin:
     # navigation
 
     def go(self, path):
+        # First navigation in each test: flip the session language from default 'bn' to 'en'
+        # so unauthenticated and English-asserting tests see English text.
+        if not getattr(self, '_lang_forced', False):
+            self.driver.get(self.live_server_url + '/set-language/')
+            self._lang_forced = True
         self.driver.get(self.live_server_url + path)
 
     def wait_for(self, by, value, timeout=8):

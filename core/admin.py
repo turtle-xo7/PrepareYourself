@@ -221,3 +221,113 @@ class NotificationAdmin(admin.ModelAdmin):
     search_fields = ('recipient__username', 'title')
     readonly_fields = ('recipient', 'notif_type', 'title', 'message', 'link', 'created_at')
     list_per_page = 50
+
+
+# -------- CONTEST SYSTEM --------
+from .models import (
+    Contest, ContestQuestion, ContestSubmission,
+    UserRating, Badge, UserBadge, ContestRatingHistory,
+    ContestCoinLedger, VirtualContest, ContestRegistration,
+)
+
+
+class ContestQuestionInline(admin.TabularInline):
+    model = ContestQuestion
+    extra = 0
+    fields = ('question_text', 'question_type', 'option1', 'option2',
+              'option3', 'option4', 'correct_option', 'marks')
+
+
+@admin.register(Contest)
+class ContestAdmin(admin.ModelAdmin):
+    list_display = ('title', 'subject', 'class_obj', 'contest_type', 'difficulty',
+                    'is_featured', 'is_rated', 'start_time', 'end_time',
+                    'ratings_calculated', 'view_count')
+    list_filter = ('contest_type', 'difficulty', 'is_featured', 'is_rated',
+                   'entry_requirement', 'is_active', 'ratings_calculated')
+    search_fields = ('title', 'description', 'tags', 'sponsor_name')
+    readonly_fields = ('view_count', 'created_at', 'ratings_calculated')
+    actions = ['recalculate_ratings', 'mark_featured', 'unmark_featured']
+    inlines = [ContestQuestionInline]
+
+    @admin.action(description='Recalculate ratings + award coins/badges')
+    def recalculate_ratings(self, request, queryset):
+        from .services.rating import calculate_contest_ratings
+        done = 0
+        for c in queryset:
+            calculate_contest_ratings(c.pk, force=True)
+            done += 1
+        self.message_user(request, f'Recalculated ratings for {done} contest(s).')
+
+    @admin.action(description='Mark as featured')
+    def mark_featured(self, request, queryset):
+        queryset.update(is_featured=True)
+
+    @admin.action(description='Remove featured flag')
+    def unmark_featured(self, request, queryset):
+        queryset.update(is_featured=False)
+
+
+@admin.register(ContestSubmission)
+class ContestSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('student', 'contest', 'total_marks', 'rank_in_contest',
+                    'rating_change', 'is_virtual', 'is_rated_participant',
+                    'is_submitted', 'submitted_at')
+    list_filter = ('is_submitted', 'is_virtual', 'is_rated_participant', 'contest')
+    search_fields = ('student__username', 'contest__title')
+
+
+@admin.register(UserRating)
+class UserRatingAdmin(admin.ModelAdmin):
+    list_display = ('user', 'rating', 'peak_rating', 'contests_entered',
+                    'contests_rated', 'current_streak', 'coin_balance',
+                    'last_contest_date')
+    list_filter = ('last_contest_date',)
+    search_fields = ('user__username', 'user__email')
+    readonly_fields = ('rating', 'peak_rating', 'contests_entered',
+                       'contests_rated', 'best_rank', 'current_streak',
+                       'longest_streak', 'coin_balance')
+
+
+@admin.register(Badge)
+class BadgeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'badge_type', 'rarity', 'earned_by_count', 'is_active')
+    list_filter = ('badge_type', 'rarity', 'is_active')
+    search_fields = ('name', 'description')
+
+
+@admin.register(UserBadge)
+class UserBadgeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'badge', 'earned_at', 'contest')
+    list_filter = ('badge__rarity', 'badge__badge_type')
+    search_fields = ('user__username', 'badge__name')
+    autocomplete_fields = ('user', 'badge', 'contest')
+
+
+@admin.register(ContestRatingHistory)
+class ContestRatingHistoryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'contest', 'old_rating', 'new_rating', 'change',
+                    'rank', 'percentile', 'recorded_at')
+    list_filter = ('contest', 'recorded_at')
+    search_fields = ('user__username',)
+
+
+@admin.register(ContestCoinLedger)
+class ContestCoinLedgerAdmin(admin.ModelAdmin):
+    list_display = ('user', 'action', 'amount', 'balance', 'contest', 'created_at')
+    list_filter = ('action', 'created_at')
+    search_fields = ('user__username', 'note')
+
+
+@admin.register(VirtualContest)
+class VirtualContestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'contest', 'score', 'virtual_rank', 'started_at', 'finished_at')
+    list_filter = ('contest',)
+    search_fields = ('user__username', 'contest__title')
+
+
+@admin.register(ContestRegistration)
+class ContestRegistrationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'contest', 'is_rated', 'is_early_bird', 'registered_at')
+    list_filter = ('is_rated', 'is_early_bird', 'contest')
+    search_fields = ('user__username', 'contest__title')

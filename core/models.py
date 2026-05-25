@@ -73,11 +73,19 @@ class Question(models.Model):
     answer_hint = models.TextField(blank=True)
     stimulus_image = models.FileField(upload_to='question_stimuli/', null=True, blank=True)
     solution_image = models.FileField(upload_to='question_solutions/', null=True, blank=True)
+    mcq_question_file = models.FileField(upload_to='question_mcq/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     class Meta:
         ordering = ['-year', 'subject', 'chapter']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['board', 'subject', 'class_obj', 'year', 'question_type'],
+                name='unique_question_per_board_subject_class_year_type',
+            ),
+        ]
+
     def __str__(self):
         return self.chapter
 
@@ -90,6 +98,10 @@ class Question(models.Model):
     @property
     def solution_is_image(self):
         return bool(self.solution_image) and self.solution_image.name.lower().endswith(self.IMAGE_EXTS)
+
+    @property
+    def mcq_question_is_image(self):
+        return bool(self.mcq_question_file) and self.mcq_question_file.name.lower().endswith(self.IMAGE_EXTS)
 
 
 class UserProfile(models.Model):
@@ -258,6 +270,29 @@ class NoteComment(models.Model):
 
 
 class Contest(models.Model):
+    CONTEST_TYPE = [
+        ('standard',  'Standard Timed'),
+        ('long',      'Long Challenge'),
+        ('marathon',  'Marathon'),
+        ('subject',   'Subject Sprint'),
+        ('grand',     'Grand Contest'),
+        ('practice',  'Practice / Unrated'),
+    ]
+    DIFFICULTY = [
+        ('beginner',     'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced',     'Advanced'),
+        ('open',         'Open for All'),
+    ]
+    ENTRY_REQ = [
+        ('open',     'Open to All'),
+        ('premium',  'Premium Members Only'),
+        ('class_9',  'Class 9 Only'),
+        ('class_10', 'Class 10 Only'),
+        ('class_11', 'Class 11 Only'),
+        ('class_12', 'Class 12 Only'),
+    ]
+
     title = models.CharField(max_length=200)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contests')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='contests')
@@ -267,10 +302,54 @@ class Contest(models.Model):
     end_time = models.DateTimeField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    description = models.TextField(blank=True)
+    contest_type = models.CharField(max_length=20, choices=CONTEST_TYPE, default='standard')
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY, default='open')
+    entry_requirement = models.CharField(max_length=20, choices=ENTRY_REQ, default='open')
+    is_featured = models.BooleanField(default=False)
+    is_rated = models.BooleanField(default=True)
+    allow_unrated_join = models.BooleanField(default=True)
+    max_participants = models.IntegerField(null=True, blank=True)
+    registration_deadline = models.DateTimeField(null=True, blank=True)
+    prize_description = models.TextField(blank=True)
+    sponsor_name = models.CharField(max_length=200, blank=True)
+    tags = models.CharField(max_length=500, blank=True)
+    view_count = models.IntegerField(default=0)
+    hide_leaderboard_until_end = models.BooleanField(default=False)
+    is_multi_stage = models.BooleanField(default=False)
+    stage_number = models.IntegerField(default=1)
+    parent_contest = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='stages'
+    )
+    allows_virtual = models.BooleanField(default=True)
+    ratings_calculated = models.BooleanField(default=False)
+
     class Meta:
         ordering = ['-created_at']
+
     def __str__(self):
         return self.title
+
+    @property
+    def is_live(self):
+        from django.utils import timezone
+        now = timezone.now()
+        return self.is_active and self.start_time <= now <= self.end_time
+
+    @property
+    def is_upcoming(self):
+        from django.utils import timezone
+        return self.is_active and timezone.now() < self.start_time
+
+    @property
+    def is_past(self):
+        from django.utils import timezone
+        return timezone.now() > self.end_time
+
+    @property
+    def tag_list(self):
+        return [t.strip() for t in (self.tags or '').split(',') if t.strip()]
 
 
 class ContestQuestion(models.Model):
@@ -296,6 +375,14 @@ class ContestSubmission(models.Model):
     total_marks = models.IntegerField(default=0)
     is_submitted = models.BooleanField(default=False)
     duration_taken = models.IntegerField(default=0)
+    is_virtual = models.BooleanField(default=False)
+    is_rated_participant = models.BooleanField(default=True)
+    rating_before = models.IntegerField(null=True, blank=True)
+    rating_after = models.IntegerField(null=True, blank=True)
+    rating_change = models.IntegerField(null=True, blank=True)
+    rank_in_contest = models.IntegerField(null=True, blank=True)
+    percentile = models.FloatField(null=True, blank=True)
+    time_taken_seconds = models.IntegerField(null=True, blank=True)
     class Meta:
         unique_together = ['contest', 'student']
         ordering = ['-total_marks', 'duration_taken']
@@ -482,3 +569,176 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.recipient.username} - {self.title}"
+
+
+# -------- CONTEST RATING / BADGES / COINS --------
+
+class UserRating(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='rating_profile')
+    rating = models.IntegerField(default=1000)
+    peak_rating = models.IntegerField(default=1000)
+    contests_entered = models.IntegerField(default=0)
+    contests_rated = models.IntegerField(default=0)
+    best_rank = models.IntegerField(null=True, blank=True)
+    current_streak = models.IntegerField(default=0)
+    longest_streak = models.IntegerField(default=0)
+    last_contest_date = models.DateField(null=True, blank=True)
+    total_score_earned = models.IntegerField(default=0)
+    coin_balance = models.IntegerField(default=0)
+    last_checkin_date = models.DateField(null=True, blank=True)
+    checkin_streak = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.rating})"
+
+    @property
+    def rank_title(self):
+        thresholds = [
+            (1800, "Legend",      "#FF0000", "★★★★★★★"),
+            (1600, "Grandmaster", "#FF8C00", "★★★★★★"),
+            (1400, "Master",      "#AA00AA", "★★★★★"),
+            (1200, "Expert",      "#0000FF", "★★★★"),
+            (1000, "Skilled",     "#008080", "★★★"),
+            (800,  "Beginner",    "#008000", "★★"),
+            (0,    "Newcomer",    "#808080", "★"),
+        ]
+        for threshold, title, color, stars in thresholds:
+            if self.rating >= threshold:
+                return {"title": title, "color": color, "stars": stars}
+        return {"title": "Newcomer", "color": "#808080", "stars": "★"}
+
+    @property
+    def next_rank_info(self):
+        thresholds = [800, 1000, 1200, 1400, 1600, 1800]
+        for t in thresholds:
+            if self.rating < t:
+                return {"points_needed": t - self.rating, "next_threshold": t}
+        return None
+
+
+class Badge(models.Model):
+    BADGE_TYPE = [
+        ('contest',   'Contest Performance'),
+        ('streak',    'Consistency Streak'),
+        ('milestone', 'Participation Milestone'),
+        ('rank',      'Rank Achievement'),
+        ('subject',   'Subject Mastery'),
+        ('special',   'Special / Seasonal'),
+        ('early',     'Early Bird'),
+        ('social',    'Community'),
+    ]
+    RARITY = [
+        ('common',    'Common'),
+        ('rare',      'Rare'),
+        ('epic',      'Epic'),
+        ('legendary', 'Legendary'),
+    ]
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField()
+    icon = models.CharField(max_length=100)
+    badge_type = models.CharField(max_length=20, choices=BADGE_TYPE)
+    rarity = models.CharField(max_length=20, choices=RARITY)
+    color_hex = models.CharField(max_length=7, default='#6c757d')
+    earn_condition = models.TextField()
+    earned_by_count = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['badge_type', 'rarity']
+
+    def __str__(self):
+        return self.name
+
+
+class UserBadge(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='earned_badges')
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    earned_at = models.DateTimeField(auto_now_add=True)
+    contest = models.ForeignKey(Contest, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        unique_together = ('user', 'badge')
+        ordering = ['-earned_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.name}"
+
+
+class ContestRatingHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rating_history')
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE)
+    old_rating = models.IntegerField()
+    new_rating = models.IntegerField()
+    change = models.IntegerField()
+    rank = models.IntegerField()
+    percentile = models.FloatField()
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['recorded_at']
+
+    def __str__(self):
+        return f"{self.user.username} {self.old_rating}->{self.new_rating}"
+
+
+class VirtualContest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='virtual_contests')
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name='virtual_attempts')
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    virtual_rank = models.IntegerField(null=True, blank=True)
+    score = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['-started_at']
+
+    def __str__(self):
+        return f"{self.user.username} virtual {self.contest.title}"
+
+
+class ContestCoinLedger(models.Model):
+    ACTION = [
+        ('contest_participate', 'Contest Participation'),
+        ('contest_top10pct',    'Top 10% Finish'),
+        ('contest_top25pct',    'Top 25% Finish'),
+        ('contest_top50pct',    'Top 50% Finish'),
+        ('contest_win',         'Contest Win'),
+        ('daily_checkin',       'Daily Check-in'),
+        ('streak_7',            'Weekly Streak Bonus'),
+        ('streak_30',           'Monthly Streak Bonus'),
+        ('badge_earned',        'Badge Earned'),
+        ('first_contest',       'First Contest'),
+        ('early_bird',          'Early Registration'),
+        ('virtual_complete',    'Virtual Contest Complete'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_ledger')
+    action = models.CharField(max_length=40, choices=ACTION)
+    amount = models.IntegerField()
+    balance = models.IntegerField()
+    contest = models.ForeignKey(Contest, null=True, blank=True, on_delete=models.SET_NULL)
+    note = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        sign = '+' if self.amount >= 0 else ''
+        return f"{self.user.username} {sign}{self.amount} ({self.action})"
+
+
+class ContestRegistration(models.Model):
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name='registrations')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contest_registrations')
+    is_rated = models.BooleanField(default=True)
+    registered_at = models.DateTimeField(auto_now_add=True)
+    is_early_bird = models.BooleanField(default=False)
+    notified_start = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('contest', 'user')
+        ordering = ['-registered_at']
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.contest.title}"

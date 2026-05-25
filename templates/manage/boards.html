@@ -44,4 +44,33 @@
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Name</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Students</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
-            <th class="text-left
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for b in boards %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium text-gray-800">{{ b.name }}</td>
+            <td class="px-4 py-3 text-gray-500">{{ b.student_count }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded text-xs {% if b.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                {% if b.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <form method="post" action="{% url 'board_delete' b.pk %}" onsubmit="return confirm('Delete করবে?')">
+                {% csrf_token %}
+                <button type="submit" class="text-red-500 hover:underline text-sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">কোনো board নেই।</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

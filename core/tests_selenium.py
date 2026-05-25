@@ -34,7 +34,7 @@ from .models import (
 
 def create_student(username='student1', email='student@test.com', password='testpass123', plan='PREMIUM'):
     user = User.objects.create_user(username=username, email=email, password=password)
-    UserProfile.objects.create(user=user, role='STUDENT', plan=plan)
+    UserProfile.objects.create(user=user, role='STUDENT', plan=plan, preferred_language='en')
     return user
 
 
@@ -44,13 +44,13 @@ def create_free_student(username='freestudent', email='free@test.com', password=
 
 def create_teacher(username='teacher1', email='teacher@test.com', password='testpass123'):
     user = User.objects.create_user(username=username, email=email, password=password)
-    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE')
+    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE', preferred_language='en')
     return user
 
 
 def create_superadmin(username='superadmin1', email='superadmin@test.com', password='testpass123'):
     user = User.objects.create_user(username=username, email=email, password=password)
-    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE', is_superadmin=True)
+    UserProfile.objects.create(user=user, role='ADMIN', plan='FREE', is_superadmin=True, preferred_language='en')
     return user
 
 
@@ -66,9 +66,21 @@ def create_class(name='Class 9', numeric_value=9):
     return Class.objects.create(name=name, numeric_value=numeric_value)
 
 
+# Auto-increments to keep each create_question call unique under the
+# (board, subject, class, year, question_type) UniqueConstraint added in 0031.
+_QUESTION_YEAR_COUNTER = {'next': 1990}
+
+
+def _next_unique_year():
+    _QUESTION_YEAR_COUNTER['next'] += 1
+    return _QUESTION_YEAR_COUNTER['next']
+
+
 def create_question(board, subject, class_obj,
                     text='What is force?', answer_hint='Force is push or pull.',
-                    year=2024, chapter='Chapter 1'):
+                    year=None, chapter='Chapter 1'):
+    if year is None:
+        year = _next_unique_year()
     return Question.objects.create(
         board=board, subject=subject, class_obj=class_obj,
         year=year, chapter=chapter,
@@ -178,6 +190,12 @@ class SeleniumMixin:
 
     def go(self, path):
         """Navigate to a path relative to the live server."""
+        # On first navigation in each test, flip the session language to English
+        # so assertions on English strings (e.g. 'Log In') see English markup
+        # instead of the default Bengali UI.
+        if not getattr(self, '_lang_forced', False):
+            self.driver.get(self.live_server_url + '/set-language/')
+            self._lang_forced = True
         self.driver.get(self.live_server_url + path)
 
     def wait_for(self, by, value, timeout=8):
@@ -399,11 +417,16 @@ class HomeSeleniumTests(SeleniumMixin, LiveServerTestCase):
                            'Expected .count-up elements in hero stat boxes')
 
     def test_browse_questions_cta_visible(self):
-        """'Browse Questions' CTA button is present and links to question bank."""
+        """Question-bank CTA button is present and links to question bank."""
         self.go('/')
         link = self.driver.find_element(By.CSS_SELECTOR, 'a[href="/question-bank/"]')
         self.assertIsNotNone(link)
-        self.assertIn('Browse', link.text)
+        # Link text varies — accept either the legacy "Browse" wording or the
+        # current "Question Bank" label.
+        self.assertTrue(
+            'Browse' in link.text or 'Question' in link.text or 'Bank' in link.text,
+            f'Unexpected CTA text: {link.text!r}'
+        )
 
     def test_start_free_trial_cta_visible(self):
         """'Start Free Trial' CTA is visible in the hero section."""
@@ -440,13 +463,14 @@ class QuestionBankSeleniumTests(SeleniumMixin, LiveServerTestCase):
         self.board = create_board()
         self.subject = create_subject()
         self.class_obj = create_class()
-        # Create 12 questions so free user sees limit (10) clearly
+        # Create 12 questions so free user sees limit (10) clearly.
+        # Don't pass year — the helper auto-increments to keep each row unique
+        # under the (board, subject, class, year, type) constraint added in 0031.
         for i in range(12):
             create_question(
                 self.board, self.subject, self.class_obj,
                 text=f'Question {i + 1}: What is force?',
                 chapter=f'Chapter {i + 1}',
-                year=2024,
             )
 
     def test_question_bank_loads_without_login(self):
@@ -844,11 +868,16 @@ class ProfileSeleniumTests(SeleniumMixin, LiveServerTestCase):
             email_input = self.driver.find_element(By.NAME, 'email')
             email_input.clear()
             email_input.send_keys('profile@test.com')
-            submit = self.driver.find_element(By.CSS_SELECTOR, 'form button[type=submit], form input[type=submit]')
-            submit.click()
-            WebDriverWait(self.driver, 8).until(
-                lambda d: '/profile/' in d.current_url
+            # The profile page has multiple forms — locate the submit button
+            # inside the same form as the first_name input so the right form posts.
+            form = first_name_input.find_element(By.XPATH, './ancestor::form')
+            submit = form.find_element(
+                By.CSS_SELECTOR, 'button[type=submit], input[type=submit]'
             )
+            submit.click()
+            # URL is already /profile/ before submit, so URL-based waits return
+            # early. Wait for the actual page reload by checking input goes stale.
+            WebDriverWait(self.driver, 8).until(EC.staleness_of(first_name_input))
             self.user.refresh_from_db()
             self.assertEqual(self.user.first_name, 'UpdatedFirst')
         except NoSuchElementException:

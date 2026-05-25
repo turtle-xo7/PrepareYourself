@@ -24,7 +24,7 @@
                 <a href="{% url 'contest_list' %}" class="nav-link {% if url_name == 'contest_list' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">
                     <span class="text-yellow-500">🏆</span> {% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}
                 </a>
-                <a href="{% url 'pricing' %}" class="nav-link {% if url_name == 'pricing' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Subscription{% else %}সাবস্ক্রিপশন{% endif %}</a>
+                {% if not is_superadmin %}<a href="{% url 'pricing' %}" class="nav-link {% if url_name == 'pricing' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Subscription{% else %}সাবস্ক্রিপশন{% endif %}</a>{% endif %}
                 <a href="{% url 'dashboard' %}" class="nav-link {% if url_name == 'dashboard' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Dashboard{% else %}ড্যাশবোর্ড{% endif %}</a>
             </div>
 
@@ -91,6 +91,15 @@
                             {% endif %}
                         </a>
                         {% endif %}
+                        {% if not is_admin and not is_superadmin %}
+                        <a href="{% url 'profile_contests' %}"
+                           title="PrepCoins balance"
+                           class="hidden lg:inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-md"
+                           style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border: 1px solid #fcd34d;">
+                            <span>🪙</span>
+                            <span class="coin-balance">{{ coin_balance|default:0 }}</span>
+                        </a>
+                        {% endif %}
                         <a href="{% url 'profile' %}"
                            title="{% if LANG == 'en' %}My Profile{% else %}আমার প্রোফাইল{% endif %}"
                            class="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center font-bold text-sm text-white transition-all duration-200 hover:scale-110 hover:shadow-md flex-shrink-0"
@@ -131,7 +140,7 @@
             <a href="{% url 'practical_videos' %}" class="mobile-nav-link {% if url_name == 'practical_videos' %}mobile-nav-active{% endif %}">{% if LANG == 'en' %}Practical Videos{% else %}ভিডিও ক্লাস{% endif %}</a>
             <a href="{% url 'study_notes' %}" class="mobile-nav-link {% if url_name == 'study_notes' %}mobile-nav-active{% endif %}">{% if LANG == 'en' %}Study Notes{% else %}স্টাডি নোটস{% endif %}</a>
             <a href="{% url 'contest_list' %}" class="mobile-nav-link {% if url_name == 'contest_list' %}mobile-nav-active{% endif %}">🏆 {% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}</a>
-            <a href="{% url 'pricing' %}" class="mobile-nav-link {% if url_name == 'pricing' %}mobile-nav-active{% endif %}">{% if LANG == 'en' %}Subscription{% else %}সাবস্ক্রিপশন{% endif %}</a>
+            {% if not is_superadmin %}<a href="{% url 'pricing' %}" class="mobile-nav-link {% if url_name == 'pricing' %}mobile-nav-active{% endif %}">{% if LANG == 'en' %}Subscription{% else %}সাবস্ক্রিপশন{% endif %}</a>{% endif %}
             <a href="{% url 'dashboard' %}" class="mobile-nav-link {% if url_name == 'dashboard' %}mobile-nav-active{% endif %}">{% if LANG == 'en' %}Dashboard{% else %}ড্যাশবোর্ড{% endif %}</a>
 
             <div class="pt-2 border-t border-gray-100 mt-2 space-y-1">

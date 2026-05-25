@@ -67,11 +67,16 @@ class ProfileSeleniumTests(SeleniumMixin, LiveServerTestCase):
             email_input = self.driver.find_element(By.NAME, 'email')
             email_input.clear()
             email_input.send_keys('profile@test.com')
-            submit = self.driver.find_element(
-                By.CSS_SELECTOR, 'form button[type=submit], form input[type=submit]'
+            # The profile page has multiple forms — pick the submit button inside
+            # the same form as the first_name input so the right form actually posts.
+            form = first_name_input.find_element(By.XPATH, './ancestor::form')
+            submit = form.find_element(
+                By.CSS_SELECTOR, 'button[type=submit], input[type=submit]'
             )
             submit.click()
-            WebDriverWait(self.driver, 8).until(lambda d: '/profile/' in d.current_url)
+            # Wait for the page to actually reload (input goes stale) — the URL
+            # is already /profile/ before submit, so URL-based waits return early.
+            WebDriverWait(self.driver, 8).until(EC.staleness_of(first_name_input))
             self.user.refresh_from_db()
             self.assertEqual(self.user.first_name, 'UpdatedFirst')
         except NoSuchElementException:

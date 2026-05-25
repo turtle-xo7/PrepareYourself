@@ -3,43 +3,59 @@
 
 {% block extra_head %}
 <style>
-    /* ── Dashboard: Deep Navy → Royal Blue theme ── */
+    /* ── Student Dashboard: Deep Indigo theme ── */
+    body { background: #f0f2f5; }
 
     /* Card base */
     .dash-card {
         background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
-        box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+        border: 1px solid #e8edf2;
+        border-radius: 18px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
         transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease;
     }
     .dash-card:hover {
-        box-shadow: 0 8px 32px rgba(30,64,175,0.13);
-        border-color: rgba(30,64,175,0.18);
+        box-shadow: 0 8px 32px rgba(67,56,202,0.10);
+        border-color: rgba(67,56,202,0.16);
         transform: translateY(-2px);
     }
 
-    /* Stat cards with colored left-border accents */
-    .stat-card-blue  { border-left: 4px solid #3b82f6; }
-    .stat-card-purple { border-left: 4px solid #8b5cf6; }
-    .stat-card-green  { border-left: 4px solid #10b981; }
-    .stat-card-amber  { border-left: 4px solid #f59e0b; }
+    /* Stat card left-border accents */
+    .stat-card-blue   { border-left: 3px solid #3b82f6; }
+    .stat-card-purple { border-left: 3px solid #8b5cf6; }
+    .stat-card-green  { border-left: 3px solid #10b981; }
+    .stat-card-amber  { border-left: 3px solid #f59e0b; }
 
-    /* Today's Goal bar */
+    /* Typography helpers */
+    .sd-label {
+        font-size: 11px; font-weight: 600; color: #64748b;
+        text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .sd-num {
+        font-size: 30px; font-weight: 900; color: #0f172a; line-height: 1.1;
+        letter-spacing: -0.5px;
+    }
+    .sd-section-icon {
+        width: 28px; height: 28px; border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* Goal bar */
     .goal-bar-track {
         background: #e2e8f0;
         border-radius: 999px;
-        height: 10px;
+        height: 8px;
         overflow: hidden;
     }
     .goal-bar-fill {
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #1e40af 0%, #3b82f6 60%, #60a5fa 100%);
+        background: linear-gradient(90deg, #3730a3 0%, #4338ca 60%, #6366f1 100%);
         transition: width .8s cubic-bezier(.2,.7,.3,1);
     }
 
-    /* Heatmap */
+    /* Heatmap — indigo palette */
     .hm-cell {
         aspect-ratio: 1 / 1;
         border-radius: 4px;
@@ -47,10 +63,10 @@
     }
     .hm-cell:hover { transform: scale(1.25); }
     .hm-0 { background: #f1f5f9; }
-    .hm-1 { background: #bfdbfe; }
-    .hm-2 { background: #60a5fa; }
-    .hm-3 { background: #2563eb; }
-    .hm-4 { background: #1e3a8a; }
+    .hm-1 { background: #c7d2fe; }
+    .hm-2 { background: #818cf8; }
+    .hm-3 { background: #4338ca; }
+    .hm-4 { background: #312e81; }
 
     /* Accordion */
     .acc-content {
@@ -60,18 +76,17 @@
     }
     .acc-arrow { transition: transform .25s ease; }
     .acc-row.open .acc-arrow { transform: rotate(180deg); }
-    .acc-row.open { background: #f8fafc; }
+    .acc-row.open { background: #f8fafc; border-radius: 12px; }
     html.dark .acc-row.open { background: #1e293b; }
     html.dark .acc-toggle:hover { background: rgba(255,255,255,0.04) !important; }
 
-    /* Mini accuracy ring */
+    /* Mini accuracy ring (conic-gradient) */
     .ring {
         --p: 0;
-        --c: #3b82f6;
+        --c: #4338ca;
         width: 56px; height: 56px;
         border-radius: 50%;
-        background:
-            conic-gradient(var(--c) calc(var(--p) * 1%), #e5e7eb 0);
+        background: conic-gradient(var(--c) calc(var(--p) * 1%), #e5e7eb 0);
         display: grid; place-items: center;
         position: relative;
     }
@@ -97,21 +112,6 @@
     }
     html.dark .ring > span { color: #e2e8f0; }
 
-    /* Mini bar dark */
-    html.dark .mini-bar { background: #334155; }
-
-    /* Heatmap dark */
-    html.dark .hm-0 { background: #1e293b; }
-
-    /* Dash card dark */
-    html.dark .dash-card { background: #1e293b; border-color: #334155; }
-    html.dark .dash-card:hover { border-color: rgba(99,102,241,0.35); }
-
-    /* Trend chips */
-    .trend-up   { color: #059669; }
-    .trend-down { color: #dc2626; }
-    .trend-flat { color: #64748b; }
-
     /* Mini bar (per-subject weekly) */
     .mini-bar {
         background: #e5e7eb;
@@ -123,90 +123,89 @@
         display: block;
         position: absolute;
         bottom: 0; left: 0; right: 0;
-        background: var(--c, #3b82f6);
+        background: var(--c, #4338ca);
         border-radius: 2px;
         transition: height .6s cubic-bezier(.2,.7,.3,1);
     }
 
+    /* Trend chips */
+    .trend-up   { color: #059669; }
+    .trend-down { color: #dc2626; }
+    .trend-flat { color: #64748b; }
+
+    /* Plan badge pills (hero) */
+    .plan-badge-free    { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.30); }
+    .plan-badge-basic   { background: rgba(99,102,241,0.30);  border: 1px solid rgba(165,180,252,0.45); }
+    .plan-badge-premium { background: rgba(139,92,246,0.35);  border: 1px solid rgba(196,181,253,0.45); }
+
     /* Quick link hover */
     .quick-link-card:hover {
-        box-shadow: 0 8px 32px rgba(30,64,175,0.13);
-        border-color: rgba(30,64,175,0.2);
+        box-shadow: 0 8px 32px rgba(67,56,202,0.13);
+        border-color: rgba(67,56,202,0.20);
         transform: translateY(-2px);
     }
 
-    /* Plan badge pill in hero */
-    .plan-badge-free    { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
-    .plan-badge-basic   { background: rgba(96,165,250,0.30);  border: 1px solid rgba(147,197,253,0.45); }
-    .plan-badge-premium { background: rgba(139,92,246,0.35);  border: 1px solid rgba(196,181,253,0.45); }
-
-    /* Hero left-align layout decorations */
-    @keyframes floatY {
-        0%, 100% { transform: translateY(0); }
-        50%       { transform: translateY(-18px); }
-    }
-    @keyframes floatRotate {
-        0%   { transform: rotate(0deg) scale(1); }
-        50%  { transform: rotate(15deg) scale(1.07); }
-        100% { transform: rotate(0deg) scale(1); }
-    }
+    /* Dark mode overrides */
+    html.dark .dash-card { background: #1e293b; border-color: #334155; }
+    html.dark .dash-card:hover { border-color: rgba(99,102,241,0.35); }
+    html.dark .mini-bar { background: #334155; }
+    html.dark .hm-0 { background: #1e293b; }
+    html.dark .sd-num { color: #f1f5f9; }
 </style>
 {% endblock %}
 
 {% block content %}
 
 <!-- ════════════════════════════════════════════
-     HERO  —  Deep Navy → Royal Blue, left-aligned
+     HEADER — Deep Indigo compact gradient
 ════════════════════════════════════════════ -->
 <div class="relative overflow-hidden"
-     style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);
-            min-height: 190px; display:flex; align-items:center;">
+     style="background: linear-gradient(130deg, #1a0533 0%, #2e1065 40%, #3730a3 75%, #4338ca 100%);
+            padding: 40px 0 36px;">
 
-    <!-- Background texture dots -->
-    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+    <!-- Dot grid texture -->
+    <div class="absolute inset-0 pointer-events-none"
+         style="background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+                background-size: 22px 22px; opacity: 0.55;"></div>
 
-    <!-- Floating orbs -->
-    <div class="float-shape absolute" style="width:320px;height:320px;top:-110px;right:-40px;
-        background:radial-gradient(circle,rgba(96,165,250,0.12) 0%,transparent 70%);
-        animation:floatY 16s ease-in-out infinite;"></div>
-    <div class="float-shape absolute" style="width:160px;height:160px;bottom:-70px;left:3%;
-        background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);
-        animation:floatY 11s ease-in-out infinite reverse;"></div>
-    <div class="float-shape absolute" style="width:80px;height:80px;top:22%;right:32%;
-        background:rgba(96,165,250,0.10);border-radius:30% 70% 70% 30% / 30% 30% 70% 70%;
-        animation:floatRotate 12s ease-in-out infinite;"></div>
+    <!-- Subtle glow orb top-right -->
+    <div class="absolute pointer-events-none"
+         style="width:420px;height:260px;top:-80px;right:-60px;
+                background:radial-gradient(ellipse,rgba(99,102,241,0.18) 0%,transparent 70%);"></div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 w-full">
-        <!-- Left-aligned: text left, plan badge + actions right -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="flex items-start justify-between flex-wrap gap-6">
 
-            <!-- LEFT: greeting + quote -->
+            <!-- LEFT: title chip + greeting + tagline -->
             <div class="flex-1 min-w-0">
-                <div class="inline-flex items-center gap-2 bg-white/12 border border-white/20
-                            rounded-full px-3 py-1 text-xs font-semibold text-blue-100 mb-3 hero-anim-down">
-                    📊 {% if LANG == 'en' %}Student Dashboard{% else %}শিক্ষার্থী ড্যাশবোর্ড{% endif %}
+                <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20
+                            rounded-full px-3 py-1 text-xs font-semibold text-indigo-200 mb-3">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    {% if LANG == 'en' %}Student Dashboard{% else %}শিক্ষার্থী ড্যাশবোর্ড{% endif %}
                 </div>
 
                 {% if request.user.is_authenticated %}
-                <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight hero-anim-1">
-                    {% if LANG == 'en' %}Welcome, {{ request.user.username }}! 👋{% else %}স্বাগতম, {{ request.user.username }}! 👋{% endif %}
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                    {% if LANG == 'en' %}Welcome, {{ request.user.username }}{% else %}স্বাগতম, {{ request.user.username }}{% endif %}
                 </h1>
                 {% else %}
-                <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight hero-anim-1">
-                    {% if LANG == 'en' %}Welcome back! 👋{% else %}স্বাগতম! 👋{% endif %}
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                    {% if LANG == 'en' %}Welcome back{% else %}স্বাগতম{% endif %}
                 </h1>
                 {% endif %}
 
-                <!-- Motivational quote -->
-                <p class="text-blue-200 mt-1 text-sm italic hero-anim-2">
-                    {% if LANG == 'en' %}"Small daily progress is the key to great success."{% else %}"প্রতিদিনের ছোট ছোট অগ্রগতিই বড় সাফল্যের চাবিকাঠি।"{% endif %}
+                <p class="text-indigo-200 mt-1.5 text-sm italic">
+                    {% if LANG == 'en' %}"Small daily progress is the key to great success."
+                    {% else %}"প্রতিদিনের ছোট ছোট অগ্রগতিই বড় সাফল্যের চাবিকাঠি।"{% endif %}
                 </p>
-                <p class="text-blue-300/80 mt-0.5 text-xs hero-anim-2">{{ streak_msg }}</p>
+                <p class="text-indigo-300/80 mt-0.5 text-xs">{{ streak_msg }}</p>
             </div>
 
             <!-- RIGHT: plan badge + action buttons -->
-            <div class="flex flex-col items-end gap-3 hero-anim-r flex-shrink-0">
-                <!-- Plan badge -->
+            <div class="flex flex-col items-end gap-3 flex-shrink-0">
                 <div class="text-white text-xs font-bold px-3 py-1.5 rounded-full
                     {% if profile.plan == 'PREMIUM' %}plan-badge-premium
                     {% elif profile.plan == 'BASIC'   %}plan-badge-basic
@@ -219,7 +218,6 @@
                         {% if LANG == 'en' %}Free Plan{% else %}ফ্রি প্ল্যান{% endif %}
                     {% endif %}
                 </div>
-                <!-- Action buttons -->
                 <div class="flex gap-2">
                     <a href="{% url 'progress_history' %}"
                        class="bg-white/10 border border-white/20 rounded-xl px-4 py-2
@@ -227,95 +225,94 @@
                         {% if LANG == 'en' %}Full history →{% else %}পূর্ণ ইতিহাস →{% endif %}
                     </a>
                     <a href="{% url 'question_bank' %}"
-                       class="bg-white text-blue-800 px-4 py-2.5 rounded-xl text-sm font-bold
-                              hover:bg-blue-50 transition shadow-md">
-                        📚 {% if LANG == 'en' %}Practice now{% else %}এখনই অনুশীলন করো{% endif %}
+                       class="bg-white text-indigo-800 px-4 py-2.5 rounded-xl text-sm font-bold
+                              hover:bg-indigo-50 transition shadow-md">
+                        {% if LANG == 'en' %}Practice now{% else %}এখনই অনুশীলন করো{% endif %}
                     </a>
                 </div>
             </div>
 
         </div>
+
+        <!-- Today's Goal — inline strip inside header -->
+        <div class="mt-6 bg-white/10 border border-white/15 rounded-2xl px-5 py-3 backdrop-blur-sm">
+            <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-2.5 flex-shrink-0">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-white/15">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-white">{% if LANG == 'en' %}Today's Goal{% else %}আজকের লক্ষ্য{% endif %}</p>
+                        <p class="text-[11px] text-indigo-200">{{ today_count }} / {{ daily_goal }} {% if LANG == 'en' %}questions{% else %}প্রশ্ন{% endif %}</p>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-[120px]">
+                    <div class="goal-bar-track" style="background:rgba(255,255,255,0.15);">
+                        <div class="goal-bar-fill" style="width: {{ goal_progress }}%; background:linear-gradient(90deg,#a5b4fc,#fff);"></div>
+                    </div>
+                </div>
+                <div class="text-sm font-bold text-white flex-shrink-0">
+                    {% if today_count >= daily_goal %}
+                        ✓ {% if LANG == 'en' %}Complete!{% else %}সম্পন্ন!{% endif %}
+                    {% else %}
+                        {{ goal_progress }}%
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
     <!-- ═══════════════════════════════════
-         TODAY'S GOAL — horizontal bar card
-    ═══════════════════════════════════ -->
-    <div class="dash-card px-6 py-5" data-aos="fade-up" data-aos-delay="0">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
-                    <span class="text-sm">🎯</span>
-                </div>
-                <div>
-                    <p class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Today's Goal{% else %}আজকের লক্ষ্য{% endif %}</p>
-                    <p class="text-xs text-gray-500">{{ today_count }} / {{ daily_goal }} {% if LANG == 'en' %}questions answered{% else %}প্রশ্নের উত্তর দেওয়া হয়েছে{% endif %}</p>
-                </div>
-            </div>
-            <div class="flex-1 min-w-[160px] max-w-sm">
-                <div class="goal-bar-track">
-                    <div class="goal-bar-fill" style="width: {{ goal_progress }}%;"></div>
-                </div>
-            </div>
-            <div class="text-sm font-bold text-right"
-                 style="color: {% if goal_progress >= 100 %}#059669{% else %}#1e40af{% endif %};">
-                {% if today_count >= daily_goal %}
-                    ✓ {% if LANG == 'en' %}Goal achieved!{% else %}লক্ষ্য পূরণ হয়েছে!{% endif %}
-                {% else %}
-                    {{ goal_progress }}% {% if LANG == 'en' %}done{% else %}সম্পন্ন{% endif %}
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════
-         QUICK STATS — 4 distinct accent colors
+         QUICK STATS — 4 accent cards
     ═══════════════════════════════════ -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-        <!-- Total Answered — Blue accent -->
-        <div class="dash-card stat-card-blue p-5" data-aos="fade-up" data-aos-delay="0">
+        <!-- Total Answered — Blue -->
+        <div class="dash-card stat-card-blue p-5">
             <div class="flex items-center gap-2 mb-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">
                     <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </div>
-                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">{% if LANG == 'en' %}Total Answered{% else %}মোট উত্তর{% endif %}</p>
+                <p class="sd-label">{% if LANG == 'en' %}Total Answered{% else %}মোট উত্তর{% endif %}</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900 counter" data-target="{{ total_answered }}">0</p>
+            <p class="sd-num counter" data-target="{{ total_answered }}">0</p>
             <div class="mt-2 text-xs flex items-center gap-1">
                 {% if volume_delta_pct is None %}
-                    <span class="trend-flat">— {% if LANG == 'en' %}no comparison yet{% else %}তুলনা করার ডেটা নেই{% endif %}</span>
+                    <span class="trend-flat">— {% if LANG == 'en' %}no comparison yet{% else %}তুলনা নেই{% endif %}</span>
                 {% elif volume_delta_pct > 0 %}
                     <span class="trend-up">▲ {{ volume_delta_pct }}%</span>
-                    <span class="text-gray-400">{% if LANG == 'en' %}vs last week{% else %}গত সপ্তাহের তুলনায়{% endif %}</span>
+                    <span class="text-gray-400">{% if LANG == 'en' %}vs last week{% else %}গত সপ্তাহ{% endif %}</span>
                 {% elif volume_delta_pct < 0 %}
                     <span class="trend-down">▼ {{ volume_delta_pct }}%</span>
-                    <span class="text-gray-400">{% if LANG == 'en' %}vs last week{% else %}গত সপ্তাহের তুলনায়{% endif %}</span>
+                    <span class="text-gray-400">{% if LANG == 'en' %}vs last week{% else %}গত সপ্তাহ{% endif %}</span>
                 {% else %}
-                    <span class="trend-flat">▬ {% if LANG == 'en' %}same as last week{% else %}গত সপ্তাহের মতোই{% endif %}</span>
+                    <span class="trend-flat">▬ {% if LANG == 'en' %}same as last week{% else %}গত সপ্তাহের মতো{% endif %}</span>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Accuracy — Purple accent -->
-        <div class="dash-card stat-card-purple p-5" data-aos="fade-up" data-aos-delay="60">
+        <!-- Accuracy — Purple -->
+        <div class="dash-card stat-card-purple p-5">
             <div class="flex items-center gap-2 mb-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-100">
+                <div class="sd-section-icon bg-purple-100">
                     <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">{% if LANG == 'en' %}Accuracy{% else %}নির্ভুলতা{% endif %}</p>
+                <p class="sd-label">{% if LANG == 'en' %}Accuracy{% else %}নির্ভুলতা{% endif %}</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">
+            <p class="sd-num">
                 <span class="counter" data-target="{{ accuracy }}" data-decimals="1">0</span>%
             </p>
             <div class="mt-2 text-xs flex items-center gap-1">
@@ -324,42 +321,52 @@
                 {% elif accuracy_delta < 0 %}
                     <span class="trend-down">▼ {{ accuracy_delta }} pts</span>
                 {% else %}
-                    <span class="trend-flat">▬ {% if LANG == 'en' %}flat{% else %}একই রয়েছে{% endif %}</span>
+                    <span class="trend-flat">▬ {% if LANG == 'en' %}flat{% else %}একই{% endif %}</span>
                 {% endif %}
                 <span class="text-gray-400">{% if LANG == 'en' %}this week{% else %}এই সপ্তাহে{% endif %}</span>
             </div>
         </div>
 
-        <!-- Streak — Green accent -->
-        <div class="dash-card stat-card-green p-5" data-aos="fade-up" data-aos-delay="120">
+        <!-- Streak — Green -->
+        <div class="dash-card stat-card-green p-5">
             <div class="flex items-center gap-2 mb-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-100">
-                    <span class="text-base">🔥</span>
-                </div>
-                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">{% if LANG == 'en' %}Streak{% else %}ধারাবাহিকতা{% endif %}</p>
-            </div>
-            <p class="text-3xl font-bold text-gray-900">
-                <span class="counter" data-target="{{ current_streak }}">0</span>
-                <span class="text-base font-medium text-gray-500">{% if LANG == 'en' %}days{% else %}দিন{% endif %}</span>
-            </p>
-            <p class="mt-2 text-xs text-gray-400">{% if LANG == 'en' %}Best:{% else %}সর্বোচ্চ:{% endif %} {{ longest_streak }} {% if LANG == 'en' %}days{% else %}দিন{% endif %}</p>
-        </div>
-
-        <!-- Rank — Amber accent -->
-        <div class="dash-card stat-card-amber p-5" data-aos="fade-up" data-aos-delay="180">
-            <div class="flex items-center gap-2 mb-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-100">
-                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="sd-section-icon bg-emerald-100">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                              d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
                     </svg>
                 </div>
-                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">{% if LANG == 'en' %}Your Rank{% else %}আপনার র‍্যাংক{% endif %}</p>
+                <p class="sd-label">{% if LANG == 'en' %}Streak{% else %}ধারাবাহিকতা{% endif %}</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">
+            <p class="sd-num">
+                <span class="counter" data-target="{{ current_streak }}">0</span>
+                <span class="text-base font-medium text-gray-500 ml-0.5">{% if LANG == 'en' %}d{% else %}দ{% endif %}</span>
+            </p>
+            <p class="mt-2 text-xs text-gray-400">
+                {% if LANG == 'en' %}Best: <span class="font-semibold text-gray-600">{{ longest_streak }} days</span>
+                {% else %}সর্বোচ্চ: <span class="font-semibold text-gray-600">{{ longest_streak }} দিন</span>{% endif %}
+            </p>
+        </div>
+
+        <!-- Rank — Amber -->
+        <div class="dash-card stat-card-amber p-5">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="sd-section-icon bg-amber-100">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                    </svg>
+                </div>
+                <p class="sd-label">{% if LANG == 'en' %}Your Rank{% else %}র‍্যাংক{% endif %}</p>
+            </div>
+            <p class="sd-num">
                 #<span class="counter" data-target="{{ rank }}">0</span>
             </p>
-            <p class="mt-2 text-xs text-gray-400">{% if LANG == 'en' %}of {{ total_students }} students{% else %}{{ total_students }} শিক্ষার্থীর মধ্যে{% endif %}</p>
+            <p class="mt-2 text-xs text-gray-400">
+                {% if LANG == 'en' %}of {{ total_students }} students{% else %}{{ total_students }} শিক্ষার্থীর মধ্যে{% endif %}
+            </p>
         </div>
 
     </div>
@@ -369,119 +376,150 @@
     ═══════════════════════════════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <!-- Streak Widget -->
-        <div class="dash-card p-6 lg:col-span-1" data-aos="fade-up" data-aos-delay="0">
+        <!-- Streak + Heatmap -->
+        <div class="dash-card p-6 lg:col-span-1">
             <div class="flex items-center gap-2 mb-4">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
-                    <span class="text-sm">🔥</span>
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#3730a3,#4338ca);">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                    </svg>
                 </div>
-                <h2 class="text-base font-bold text-gray-900">{% if LANG == 'en' %}Daily Streak{% else %}দৈনিক ধারাবাহিকতা{% endif %}</h2>
+                <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Daily Streak{% else %}দৈনিক ধারাবাহিকতা{% endif %}</h2>
             </div>
 
-            <div class="flex items-end gap-1 mb-1">
-                <span class="text-5xl font-bold text-gray-900 leading-none">{{ current_streak }}</span>
+            <div class="flex items-end gap-1.5 mb-1">
+                <span class="text-5xl font-black text-gray-900 leading-none">{{ current_streak }}</span>
                 <span class="text-sm text-gray-500 mb-1">{% if LANG == 'en' %}days in a row{% else %}টানা দিন{% endif %}</span>
             </div>
-            <p class="text-xs text-gray-400">{% if LANG == 'en' %}Personal best:{% else %}ব্যক্তিগত সেরা:{% endif %} <span class="font-medium text-gray-600">{{ longest_streak }} {% if LANG == 'en' %}days{% else %}দিন{% endif %}</span></p>
+            <p class="text-xs text-gray-400 mb-5">
+                {% if LANG == 'en' %}Personal best: <span class="font-semibold text-gray-600">{{ longest_streak }} days</span>
+                {% else %}ব্যক্তিগত সেরা: <span class="font-semibold text-gray-600">{{ longest_streak }} দিন</span>{% endif %}
+            </p>
 
-            <!-- Daily goal (also shown in the card) -->
-            <div class="mt-5">
-                <div class="flex items-center justify-between text-xs text-gray-600 mb-1.5">
-                    <span class="font-medium">{% if LANG == 'en' %}Today's goal{% else %}আজকের লক্ষ্য{% endif %}</span>
-                    <span>{{ today_count }} / {{ daily_goal }}</span>
+            <!-- Goal progress -->
+            <div class="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                    <span class="font-semibold">{% if LANG == 'en' %}Today's goal{% else %}আজকের লক্ষ্য{% endif %}</span>
+                    <span class="font-medium">{{ today_count }} / {{ daily_goal }}</span>
                 </div>
-                <div class="h-2 rounded-full overflow-hidden" style="background:#e2e8f0;">
-                    <div class="h-full rounded-full transition-all duration-700"
-                         style="width: {{ goal_progress }}%; background: linear-gradient(90deg, #1e40af, #3b82f6);"></div>
+                <div class="goal-bar-track">
+                    <div class="goal-bar-fill" style="width: {{ goal_progress }}%;"></div>
                 </div>
                 {% if today_count >= daily_goal %}
-                    <p class="text-xs text-emerald-600 mt-2 font-medium">✓ {% if LANG == 'en' %}Today's goal complete!{% else %}আজকের লক্ষ্য পূরণ হয়েছে!{% endif %}</p>
+                <p class="text-xs text-emerald-600 mt-2 font-semibold">
+                    ✓ {% if LANG == 'en' %}Today's goal complete!{% else %}আজকের লক্ষ্য পূরণ হয়েছে!{% endif %}
+                </p>
+                {% else %}
+                <p class="text-xs text-indigo-600 mt-2 font-medium">{{ goal_progress }}% {% if LANG == 'en' %}done{% else %}সম্পন্ন{% endif %}</p>
                 {% endif %}
             </div>
 
-            <!-- 30-day heatmap (navy blue palette) -->
-            <div class="mt-6">
-                <p class="text-xs font-semibold text-gray-600 mb-2">{% if LANG == 'en' %}Last 30 days{% else %}শেষ ৩০ দিন{% endif %}</p>
+            <!-- 30-day heatmap -->
+            <div class="mt-5">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-semibold text-gray-600">{% if LANG == 'en' %}Last 30 days{% else %}শেষ ৩০ দিন{% endif %}</p>
+                    <div class="flex items-center gap-1 text-[10px] text-gray-400">
+                        <span>{% if LANG == 'en' %}less{% else %}কম{% endif %}</span>
+                        <span class="hm-cell hm-0 w-2.5 h-2.5 inline-block"></span>
+                        <span class="hm-cell hm-1 w-2.5 h-2.5 inline-block"></span>
+                        <span class="hm-cell hm-2 w-2.5 h-2.5 inline-block"></span>
+                        <span class="hm-cell hm-3 w-2.5 h-2.5 inline-block"></span>
+                        <span class="hm-cell hm-4 w-2.5 h-2.5 inline-block"></span>
+                        <span>{% if LANG == 'en' %}more{% else %}বেশি{% endif %}</span>
+                    </div>
+                </div>
                 <div class="grid gap-1.5" style="grid-template-columns: repeat(15, minmax(0, 1fr));">
                     {% for d in heatmap %}
                     <div class="hm-cell hm-{{ d.level }}"
-                         title="{{ d.label }} — {{ d.count }} {% if LANG == 'en' %}answered{% else %}উত্তর দেওয়া{% endif %}"></div>
+                         title="{{ d.label }} — {{ d.count }} {% if LANG == 'en' %}answered{% else %}উত্তর{% endif %}"></div>
                     {% endfor %}
-                </div>
-                <div class="flex items-center justify-end gap-1 mt-3 text-[10px] text-gray-400">
-                    <span>{% if LANG == 'en' %}less{% else %}কম{% endif %}</span>
-                    <span class="hm-cell hm-0 w-2.5 h-2.5"></span>
-                    <span class="hm-cell hm-1 w-2.5 h-2.5"></span>
-                    <span class="hm-cell hm-2 w-2.5 h-2.5"></span>
-                    <span class="hm-cell hm-3 w-2.5 h-2.5"></span>
-                    <span class="hm-cell hm-4 w-2.5 h-2.5"></span>
-                    <span>{% if LANG == 'en' %}more{% else %}বেশি{% endif %}</span>
                 </div>
             </div>
         </div>
 
         <!-- Accuracy Trend Chart -->
-        <div class="dash-card p-6 lg:col-span-2" data-aos="fade-up" data-aos-delay="60">
-            <div class="flex items-center justify-between mb-4">
+        <div class="dash-card p-6 lg:col-span-2">
+            <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                         style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-                        <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="sd-section-icon" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
+                        <svg class="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-base font-bold text-gray-900">{% if LANG == 'en' %}Accuracy Trend{% else %}নির্ভুলতার ধারা{% endif %}</h2>
+                        <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Accuracy Trend{% else %}নির্ভুলতার ধারা{% endif %}</h2>
                         <p class="text-xs text-gray-500">{% if LANG == 'en' %}Last 30 days{% else %}শেষ ৩০ দিন{% endif %}</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-2xl font-bold" style="color:#1e40af;">{{ this_week_acc }}%</p>
+                    <p class="text-2xl font-black" style="color:#4338ca;">{{ this_week_acc }}%</p>
                     <p class="text-xs text-gray-500">{% if LANG == 'en' %}this week{% else %}এই সপ্তাহে{% endif %}</p>
                 </div>
             </div>
-            <div class="h-56"><canvas id="accuracyTrendChart"></canvas></div>
+            <div class="h-52"><canvas id="accuracyTrendChart"></canvas></div>
 
-            <!-- Insights -->
-            <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3 pt-5 border-t border-gray-100">
+            <!-- Insights row -->
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-gray-100">
                 {% if best_day %}
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
-                    <div class="text-xl">⭐</div>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-100 flex-shrink-0">
+                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                        </svg>
+                    </div>
                     <div class="flex-1">
                         <p class="text-xs text-amber-700 font-semibold uppercase tracking-wider">{% if LANG == 'en' %}Best day{% else %}সেরা দিন{% endif %}</p>
-                        <p class="text-sm text-gray-800 mt-0.5">{% if LANG == 'en' %}You're most active on <span class="font-semibold">{{ best_day }}</span>.{% else %}<span class="font-semibold">{% if best_day == 'Sunday' %}রবিবার{% elif best_day == 'Monday' %}সোমবার{% elif best_day == 'Tuesday' %}মঙ্গলবার{% elif best_day == 'Wednesday' %}বুধবার{% elif best_day == 'Thursday' %}বৃহস্পতিবার{% elif best_day == 'Friday' %}শুক্রবার{% elif best_day == 'Saturday' %}শনিবার{% else %}{{ best_day }}{% endif %}</span>-এ আপনি সবচেয়ে বেশি সক্রিয়।{% endif %}</p>
+                        <p class="text-sm text-gray-800 mt-0.5">
+                            {% if LANG == 'en' %}Most active on <span class="font-semibold">{{ best_day }}</span>.
+                            {% else %}<span class="font-semibold">{% if best_day == 'Sunday' %}রবিবার{% elif best_day == 'Monday' %}সোমবার{% elif best_day == 'Tuesday' %}মঙ্গলবার{% elif best_day == 'Wednesday' %}বুধবার{% elif best_day == 'Thursday' %}বৃহস্পতিবার{% elif best_day == 'Friday' %}শুক্রবার{% elif best_day == 'Saturday' %}শনিবার{% else %}{{ best_day }}{% endif %}</span>-এ সবচেয়ে সক্রিয়।{% endif %}
+                        </p>
                     </div>
                 </div>
                 {% else %}
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-                    <div class="text-xl">📊</div>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
                     <div class="flex-1">
                         <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{% if LANG == 'en' %}Best day{% else %}সেরা দিন{% endif %}</p>
-                        <p class="text-sm text-gray-600 mt-0.5">{% if LANG == 'en' %}Answer more questions to unlock insights.{% else %}তথ্য দেখতে আরও প্রশ্নের উত্তর দিন।{% endif %}</p>
+                        <p class="text-sm text-gray-500 mt-0.5">{% if LANG == 'en' %}Answer more to unlock insights.{% else %}তথ্য দেখতে আরও উত্তর দিন।{% endif %}</p>
                     </div>
                 </div>
                 {% endif %}
 
                 {% if weakest %}
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-rose-50 border border-rose-100">
-                    <div class="text-xl">🎯</div>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-100 flex-shrink-0">
+                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
                     <div class="flex-1">
                         <p class="text-xs text-rose-700 font-semibold uppercase tracking-wider">{% if LANG == 'en' %}Weakest subject{% else %}দুর্বল বিষয়{% endif %}</p>
                         <p class="text-sm text-gray-800 mt-0.5">
-                            <span class="font-semibold">{{ weakest.name }}</span> at {{ weakest.accuracy }}% —
+                            <span class="font-semibold">{{ weakest.name }}</span> — {{ weakest.accuracy }}% ·
                             <a href="{% url 'question_bank' %}?subject={{ weakest.id }}"
-                               class="text-rose-700 underline hover:no-underline font-medium">{% if LANG == 'en' %}practice{% else %}অনুশীলন করো{% endif %}</a>.
+                               class="text-rose-700 underline hover:no-underline font-medium">{% if LANG == 'en' %}practice{% else %}অনুশীলন করো{% endif %}</a>
                         </p>
                     </div>
                 </div>
                 {% else %}
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-                    <div class="text-xl">🎯</div>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
                     <div class="flex-1">
                         <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{% if LANG == 'en' %}Weakest subject{% else %}দুর্বল বিষয়{% endif %}</p>
-                        <p class="text-sm text-gray-600 mt-0.5">{% if LANG == 'en' %}Need 5+ attempts in a subject to identify.{% else %}চিহ্নিত করতে একটি বিষয়ে ৫+ প্রচেষ্টা দরকার।{% endif %}</p>
+                        <p class="text-sm text-gray-500 mt-0.5">{% if LANG == 'en' %}Need 5+ attempts in a subject to identify.{% else %}চিহ্নিত করতে ৫+ প্রচেষ্টা দরকার।{% endif %}</p>
                     </div>
                 </div>
                 {% endif %}
@@ -490,56 +528,63 @@
     </div>
 
     <!-- ═══════════════════════════════════
-         BAR CHART  +  PIE CHART
+         WEEKLY BAR  +  SUBJECT PIE
     ═══════════════════════════════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="dash-card p-6 lg:col-span-2" data-aos="fade-up" data-aos-delay="0">
+
+        <div class="dash-card p-6 lg:col-span-2">
             <div class="flex items-center gap-2 mb-4">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-                    <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
+                    <svg class="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                 </div>
-                <h2 class="text-base font-bold text-gray-900">{% if LANG == 'en' %}This Week's Activity{% else %}এই সপ্তাহের কার্যক্রম{% endif %}</h2>
+                <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}This Week's Activity{% else %}এই সপ্তাহের কার্যক্রম{% endif %}</h2>
             </div>
-            <div class="h-56"><canvas id="weeklyChart"></canvas></div>
+            <div class="h-52"><canvas id="weeklyChart"></canvas></div>
         </div>
-        <div class="dash-card p-6 lg:col-span-1" data-aos="fade-up" data-aos-delay="80">
+
+        <div class="dash-card p-6 lg:col-span-1">
             <div class="flex items-center gap-2 mb-4">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-purple-100">
+                <div class="sd-section-icon bg-purple-100">
                     <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 0110 10"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
                     </svg>
                 </div>
-                <h2 class="text-base font-bold text-gray-900">{% if LANG == 'en' %}Subject Distribution{% else %}বিষয়ভিত্তিক বিভাজন{% endif %}</h2>
+                <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Subject Distribution{% else %}বিষয়ভিত্তিক বিভাজন{% endif %}</h2>
             </div>
             {% if subjects_data %}
-            <div class="h-56"><canvas id="subjectPie"></canvas></div>
+            <div class="h-52"><canvas id="subjectPie"></canvas></div>
             {% else %}
-            <div class="h-56 flex items-center justify-center text-sm text-gray-400">{% if LANG == 'en' %}No data yet{% else %}এখনো কোনো ডেটা নেই{% endif %}</div>
+            <div class="h-52 flex flex-col items-center justify-center text-sm text-gray-400">
+                <svg class="w-10 h-10 mb-2 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                </svg>
+                {% if LANG == 'en' %}No data yet{% else %}এখনো কোনো ডেটা নেই{% endif %}
+            </div>
             {% endif %}
         </div>
     </div>
 
     <!-- ═══════════════════════════════════
-         SUBJECT PROGRESS (collapsible)
+         SUBJECT PROGRESS (collapsible accordion)
     ═══════════════════════════════════ -->
-    <div class="dash-card p-6" data-aos="fade-up" data-aos-delay="0">
+    <div class="dash-card p-6">
         <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#3730a3,#4338ca);">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
-                <h2 class="text-base font-bold text-gray-900">{% if LANG == 'en' %}Subject Progress{% else %}বিষয়ভিত্তিক অগ্রগতি{% endif %}</h2>
+                <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Subject Progress{% else %}বিষয়ভিত্তিক অগ্রগতি{% endif %}</h2>
             </div>
-            <p class="text-xs text-gray-400">{% if LANG == 'en' %}Click any subject for details{% else %}বিস্তারিত দেখতে যেকোনো বিষয়ে ক্লিক করুন{% endif %}</p>
+            <p class="text-xs text-gray-400">{% if LANG == 'en' %}Click any subject for details{% else %}বিস্তারিত দেখতে ক্লিক করুন{% endif %}</p>
         </div>
 
         {% if subjects_data %}
@@ -576,9 +621,11 @@
                 <div id="acc-content-{{ s.id }}" class="acc-content">
                     <div class="px-3 pb-5 pt-1">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+
+                            <!-- Stat mini-cards -->
                             <div class="md:col-span-1 grid grid-cols-3 md:grid-cols-1 gap-3">
                                 <div class="rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-3">
-                                    <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</p>
+                                    <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</p>
                                     <p class="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{{ s.total }}</p>
                                 </div>
                                 <div class="rounded-xl border border-green-100 bg-green-50/50 dark:border-emerald-800 dark:bg-emerald-900/20 p-3">
@@ -597,8 +644,9 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Difficulty breakdown -->
                             <div class="md:col-span-1 rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-4">
-                                <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium mb-3">{% if LANG == 'en' %}Difficulty breakdown{% else %}কঠিনতার বিভাজন {% endif %}</p>
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">{% if LANG == 'en' %}Difficulty breakdown{% else %}কঠিনতার বিভাজন{% endif %}</p>
                                 <div class="space-y-2.5">
                                     <div>
                                         <div class="flex items-center justify-between text-xs mb-1">
@@ -633,8 +681,9 @@
                                 </div>
                             </div>
 
+                            <!-- Last 7 days mini-bar chart -->
                             <div class="md:col-span-1 rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-4">
-                                <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium mb-3">{% if LANG == 'en' %}Last 7 days{% else %}শেষ ৭ দিন{% endif %}</p>
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">{% if LANG == 'en' %}Last 7 days{% else %}শেষ ৭ দিন{% endif %}</p>
                                 <div class="flex items-end justify-between gap-1.5 h-16">
                                     {% for w in s.weekly %}
                                     <div class="flex-1 flex flex-col items-center gap-1">
@@ -651,7 +700,7 @@
                         </div>
 
                         <a href="{% url 'question_bank' %}?subject={{ s.id }}"
-                           class="inline-flex items-center gap-1.5 mt-4 text-sm font-medium px-4 py-2 rounded-xl transition"
+                           class="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold px-4 py-2 rounded-xl transition"
                            style="background: {{ s.hex }}; color: white;">
                             {% if LANG == 'en' %}Practice More{% else %}আরও অনুশীলন করো{% endif %}
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,13 +713,23 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12">
-            <p class="text-4xl mb-2">🌱</p>
-            <p class="text-gray-500 text-sm">{% if LANG == 'en' %}No progress in any subject yet.{% else %}এখনো কোনো subject এ progress নেই।{% endif %}</p>
+        <div class="text-center py-14">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                 style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+            <p class="text-gray-600 font-semibold mb-1">{% if LANG == 'en' %}No subject progress yet{% else %}এখনো কোনো বিষয়ে অগ্রগতি নেই{% endif %}</p>
+            <p class="text-gray-400 text-sm mb-4">{% if LANG == 'en' %}Start answering questions to track your progress.{% else %}অগ্রগতি দেখতে প্রশ্নের উত্তর দেওয়া শুরু করুন।{% endif %}</p>
             <a href="{% url 'question_bank' %}"
-               class="inline-block mt-3 text-sm font-semibold px-4 py-2 rounded-xl text-white transition"
-               style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
-                {% if LANG == 'en' %}Start practicing →{% else %}অনুশীলন শুরু করো →{% endif %}
+               class="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl text-white transition"
+               style="background: linear-gradient(135deg, #3730a3, #4338ca);">
+                {% if LANG == 'en' %}Start practicing{% else %}অনুশীলন শুরু করো{% endif %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
             </a>
         </div>
         {% endif %}
@@ -679,25 +738,25 @@
     <!-- ═══════════════════════════════════
          TEACHER FEEDBACK
     ═══════════════════════════════════ -->
-    <div class="dash-card p-6" data-aos="fade-up" data-aos-delay="0">
+    <div class="dash-card p-6">
         <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-                    <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-2.5">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
+                    <svg class="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                     </svg>
                 </div>
-                <h2 class="text-base font-bold text-gray-900">{% if LANG == 'en' %}Teacher Feedback{% else %}শিক্ষকের মতামত{% endif %}</h2>
+                <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Teacher Feedback{% else %}শিক্ষকের মতামত{% endif %}</h2>
                 {% if unread_count %}
                 <span class="text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
+                      style="background: linear-gradient(135deg, #3730a3, #4338ca);">
                     {{ unread_count }} {% if LANG == 'en' %}new{% else %}নতুন{% endif %}
                 </span>
                 {% endif %}
             </div>
-            <a href="{% url 'notifications' %}" class="text-xs font-semibold text-blue-700 hover:text-blue-900 transition">
+            <a href="{% url 'notifications' %}"
+               class="text-xs font-semibold text-indigo-700 hover:text-indigo-900 transition">
                 {% if LANG == 'en' %}View all →{% else %}সব দেখুন →{% endif %}
             </a>
         </div>
@@ -705,11 +764,11 @@
         {% if feedbacks %}
         <div class="space-y-3">
             {% for f in feedbacks %}
-            <div class="rounded-xl border {% if not f.is_read %}border-blue-200 bg-blue-50/40{% else %}border-gray-100{% endif %} p-4 transition hover:shadow-sm">
+            <div class="rounded-xl border {% if not f.is_read %}border-indigo-200 bg-indigo-50/40{% else %}border-gray-100{% endif %} p-4 transition hover:shadow-sm">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-2.5 min-w-0">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                             style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
+                             style="background: linear-gradient(135deg, #3730a3, #4338ca);">
                             {{ f.teacher.username|slice:":1"|upper }}
                         </div>
                         <div class="min-w-0">
@@ -718,7 +777,7 @@
                         </div>
                     </div>
                     {% if f.progress.question.subject %}
-                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold flex-shrink-0">
+                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold flex-shrink-0">
                         {{ f.progress.question.subject.name }}
                     </span>
                     {% endif %}
@@ -728,9 +787,15 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-10 text-gray-400">
-            <p class="text-3xl mb-2">💬</p>
-            <p class="text-sm">{% if LANG == 'en' %}No feedback received yet.{% else %}কোনো feedback পাওনি এখনো।{% endif %}</p>
+        <div class="text-center py-12">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                 style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+            </div>
+            <p class="text-gray-500 text-sm">{% if LANG == 'en' %}No feedback received yet.{% else %}কোনো ফিডব্যাক পাওনি এখনো।{% endif %}</p>
         </div>
         {% endif %}
     </div>
@@ -738,17 +803,20 @@
     <!-- ═══════════════════════════════════
          EXAM RESULTS BY SUBJECT (collapsible)
     ═══════════════════════════════════ -->
-    <div class="dash-card p-6" data-aos="fade-up" data-aos-delay="0">
+    <div class="dash-card p-6">
         <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #fde68a, #fbbf24);">
-                    <span class="text-base">📊</span>
+            <div class="flex items-center gap-2.5">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
                 </div>
-                <h2 class="text-base font-bold text-gray-900">{% if LANG == 'en' %}Exam Results{% else %}পরীক্ষার ফলাফল{% endif %}</h2>
-                <p class="text-xs text-gray-400 ml-2 hidden sm:inline">{% if LANG == 'en' %}Click a subject to see progress{% else %}অগ্রগতি দেখতে বিষয়ে ক্লিক করুন{% endif %}</p>
+                <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Exam Results{% else %}পরীক্ষার ফলাফল{% endif %}</h2>
+                <p class="text-xs text-gray-400 hidden sm:inline">{% if LANG == 'en' %}Click a subject to expand{% else %}বিস্তারিত দেখতে ক্লিক করুন{% endif %}</p>
             </div>
-            <a href="{% url 'exam_paper_list' %}" class="text-xs font-semibold text-blue-700 hover:text-blue-900 transition">
+            <a href="{% url 'exam_paper_list' %}"
+               class="text-xs font-semibold text-indigo-700 hover:text-indigo-900 transition">
                 {% if LANG == 'en' %}All exams →{% else %}সব পরীক্ষা →{% endif %}
             </a>
         </div>
@@ -788,10 +856,10 @@
 
                 <div id="exam-acc-content-{{ s.id }}" class="acc-content">
                     <div class="px-3 pb-5 pt-1">
-                        <!-- Summary cards -->
+                        <!-- Summary mini-cards -->
                         <div class="grid grid-cols-3 gap-3 mt-2">
                             <div class="rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-3">
-                                <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium">{% if LANG == 'en' %}Exams{% else %}পরীক্ষা{% endif %}</p>
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">{% if LANG == 'en' %}Exams{% else %}পরীক্ষা{% endif %}</p>
                                 <p class="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{{ s.count }}</p>
                             </div>
                             <div class="rounded-xl border border-amber-100 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20 p-3">
@@ -804,9 +872,9 @@
                             </div>
                         </div>
 
-                        <!-- Bar chart: marks per exam over time -->
+                        <!-- Score progress bar chart -->
                         <div class="mt-4 rounded-xl border border-gray-100 dark:border-slate-700 dark:bg-slate-800/60 p-4">
-                            <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 font-medium mb-3">
+                            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">
                                 {% if LANG == 'en' %}Score progress (oldest → latest){% else %}স্কোর অগ্রগতি (পুরাতন → নতুন){% endif %}
                             </p>
                             <div class="flex items-end gap-2 h-32 overflow-x-auto pb-1">
@@ -815,15 +883,10 @@
                                    class="flex flex-col items-center gap-1 group flex-shrink-0"
                                    style="min-width: 40px;"
                                    title="{{ att.title }} — {{ att.score }}/{{ att.max }} ({{ att.pct }}%)">
-                                    <span class="text-[10px] font-semibold text-gray-500 dark:text-slate-400 group-hover:text-gray-900 dark:group-hover:text-white">
-                                        {{ att.pct }}%
-                                    </span>
+                                    <span class="text-[10px] font-semibold text-gray-500 dark:text-slate-400 group-hover:text-gray-900">{{ att.pct }}%</span>
                                     <div class="w-7 rounded-t-md transition-all duration-700 group-hover:opacity-80"
-                                         style="height: {{ att.bar_height }}%; background: linear-gradient(180deg, {{ s.hex }}, {{ s.hex }}cc); min-height: 4px;">
-                                    </div>
-                                    <span class="text-[9px] text-gray-400 dark:text-slate-500 max-w-[60px] truncate">
-                                        {{ att.title|truncatechars:10 }}
-                                    </span>
+                                         style="height: {{ att.bar_height }}%; background: linear-gradient(180deg, {{ s.hex }}, {{ s.hex }}cc); min-height: 4px;"></div>
+                                    <span class="text-[9px] text-gray-400 dark:text-slate-500 max-w-[60px] truncate">{{ att.title|truncatechars:10 }}</span>
                                 </a>
                                 {% endfor %}
                             </div>
@@ -854,11 +917,17 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-10 text-gray-400">
-            <p class="text-3xl mb-2">📝</p>
-            <p class="text-sm">{% if LANG == 'en' %}No graded exams yet.{% else %}এখনো কোনো পরীক্ষার ফলাফল আসেনি।{% endif %}</p>
+        <div class="text-center py-12">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                 style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+            </div>
+            <p class="text-gray-500 text-sm mb-3">{% if LANG == 'en' %}No graded exams yet.{% else %}এখনো কোনো পরীক্ষার ফলাফল আসেনি।{% endif %}</p>
             <a href="{% url 'exam_paper_list' %}"
-               class="inline-block mt-3 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition"
+               class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition"
                style="background: linear-gradient(135deg, #f59e0b, #d97706);">
                 {% if LANG == 'en' %}Browse exams →{% else %}পরীক্ষা দাও →{% endif %}
             </a>
@@ -867,53 +936,73 @@
     </div>
 
     <!-- ═══════════════════════════════════
-         QUICK LINKS
+         QUICK LINKS — 3 card row
     ═══════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a href="{% url 'question_bank' %}"
            class="bg-white rounded-2xl border border-gray-100 p-6 group quick-link-card transition"
-           style="box-shadow: 0 2px 12px rgba(15,23,42,0.06);"
-           data-aos="fade-up" data-aos-delay="0">
+           style="box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                 style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
-                <span class="text-lg">📚</span>
+                 style="background:linear-gradient(135deg,#3730a3,#4338ca);">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
             </div>
             <p class="font-bold text-gray-900">{% if LANG == 'en' %}Question Bank{% else %}প্রশ্ন ব্যাংক{% endif %}</p>
             <p class="text-sm text-gray-500 mt-1 group-hover:text-gray-700 transition">{% if LANG == 'en' %}Questions from all boards{% else %}সব board এর questions{% endif %}</p>
         </a>
         <a href="{% url 'practical_videos' %}"
            class="bg-white rounded-2xl border border-gray-100 p-6 group quick-link-card transition"
-           style="box-shadow: 0 2px 12px rgba(15,23,42,0.06);"
-           data-aos="fade-up" data-aos-delay="80">
+           style="box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-purple-100">
-                <span class="text-lg">🎬</span>
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
             </div>
             <p class="font-bold text-gray-900">{% if LANG == 'en' %}Practical Videos{% else %}ভিডিও ক্লাস{% endif %}</p>
             <p class="text-sm text-gray-500 mt-1 group-hover:text-gray-700 transition">{% if LANG == 'en' %}Subject wise videos{% else %}বিষয়ভিত্তিক ভিডিও{% endif %}</p>
         </a>
         <a href="{% url 'study_notes' %}"
            class="bg-white rounded-2xl border border-gray-100 p-6 group quick-link-card transition"
-           style="box-shadow: 0 2px 12px rgba(15,23,42,0.06);"
-           data-aos="fade-up" data-aos-delay="160">
+           style="box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-emerald-100">
-                <span class="text-lg">📝</span>
+                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
             </div>
             <p class="font-bold text-gray-900">{% if LANG == 'en' %}Study Notes{% else %}স্টাডি নোটস{% endif %}</p>
             <p class="text-sm text-gray-500 mt-1 group-hover:text-gray-700 transition">{% if LANG == 'en' %}Important notes{% else %}গুরুত্বপূর্ণ নোটস{% endif %}</p>
         </a>
     </div>
 
-    <!-- Premium upsell banner -->
+    <!-- ═══════════════════════════════════
+         PREMIUM UPSELL BANNER
+    ═══════════════════════════════════ -->
     {% if not request.user.profile.is_premium %}
     <div class="rounded-2xl p-8 text-white shadow-lg relative overflow-hidden"
-         style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);"
-         data-aos="fade-up">
-        <div class="hero-dot-grid absolute inset-0 opacity-10 pointer-events-none"></div>
-        <div class="relative z-10">
-            <h2 class="font-extrabold text-xl mb-1">{% if LANG == 'en' %}Unlock Premium{% else %}প্রিমিয়াম আনলক করুন{% endif %}</h2>
-            <p class="text-sm opacity-90 mb-4">{% if LANG == 'en' %}Access all questions, videos and study notes{% else %}সব questions, videos আর study notes access করো{% endif %}</p>
+         style="background: linear-gradient(130deg, #1a0533 0%, #2e1065 45%, #3730a3 80%, #4338ca 100%);">
+        <div class="absolute inset-0 pointer-events-none"
+             style="background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+                    background-size: 22px 22px; opacity: 0.5;"></div>
+        <div class="absolute pointer-events-none"
+             style="width:300px;height:200px;top:-60px;right:-40px;
+                    background:radial-gradient(ellipse,rgba(165,180,252,0.15) 0%,transparent 70%);"></div>
+        <div class="relative z-10 flex items-start justify-between flex-wrap gap-4">
+            <div>
+                <div class="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-semibold text-indigo-200 mb-3">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    {% if LANG == 'en' %}Upgrade Available{% else %}আপগ্রেড উপলব্ধ{% endif %}
+                </div>
+                <h2 class="font-extrabold text-xl mb-1">{% if LANG == 'en' %}Unlock Premium{% else %}প্রিমিয়াম আনলক করুন{% endif %}</h2>
+                <p class="text-sm text-indigo-200 mb-0">{% if LANG == 'en' %}Access all questions, videos and study notes{% else %}সব questions, videos আর study notes access করো{% endif %}</p>
+            </div>
             <a href="{% url 'pricing' %}"
-               class="inline-block bg-white text-blue-800 px-5 py-2 rounded-xl text-sm font-bold hover:shadow-md transition">
+               class="flex-shrink-0 inline-block bg-white text-indigo-800 px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition self-center">
                 {% if LANG == 'en' %}See Plans →{% else %}প্ল্যান দেখুন →{% endif %}
             </a>
         </div>
@@ -986,7 +1075,7 @@
     Chart.defaults.font.family = chartFontFamily;
     Chart.defaults.color = '#64748b';
 
-    // Accuracy trend (line, 30 days) — navy blue palette
+    // Accuracy trend (line, 30 days) — indigo palette
     {% if LANG == 'bn' %}
     const trendLabels = [{% for d in accuracy_trend %}'{{ d.day }}',{% endfor %}].map(dateLabelBn);
     {% else %}
@@ -996,8 +1085,8 @@
     const trendCtx = document.getElementById('accuracyTrendChart');
     if (trendCtx) {
         const grad = trendCtx.getContext('2d').createLinearGradient(0, 0, 0, 220);
-        grad.addColorStop(0, 'rgba(30, 64, 175, 0.22)');
-        grad.addColorStop(1, 'rgba(30, 64, 175, 0)');
+        grad.addColorStop(0, 'rgba(67, 56, 202, 0.22)');
+        grad.addColorStop(1, 'rgba(67, 56, 202, 0)');
         new Chart(trendCtx, {
             type: 'line',
             data: {
@@ -1005,14 +1094,14 @@
                 datasets: [{
                     label: '{% if LANG == "en" %}Accuracy %{% else %}নির্ভুলতা %{% endif %}',
                     data: trendData,
-                    borderColor: '#1e40af',
+                    borderColor: '#4338ca',
                     backgroundColor: grad,
                     fill: true,
                     tension: 0.35,
                     spanGaps: true,
                     pointRadius: 0,
                     pointHoverRadius: 5,
-                    pointBackgroundColor: '#1e40af',
+                    pointBackgroundColor: '#4338ca',
                     borderWidth: 2.5,
                 }]
             },
@@ -1022,7 +1111,7 @@
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#0f172a',
+                        backgroundColor: '#1e1b4b',
                         padding: 10,
                         callbacks: {
                             label: function (ctx) {
@@ -1047,7 +1136,7 @@
         });
     }
 
-    // Weekly bar chart — navy/royal blue palette
+    // Weekly bar chart — indigo palette
     const weeklyCtx = document.getElementById('weeklyChart');
     if (weeklyCtx) {
         new Chart(weeklyCtx, {
@@ -1058,13 +1147,13 @@
                     {
                         label: '{% if LANG == "en" %}Total{% else %}মোট{% endif %}',
                         data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
-                        backgroundColor: '#bfdbfe',
+                        backgroundColor: '#c7d2fe',
                         borderRadius: 6,
                     },
                     {
                         label: '{% if LANG == "en" %}Correct{% else %}সঠিক{% endif %}',
                         data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
-                        backgroundColor: '#1e40af',
+                        backgroundColor: '#4338ca',
                         borderRadius: 6,
                     }
                 ]
@@ -1074,7 +1163,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
-                    tooltip: { backgroundColor: '#0f172a', padding: 10 }
+                    tooltip: { backgroundColor: '#1e1b4b', padding: 10 }
                 },
                 scales: {
                     x: { grid: { display: false } },
@@ -1084,7 +1173,7 @@
         });
     }
 
-    // Subject pie
+    // Subject doughnut
     const pieCtx = document.getElementById('subjectPie');
     if (pieCtx) {
         const labels = [{% for s in subjects_data %}'{{ s.name|escapejs }}',{% endfor %}];
@@ -1107,7 +1196,7 @@
                 cutout: '62%',
                 plugins: {
                     legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 8 } },
-                    tooltip: { backgroundColor: '#0f172a', padding: 10 }
+                    tooltip: { backgroundColor: '#1e1b4b', padding: 10 }
                 }
             }
         });

@@ -69,7 +69,7 @@
             </select>
           </div>
 
-          <div>
+          <div class="col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
             <select name="question_type" id="q_type" onchange="toggleType()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="MCQ" {% if question.question_type == 'MCQ' %}selected{% endif %}>MCQ</option>
@@ -77,22 +77,6 @@
             </select>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
-            <select name="difficulty" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="Easy" {% if question.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
-              <option value="Medium" {% if question.difficulty == 'Medium' %}selected{% endif %}>Medium</option>
-              <option value="Hard" {% if question.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
-            </select>
-          </div>
-
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Chapter</label>
-          <input type="text" name="chapter" value="{{ question.chapter }}" required
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. আলো ও প্রতিসরণ">
         </div>
 
         <div id="cq_question_text_wrap">
@@ -106,6 +90,15 @@
       <!-- MCQ Section (visible when type=MCQ) — supports bulk paste + multiple rows -->
       <div id="mcq_fields" class="hidden space-y-4">
         {% if action == 'Add' %}
+        <!-- Full MCQ File (single shared file for the whole batch) -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+          <label class="block text-sm font-semibold text-gray-800 mb-1">
+            📎 Full MCQ File <span class="text-gray-400 font-normal text-xs">(Image / PDF / DOC — optional, shared across all MCQs below)</span>
+          </label>
+          <p class="text-xs text-gray-500 mb-2">পুরো MCQ set একটি PDF/ছবি/DOC ফাইলে দিতে চাইলে এখানে upload করুন। নিচের সব MCQ এর সাথে এই ফাইলটি যুক্ত থাকবে।</p>
+          <input type="file" name="mcq_question_file" accept="image/*,.pdf,.doc,.docx"
+                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white">
+        </div>
         <!-- Bulk Paste Card -->
         <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
           <div class="flex items-center justify-between mb-3">
@@ -320,9 +313,18 @@ function applyMCQLabels(row, bengali) {
   row.querySelectorAll('.mcq-opt-ph').forEach(el => { el.placeholder = labels[parseInt(el.dataset.i)]; });
 }
 
+function renumberMCQs() {
+  document.querySelectorAll('#mcq-list .mcq-row').forEach((row, idx) => {
+    const num = row.querySelector('.mcq-num');
+    if (num) num.textContent = idx + 1;
+  });
+}
+
 function refreshCount() {
   const c = document.querySelectorAll('#mcq-list .mcq-row').length;
   document.getElementById('mcq-count-badge').textContent = c + 'টি';
+  if (c === 0) mcqCount = 0;
+  renumberMCQs();
 }
 
 function addMCQ(prefill) {
@@ -366,17 +368,15 @@ async function parseBulk() {
   const txt = document.getElementById('bulk-mcq-text').value.trim();
   if (!txt) { alert('Paste some text first.'); return; }
   try {
-    const res = await fetch('{% url "parse_exam_text" %}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-      },
-      body: JSON.stringify({ text: txt }),
-    });
+    const fd = new FormData();
+    fd.append('text', txt);
+    fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    const res = await fetch('{% url "parse_exam_text" %}', { method: 'POST', body: fd });
     const data = await res.json();
-    if (data.mcqs && data.mcqs.length) {
-      data.mcqs.forEach(m => addMCQ(m));
+    if (!res.ok || !data.success) { alert(data.error || 'Parse failed.'); return; }
+    const mcqs = data.data.mcqs || [];
+    if (mcqs.length) {
+      mcqs.forEach(m => addMCQ(m));
       document.getElementById('bulk-mcq-text').value = '';
     } else {
       alert('No MCQs detected. Check the format hint.');
@@ -391,7 +391,9 @@ function toggleType() {
   const isMCQ = type === 'MCQ';
   document.getElementById('mcq_fields').classList.toggle('hidden', !isMCQ);
   document.getElementById('written_fields').classList.toggle('hidden', isMCQ);
-  // Question Text is required only for CQ
+  // উদ্দীপক / Question Text is CQ-only — hide for MCQ
+  const cqWrap = document.getElementById('cq_question_text_wrap');
+  if (cqWrap) cqWrap.classList.toggle('hidden', isMCQ);
   const qt = document.getElementById('cq_question_text');
   if (qt) { qt.required = !isMCQ; }
   const star = document.getElementById('qt_star');

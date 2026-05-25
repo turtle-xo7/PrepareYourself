@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Virtual: {{ contest.title }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block content %}
+
+<!-- Virtual banner + timer -->
+<div class="fixed left-0 w-full z-40 bg-purple-700 text-white text-center py-2 font-bold text-sm shadow-md" style="top:4rem;">
+    <i class="bi bi-play-circle"></i> VIRTUAL CONTEST — Practice mode (no rating change) — ⏱ <span id="vtimer">{{ contest.duration_minutes }}:00</span>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pt-20 pb-12">
+    <a href="{% url 'contest_detail' contest.pk %}" class="text-sm text-purple-700 hover:underline mb-3 inline-block"><i class="bi bi-arrow-left"></i> Back to contest</a>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ contest.title }}</h1>
+    <p class="text-gray-500 text-sm mb-6">Replay this past contest with the original time limit. Your submission will appear on the leaderboard with a VIRTUAL tag.</p>
+
+    <form method="post" action="{% url 'contest_submit' contest.pk %}" id="virtualForm">
+        {% csrf_token %}
+        <div class="space-y-6">
+            {% for q in questions %}
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="font-medium text-gray-900 dark:text-white">{{ forloop.counter }}. {{ q.question_text }}</p>
+                    <span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full ml-4 whitespace-nowrap">{{ q.marks }} marks</span>
+                </div>
+                {% if q.question_type == 'MCQ' %}
+                <div class="space-y-2">
+                    {% if q.option1 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="1"><span class="text-sm">{{ q.option1 }}</span></label>{% endif %}
+                    {% if q.option2 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="2"><span class="text-sm">{{ q.option2 }}</span></label>{% endif %}
+                    {% if q.option3 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="3"><span class="text-sm">{{ q.option3 }}</span></label>{% endif %}
+                    {% if q.option4 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="4"><span class="text-sm">{{ q.option4 }}</span></label>{% endif %}
+                </div>
+                {% else %}
+                <textarea name="q_{{ q.pk }}" rows="4" class="w-full border border-gray-200 rounded-xl p-3 text-sm"></textarea>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="mt-6 w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl">Submit virtual attempt</button>
+    </form>
+</div>
+
+<script>
+  let totalSecs = {{ contest.duration_minutes }} * 60;
+  const tEl = document.getElementById('vtimer');
+  const form = document.getElementById('virtualForm');
+  function tick() {
+      const m = Math.floor(totalSecs / 60);
+      const s = totalSecs % 60;
+      tEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      if (totalSecs <= 0) { form.submit(); return; }
+      totalSecs--;
+      setTimeout(tick, 1000);
+  }
+  tick();
+</script>
+{% endblock %}

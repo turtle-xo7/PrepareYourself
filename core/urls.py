@@ -112,8 +112,16 @@ urlpatterns = [
     path('contests/<int:pk>/submit/', views.contest_submit, name='contest_submit'),
     path('contests/<int:pk>/result/', views.contest_result, name='contest_result'),
     path('contests/<int:pk>/leaderboard/', views.contest_leaderboard, name='contest_leaderboard'),
+    path('contests/<int:pk>/leaderboard/data/', views.leaderboard_data, name='leaderboard_data'),
+    path('contests/<int:pk>/register/', views.contest_register, name='contest_register'),
+    path('contests/<int:pk>/set-rated/', views.contest_set_rated, name='contest_set_rated'),
+    path('contests/<int:pk>/virtual/', views.virtual_contest, name='virtual_contest'),
     path('contests/<int:pk>/stats/', views.contest_stats, name='contest_stats'),
     path('contests/<int:pk>/delete/', views.contest_delete, name='contest_delete'),
+    path('badges/', views.badge_gallery, name='badge_gallery'),
+    path('profile/contests/', views.profile_contests, name='profile_contests'),
+    path('api/coins/balance/', views.coin_balance_api, name='coin_balance_api'),
+    path('api/badges/check/', views.check_badges_api, name='check_badges_api'),
 
     # Exam Mode
     path('exam-papers/', views.exam_paper_list, name='exam_paper_list'),

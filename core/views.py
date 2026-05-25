@@ -798,7 +798,7 @@ def track_progress(request):
 
 @superadmin_required
 def superadmin_dashboard(request):
-    from .models import PracticalVideo
+    from .models import PracticalVideo, StudyNote, Contest
 
     total_superadmins = UserProfile.objects.filter(is_superadmin=True).count()
     total_users = UserProfile.objects.filter(is_superadmin=False).count()
@@ -812,6 +812,8 @@ def superadmin_dashboard(request):
     total_boards = Board.objects.filter(is_active=True).count()
     total_subjects = Subject.objects.filter(is_active=True).count()
     total_videos = PracticalVideo.objects.filter(is_active=True).count()
+    total_notes = StudyNote.objects.filter(is_active=True).count()
+    total_contests = Contest.objects.filter(is_active=True).count()
     recent_users = UserProfile.objects.filter(is_superadmin=False).select_related('user').order_by('-user__date_joined')[:10]
     pending_teachers_count = UserProfile.objects.filter(role='ADMIN', is_approved=False, is_superadmin=False).count()
 
@@ -828,6 +830,8 @@ def superadmin_dashboard(request):
         'total_boards': total_boards,
         'total_subjects': total_subjects,
         'total_videos': total_videos,
+        'total_notes': total_notes,
+        'total_contests': total_contests,
         'recent_users': recent_users,
         'pending_teachers_count': pending_teachers_count,
     })
@@ -962,8 +966,8 @@ def question_add(request):
         class_pk = request.POST.get('class_obj')
         year_val = request.POST.get('year')
         qtype = request.POST.get('question_type') or 'MCQ'
-        difficulty = request.POST.get('difficulty') or 'Medium'
-        chapter = request.POST.get('chapter', '')
+        difficulty = 'Medium'
+        chapter = ''
 
         def _int_or_default(val, default):
             try: return int(val)
@@ -990,78 +994,101 @@ def question_add(request):
                     'classes': classes, 'years': YEARS, 'action': 'Add',
                 })
 
-            # Build existing-text set for duplicate detection
-            existing_lower = set()
+            # Duplicate check: only one MCQ allowed per (board, subject, class, year)
             if board_pk and year_int and subject_pk and class_pk:
-                existing_lower = {
-                    t.strip().lower() for t in Question.objects.filter(
-                        board_id=board_pk, year=year_int,
-                        subject_id=subject_pk, class_obj_id=class_pk,
-                    ).values_list('question_text', flat=True)
-                }
+                existing = Question.objects.filter(
+                    board_id=board_pk, year=year_int,
+                    subject_id=subject_pk, class_obj_id=class_pk,
+                    question_type='MCQ',
+                ).select_related('board', 'subject').first()
+                if existing:
+                    messages.error(
+                        request,
+                        f'এই (Board, Subject, Class, Year) এর জন্য একটি MCQ ইতিমধ্যে যোগ করা আছে। '
+                        f'Board: {existing.board.name}, Subject: {existing.subject.name}, Year: {existing.year}. '
+                        f'প্রতি Board+Subject+Class+Year এ একটিমাত্র MCQ ও একটিমাত্র CQ যোগ করা যায়।'
+                    )
+                    return render(request, 'manage/question_form.html', {
+                        'boards': boards, 'subjects': subjects,
+                        'classes': classes, 'years': YEARS, 'action': 'Add',
+                        'post': request.POST,
+                    })
 
+            # Single shared file for the whole batch — save once and assign path to every MCQ
+            shared_file = request.FILES.get('mcq_question_file')
+            shared_file_path = None
+            if shared_file:
+                from django.core.files.storage import default_storage
+                shared_file_path = default_storage.save(
+                    f'question_mcq/{shared_file.name}', shared_file
+                )
+
+            from django.db import IntegrityError
             added = 0
-            skipped = []
             last_q = None
             for i, text in enumerate(mcq_texts):
                 text = text.strip()
                 if not text:
                     continue
-                if text.lower() in existing_lower:
-                    skipped.append(text[:60])
-                    continue
                 try:
                     correct = int(mcq_correct[i]) if i < len(mcq_correct) else 1
                 except (ValueError, IndexError):
                     correct = 1
-                last_q = Question.objects.create(
-                    board_id=board_pk, subject_id=subject_pk,
-                    class_obj_id=class_pk, year=year_int,
-                    chapter=chapter, question_text=text,
-                    question_type='MCQ', difficulty=difficulty,
-                    option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
-                    option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
-                    option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
-                    option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
-                    correct_option=correct,
-                )
-                existing_lower.add(text.lower())
-                added += 1
+                try:
+                    last_q = Question.objects.create(
+                        board_id=board_pk, subject_id=subject_pk,
+                        class_obj_id=class_pk, year=year_int,
+                        chapter=chapter, question_text=text,
+                        question_type='MCQ', difficulty=difficulty,
+                        option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
+                        option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
+                        option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
+                        option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
+                        correct_option=correct,
+                        mcq_question_file=shared_file_path or '',
+                    )
+                    added += 1
+                    # DB rule: only ONE MCQ row per (board, subject, class, year) — stop after first
+                    break
+                except IntegrityError:
+                    messages.error(
+                        request,
+                        'এই (Board, Subject, Class, Year) এর জন্য একটি MCQ ইতিমধ্যে যোগ করা আছে।'
+                    )
+                    return render(request, 'manage/question_form.html', {
+                        'boards': boards, 'subjects': subjects,
+                        'classes': classes, 'years': YEARS, 'action': 'Add',
+                        'post': request.POST,
+                    })
 
             if added and last_q:
                 _notify_all_students(
                     'question',
-                    f'New Questions Added — {last_q.subject.name}',
-                    f'{last_q.subject.name}, {last_q.class_obj.name} — Chapter: {chapter} (MCQ × {added})',
+                    f'New Question Added — {last_q.subject.name}',
+                    f'{last_q.subject.name}, {last_q.class_obj.name} (MCQ)',
                     link='/question-bank/',
                     title_bn=f'নতুন প্রশ্ন যোগ হয়েছে — {last_q.subject.name}',
-                    message_bn=f'{last_q.subject.name}, {last_q.class_obj.name} — অধ্যায়: {chapter} (MCQ × {added})',
+                    message_bn=f'{last_q.subject.name}, {last_q.class_obj.name} (MCQ)',
                 )
-                messages.success(request, f'{added}টি MCQ যোগ করা হয়েছে।')
-            if skipped:
-                messages.warning(
-                    request,
-                    f'{len(skipped)}টি duplicate skip করা হয়েছে: ' +
-                    '; '.join(skipped[:3]) + ('…' if len(skipped) > 3 else '')
-                )
+                messages.success(request, 'MCQ question যোগ করা হয়েছে।')
             return redirect('manage_questions')
 
         # WRITTEN (CQ) branch: single question with stimulus + image + hint + solution
         qtext = (request.POST.get('question_text') or '').strip()
 
-        # Duplicate check
-        if board_pk and year_int and subject_pk and class_pk and qtext:
+        # Duplicate check: only one CQ allowed per (board, subject, class, year)
+        if board_pk and year_int and subject_pk and class_pk:
             existing = Question.objects.filter(
                 board_id=board_pk, year=year_int,
                 subject_id=subject_pk, class_obj_id=class_pk,
-                question_text__iexact=qtext,
+                question_type='WRITTEN',
             ).select_related('board', 'subject').first()
             if existing:
                 messages.error(
                     request,
-                    f'এই question ইতিমধ্যে যোগ করা আছে। '
-                    f'Board: {existing.board.name}, Year: {existing.year}, '
-                    f'Subject: {existing.subject.name}, Chapter: {existing.chapter}'
+                    f'এই (Board, Subject, Class, Year) এর জন্য একটি CQ ইতিমধ্যে যোগ করা আছে। '
+                    f'Board: {existing.board.name}, Subject: {existing.subject.name}, Year: {existing.year}. '
+                    f'প্রতি Board+Subject+Class+Year এ একটিমাত্র MCQ ও একটিমাত্র CQ যোগ করা যায়।'
                 )
                 return render(request, 'manage/question_form.html', {
                     'boards': boards, 'subjects': subjects,
@@ -1069,17 +1096,29 @@ def question_add(request):
                     'post': request.POST,
                 })
 
-        q = Question.objects.create(
-            board=get_object_or_404(Board, pk=board_pk),
-            subject=get_object_or_404(Subject, pk=subject_pk),
-            class_obj=get_object_or_404(Class, pk=class_pk),
-            year=year_int,
-            chapter=chapter,
-            question_text=qtext,
-            question_type='WRITTEN',
-            difficulty=difficulty,
-            answer_hint=request.POST.get('answer_hint', ''),
-        )
+        from django.db import IntegrityError
+        try:
+            q = Question.objects.create(
+                board=get_object_or_404(Board, pk=board_pk),
+                subject=get_object_or_404(Subject, pk=subject_pk),
+                class_obj=get_object_or_404(Class, pk=class_pk),
+                year=year_int,
+                chapter=chapter,
+                question_text=qtext,
+                question_type='WRITTEN',
+                difficulty=difficulty,
+                answer_hint=request.POST.get('answer_hint', ''),
+            )
+        except IntegrityError:
+            messages.error(
+                request,
+                'এই (Board, Subject, Class, Year) এর জন্য একটি CQ ইতিমধ্যে যোগ করা আছে।'
+            )
+            return render(request, 'manage/question_form.html', {
+                'boards': boards, 'subjects': subjects,
+                'classes': classes, 'years': YEARS, 'action': 'Add',
+                'post': request.POST,
+            })
         if request.FILES.get('stimulus_image'):
             q.stimulus_image = request.FILES['stimulus_image']
             q.save()
@@ -1089,10 +1128,10 @@ def question_add(request):
         _notify_all_students(
             'question',
             f'New Question Added — {q.subject.name}',
-            f'{q.subject.name}, {q.class_obj.name} — Chapter: {q.chapter} ({q.get_question_type_display()})',
+            f'{q.subject.name}, {q.class_obj.name} ({q.get_question_type_display()})',
             link='/question-bank/',
             title_bn=f'নতুন প্রশ্ন যোগ হয়েছে — {q.subject.name}',
-            message_bn=f'{q.subject.name}, {q.class_obj.name} — অধ্যায়: {q.chapter} ({q.get_question_type_display()})',
+            message_bn=f'{q.subject.name}, {q.class_obj.name} ({q.get_question_type_display()})',
         )
         messages.success(request, 'Question added successfully!')
         return redirect('manage_questions')
@@ -1114,15 +1153,14 @@ def question_add_mcq_bulk(request):
         subject_pk = request.POST.get('subject')
         class_pk = request.POST.get('class_obj')
         year_val = request.POST.get('year')
-        chapter = (request.POST.get('chapter') or '').strip()
-        difficulty = request.POST.get('difficulty') or 'Medium'
+        chapter = ''
+        difficulty = 'Medium'
 
         errors = []
         if not board_pk: errors.append('Board বেছে নিন।')
         if not subject_pk: errors.append('Subject বেছে নিন।')
         if not class_pk: errors.append('Class বেছে নিন।')
         if not year_val: errors.append('Year বেছে নিন।')
-        if not chapter: errors.append('Chapter দিন।')
 
         mcq_texts = request.POST.getlist('mcq_question_text')
         mcq_opt1 = request.POST.getlist('mcq_option1')
@@ -1148,56 +1186,75 @@ def question_add_mcq_bulk(request):
         except (TypeError, ValueError):
             year_int = None
 
-        # Build existing-text set once to detect duplicates within this batch and DB
-        existing_texts = set(Question.objects.filter(
+        # Duplicate check: only one MCQ allowed per (board, subject, class, year)
+        existing = Question.objects.filter(
             board_id=board_pk, year=year_int,
             subject_id=subject_pk, class_obj_id=class_pk,
-        ).values_list('question_text', flat=True))
-        existing_lower = {t.strip().lower() for t in existing_texts}
+            question_type='MCQ',
+        ).select_related('board', 'subject').first()
+        if existing:
+            messages.error(
+                request,
+                f'এই (Board, Subject, Class, Year) এর জন্য একটি MCQ ইতিমধ্যে যোগ করা আছে। '
+                f'Board: {existing.board.name}, Subject: {existing.subject.name}, Year: {existing.year}. '
+                f'প্রতি Board+Subject+Class+Year এ একটিমাত্র MCQ যোগ করা যায়।'
+            )
+            return render(request, 'manage/question_add_mcq.html', {
+                'boards': boards, 'subjects': subjects,
+                'classes': classes, 'years': years, 'post': request.POST,
+            })
 
+        # Single shared file for the whole batch — save once and assign path to the MCQ row
+        shared_file = request.FILES.get('mcq_question_file')
+        shared_file_path = None
+        if shared_file:
+            from django.core.files.storage import default_storage
+            shared_file_path = default_storage.save(
+                f'question_mcq/{shared_file.name}', shared_file
+            )
+
+        from django.db import IntegrityError
         added = 0
-        skipped_dupes = []
         for i, text in enumerate(mcq_texts):
             text = text.strip()
             if not text:
-                continue
-            if text.lower() in existing_lower:
-                skipped_dupes.append(text[:60])
                 continue
             try:
                 correct = int(mcq_correct[i]) if i < len(mcq_correct) else 1
             except (ValueError, IndexError):
                 correct = 1
             try:
-                marks = int(mcq_marks_list[i]) if i < len(mcq_marks_list) else 1
-            except (ValueError, IndexError):
-                marks = 1
-            Question.objects.create(
-                board_id=board_pk,
-                subject_id=subject_pk,
-                class_obj_id=class_pk,
-                year=year_int,
-                chapter=chapter,
-                question_text=text,
-                question_type='MCQ',
-                difficulty=difficulty,
-                option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
-                option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
-                option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
-                option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
-                correct_option=correct,
-            )
-            existing_lower.add(text.lower())
-            added += 1
+                Question.objects.create(
+                    board_id=board_pk,
+                    subject_id=subject_pk,
+                    class_obj_id=class_pk,
+                    year=year_int,
+                    chapter=chapter,
+                    question_text=text,
+                    question_type='MCQ',
+                    difficulty=difficulty,
+                    option1=mcq_opt1[i] if i < len(mcq_opt1) else '',
+                    option2=mcq_opt2[i] if i < len(mcq_opt2) else '',
+                    option3=mcq_opt3[i] if i < len(mcq_opt3) else '',
+                    option4=mcq_opt4[i] if i < len(mcq_opt4) else '',
+                    correct_option=correct,
+                    mcq_question_file=shared_file_path or '',
+                )
+                added += 1
+                # Only one MCQ row allowed per (board, subject, class, year) — stop after first
+                break
+            except IntegrityError:
+                messages.error(
+                    request,
+                    'এই (Board, Subject, Class, Year) এর জন্য একটি MCQ ইতিমধ্যে যোগ করা আছে।'
+                )
+                return render(request, 'manage/question_add_mcq.html', {
+                    'boards': boards, 'subjects': subjects,
+                    'classes': classes, 'years': years, 'post': request.POST,
+                })
 
         if added:
-            messages.success(request, f'{added}টি MCQ যোগ করা হয়েছে।')
-        if skipped_dupes:
-            messages.warning(
-                request,
-                f'{len(skipped_dupes)}টি duplicate skip করা হয়েছে (একই Board+Year+Subject+Class এ ইতিমধ্যে আছে): ' +
-                '; '.join(skipped_dupes[:3]) + ('…' if len(skipped_dupes) > 3 else '')
-            )
+            messages.success(request, 'MCQ question যোগ করা হয়েছে।')
         return redirect('manage_questions')
 
     return render(request, 'manage/question_add_mcq.html', {
@@ -1321,9 +1378,7 @@ def question_edit(request, pk):
         question.subject = get_object_or_404(Subject, pk=request.POST.get('subject'))
         question.class_obj = get_object_or_404(Class, pk=request.POST.get('class_obj'))
         question.year = request.POST.get('year')
-        question.chapter = request.POST.get('chapter')
         question.question_type = request.POST.get('question_type')
-        question.difficulty = request.POST.get('difficulty')
 
         if question.question_type == 'MCQ':
             # Edit form uses the row-based naming (first row of the bulk template)
@@ -1350,7 +1405,19 @@ def question_edit(request, pk):
                 question.stimulus_image = request.FILES['stimulus_image']
             if request.FILES.get('solution_image'):
                 question.solution_image = request.FILES['solution_image']
-        question.save()
+        from django.db import IntegrityError
+        try:
+            question.save()
+        except IntegrityError:
+            messages.error(
+                request,
+                'এই question ইতিমধ্যে যোগ করা আছে — একই Board, Subject, Class, Year এ duplicate allowed না।'
+            )
+            return render(request, 'manage/question_form.html', {
+                'question': question, 'boards': boards,
+                'subjects': subjects, 'classes': classes,
+                'years': YEARS, 'action': 'Edit'
+            })
         messages.success(request, 'Question updated!')
         return redirect('manage_questions')
     return render(request, 'manage/question_form.html', {
@@ -2415,29 +2482,103 @@ def ask_ai(request):
 
 @login_required
 def contest_list(request):
-    from .models import Contest, ContestSubmission
+    from .models import Contest, ContestSubmission, ContestRegistration, UserRating
     from django.utils import timezone
     from django.db.models import Count
-    now = timezone.now()
-    active_contests = Contest.objects.filter(is_active=True, end_time__gte=now).select_related('subject', 'class_obj', 'created_by')
-    past_contests = Contest.objects.filter(is_active=True, end_time__lt=now).select_related('subject', 'class_obj')[:12]
+    from django.core.paginator import Paginator
 
-    my_submissions = set(ContestSubmission.objects.filter(
-        student=request.user, is_submitted=True
+    now = timezone.now()
+    tab = request.GET.get('tab', 'upcoming')
+    q = (request.GET.get('q') or '').strip()
+    subject_id = request.GET.get('subject')
+    difficulty = request.GET.get('difficulty')
+    ctype = request.GET.get('type')
+
+    base = Contest.objects.filter(is_active=True).select_related(
+        'subject', 'class_obj', 'created_by'
+    )
+    if tab == 'live':
+        base = base.filter(start_time__lte=now, end_time__gte=now)
+    elif tab == 'past':
+        base = base.filter(end_time__lt=now).order_by('-end_time')
+    elif tab == 'mine':
+        reg_ids = ContestRegistration.objects.filter(
+            user=request.user
+        ).values_list('contest_id', flat=True)
+        sub_ids = ContestSubmission.objects.filter(
+            student=request.user
+        ).values_list('contest_id', flat=True)
+        base = base.filter(id__in=list(reg_ids) + list(sub_ids))
+    elif tab == 'virtual':
+        base = base.filter(end_time__lt=now, allows_virtual=True).order_by('-end_time')
+    else:
+        tab = 'upcoming'
+        base = base.filter(start_time__gte=now).order_by('start_time')
+
+    if tab not in ('past', 'virtual'):
+        base = base.order_by('start_time')
+
+    if q:
+        base = base.filter(title__icontains=q)
+    if subject_id:
+        base = base.filter(subject_id=subject_id)
+    if difficulty:
+        base = base.filter(difficulty=difficulty)
+    if ctype:
+        base = base.filter(contest_type=ctype)
+
+    paginator = Paginator(base, 20)
+    page = paginator.get_page(request.GET.get('page'))
+
+    contest_ids = [c.id for c in page.object_list]
+    my_registered = set(ContestRegistration.objects.filter(
+        user=request.user, contest_id__in=contest_ids,
+    ).values_list('contest_id', flat=True))
+    my_submitted = set(ContestSubmission.objects.filter(
+        student=request.user, is_submitted=True, contest_id__in=contest_ids,
     ).values_list('contest_id', flat=True))
 
     participant_counts = {
         c['contest_id']: c['cnt']
-        for c in ContestSubmission.objects.filter(
-            is_submitted=True, student__profile__role='STUDENT'
+        for c in ContestRegistration.objects.filter(
+            contest_id__in=contest_ids,
         ).values('contest_id').annotate(cnt=Count('id'))
     }
 
+    featured = Contest.objects.filter(
+        is_active=True, is_featured=True, end_time__gte=now,
+    ).select_related('subject', 'class_obj').first()
+
+    total_contests = Contest.objects.filter(is_active=True).count()
+    live_now = Contest.objects.filter(
+        is_active=True, start_time__lte=now, end_time__gte=now,
+    ).count()
+    total_participants = ContestRegistration.objects.values('user').distinct().count()
+    my_rating_obj, _ = UserRating.objects.get_or_create(user=request.user)
+
     return render(request, 'core/contest_list.html', {
-        'active_contests': active_contests,
-        'past_contests': past_contests,
-        'my_submissions': my_submissions,
+        'contests': page.object_list,
+        'page': page,
+        'paginator': paginator,
+        'tab': tab,
+        'q': q,
+        'subject_id': int(subject_id) if subject_id and subject_id.isdigit() else None,
+        'difficulty': difficulty or '',
+        'ctype': ctype or '',
+        'subjects': Subject.objects.filter(is_active=True),
+        'CONTEST_TYPE': Contest.CONTEST_TYPE,
+        'DIFFICULTY': Contest.DIFFICULTY,
+        'my_registered': my_registered,
+        'my_submissions': my_submitted,
         'participant_counts': participant_counts,
+        'featured': featured,
+        'stats': {
+            'total': total_contests,
+            'live': live_now,
+            'participants': total_participants,
+        },
+        'my_rating': my_rating_obj,
+        'now': now,
     })
 
 
@@ -2499,21 +2640,58 @@ def contest_create(request):
 
 @login_required
 def contest_detail(request, pk):
-    from .models import Contest, ContestSubmission
+    from .models import (
+        Contest, ContestSubmission, ContestRegistration, UserRating,
+    )
     from django.utils import timezone
+    from django.db.models import F
     try:
-        contest = Contest.objects.get(pk=pk)
+        contest = Contest.objects.select_related(
+            'subject', 'class_obj', 'created_by'
+        ).get(pk=pk)
     except Contest.DoesNotExist:
-        messages.warning(request, 'এই contest আর available নেই (delete হয়ে গেছে)।')
+        messages.warning(request, 'This contest is no longer available (deleted).')
         return redirect('contest_list')
+
+    Contest.objects.filter(pk=pk).update(view_count=F('view_count') + 1)
+
     now = timezone.now()
-    has_submitted = ContestSubmission.objects.filter(contest=contest, student=request.user, is_submitted=True).exists()
+    has_submitted = ContestSubmission.objects.filter(
+        contest=contest, student=request.user, is_submitted=True,
+    ).exists()
+    my_registration = ContestRegistration.objects.filter(
+        contest=contest, user=request.user,
+    ).first()
     is_active = contest.start_time <= now <= contest.end_time
+
+    participant_count = ContestRegistration.objects.filter(contest=contest).count()
+    recent_participants = ContestRegistration.objects.filter(
+        contest=contest,
+    ).select_related('user').order_by('-registered_at')[:8]
+
+    question_count = contest.questions.count()
+    my_rating, _ = UserRating.objects.get_or_create(user=request.user)
+
+    leaderboard_preview = None
+    if contest.is_past or (not contest.hide_leaderboard_until_end and is_active):
+        leaderboard_preview = ContestSubmission.objects.filter(
+            contest=contest, is_submitted=True,
+            student__profile__role='STUDENT',
+        ).select_related('student').order_by(
+            '-total_marks', 'duration_taken',
+        )[:10]
+
     return render(request, 'core/contest_detail.html', {
         'contest': contest,
         'has_submitted': has_submitted,
         'is_active': is_active,
         'now': now,
+        'my_registration': my_registration,
+        'participant_count': participant_count,
+        'recent_participants': recent_participants,
+        'question_count': question_count,
+        'my_rating': my_rating,
+        'leaderboard_preview': leaderboard_preview,
     })
 
 
@@ -2608,10 +2786,20 @@ def contest_submit(request, pk):
     submission.submitted_at = now
     submission.total_marks = total_marks
     submission.duration_taken = duration
+    submission.time_taken_seconds = duration
     submission.is_submitted = True
+
+    from .models import ContestRegistration
+    reg = ContestRegistration.objects.filter(
+        contest=contest, user=request.user,
+    ).first()
+    if reg is not None:
+        submission.is_rated_participant = reg.is_rated and contest.is_rated
+    else:
+        submission.is_rated_participant = contest.is_rated
     submission.save()
 
-    messages.success(request, f'Submit হয়েছে! তোমার marks: {total_marks}')
+    messages.success(request, f'Submitted! Your marks: {total_marks}')
     return redirect('contest_result', pk=pk)
 
 
@@ -2649,25 +2837,47 @@ def contest_result(request, pk):
 
 @login_required
 def contest_leaderboard(request, pk):
-    from .models import Contest, ContestSubmission
+    from .models import Contest, ContestSubmission, UserRating
     from django.db.models import Sum
     from django.utils import timezone
+
     contest = get_object_or_404(Contest, pk=pk)
     now = timezone.now()
-    submissions = ContestSubmission.objects.filter(
+    is_live = contest.start_time <= now <= contest.end_time
+    hide = contest.hide_leaderboard_until_end and is_live
+
+    submissions_qs = ContestSubmission.objects.filter(
         contest=contest, is_submitted=True,
         student__profile__role='STUDENT',
-    ).select_related('student').order_by('-total_marks', 'duration_taken')
+    ).select_related('student', 'student__profile').order_by(
+        '-total_marks', 'duration_taken',
+    )
+
+    submissions = list(submissions_qs) if not hide else []
+    user_rating_map = {
+        ur.user_id: ur for ur in UserRating.objects.filter(
+            user_id__in=[s.student_id for s in submissions]
+        )
+    }
+    for s in submissions:
+        s.user_rating_obj = user_rating_map.get(s.student_id)
+
     my_submission = ContestSubmission.objects.filter(
-        contest=contest, student=request.user, is_submitted=True
+        contest=contest, student=request.user, is_submitted=True,
     ).first()
     max_marks = contest.questions.aggregate(total=Sum('marks'))['total'] or 0
+    podium = submissions[:3]
+    rest = submissions[3:]
     return render(request, 'core/contest_leaderboard.html', {
         'contest': contest,
         'submissions': submissions,
+        'podium': podium,
+        'rest': rest,
         'my_submission': my_submission,
         'now': now,
         'max_marks': max_marks,
+        'is_live': is_live,
+        'hide_leaderboard': hide,
     })
 
 
@@ -4012,6 +4222,12 @@ def grade_cq_submission(request, attempt_id):
         ExamAttempt.objects.filter(status__in=['CQ_PENDING', 'GRADED']),
         id=attempt_id,
     )
+
+    is_super = getattr(getattr(request.user, 'profile', None), 'is_superadmin', False)
+    if attempt.status == 'CQ_PENDING' and attempt.assigned_teacher != request.user and not is_super:
+        messages.error(request, 'এই answer script grade করতে হলে আগে Claim করুন।')
+        return redirect('manage_grade_list')
+
     cq_submissions = attempt.cq_submissions.select_related('cq_question').all()
     is_regrade = (attempt.status == 'GRADED')
 
@@ -4157,3 +4373,365 @@ def release_cq_attempt(request, attempt_id):
             attempt.claimed_at = None
             attempt.save()
     return redirect('manage_grade_list')
+
+
+# -------- CONTEST: REGISTRATION, RATINGS, BADGES, COINS --------
+
+@login_required
+def contest_register(request, pk):
+    """POST: register the current user for a contest.
+
+    Honors entry_requirement, registration_deadline, max_participants, and
+    is_rated/allow_unrated_join. Awards early_bird bonus where applicable.
+    """
+    from .models import Contest, ContestRegistration
+    from .services import coins as coin_svc
+    from .services import badges as badge_svc
+    from django.utils import timezone
+
+    if request.method != 'POST':
+        return redirect('contest_detail', pk=pk)
+
+    contest = get_object_or_404(Contest, pk=pk)
+    now = timezone.now()
+
+    try:
+        profile = request.user.profile
+        if profile.role == 'ADMIN' or profile.is_superadmin:
+            messages.error(request, 'Teachers/admins cannot register for contests.')
+            return redirect('contest_detail', pk=pk)
+    except Exception:
+        pass
+
+    if contest.registration_deadline and now > contest.registration_deadline:
+        messages.error(request, 'Registration deadline has passed.')
+        return redirect('contest_detail', pk=pk)
+    if now > contest.end_time:
+        messages.error(request, 'This contest has already ended.')
+        return redirect('contest_detail', pk=pk)
+
+    req = contest.entry_requirement
+    if req == 'premium' and not getattr(profile, 'is_premium', False):
+        messages.error(request, 'Premium membership required for this contest.')
+        return redirect('contest_detail', pk=pk)
+    class_map = {'class_9': '9', 'class_10': '10', 'class_11': '11', 'class_12': '12'}
+    if req in class_map:
+        cls_name = (contest.class_obj.name or '').strip()
+        if class_map[req] not in cls_name:
+            messages.error(request, f'This contest is only for {contest.class_obj.name}.')
+            return redirect('contest_detail', pk=pk)
+
+    if contest.max_participants:
+        reg_count = ContestRegistration.objects.filter(contest=contest).count()
+        if reg_count >= contest.max_participants:
+            existing = ContestRegistration.objects.filter(
+                contest=contest, user=request.user,
+            ).first()
+            if not existing:
+                messages.error(request, 'Contest is full.')
+                return redirect('contest_detail', pk=pk)
+
+    want_rated = (request.POST.get('is_rated', '1') == '1')
+    if not contest.is_rated:
+        want_rated = False
+    if not contest.allow_unrated_join and contest.is_rated:
+        want_rated = True
+
+    is_first = not contest.registrations.filter(user=request.user).exists()
+    is_early = (now - contest.created_at).total_seconds() <= 3600
+
+    reg, created = ContestRegistration.objects.update_or_create(
+        contest=contest, user=request.user,
+        defaults={'is_rated': want_rated, 'is_early_bird': is_early and is_first},
+    )
+
+    if created:
+        if is_first and ContestRegistration.objects.filter(user=request.user).count() == 1:
+            coin_svc.award_coins(request.user, 'first_contest', contest=contest,
+                                 note='Your very first contest!')
+        if is_early:
+            badge_svc.award_early_bird(request.user, contest)
+        messages.success(request, f'Registered for {contest.title} '
+                                  f'({"rated" if want_rated else "unrated"}).')
+    else:
+        messages.info(request, f'Updated registration to '
+                               f'{"rated" if want_rated else "unrated"}.')
+
+    return redirect('contest_detail', pk=pk)
+
+
+@login_required
+def contest_set_rated(request, pk):
+    """POST: toggle rated/unrated participation before contest start."""
+    from .models import Contest, ContestRegistration
+    from django.utils import timezone
+    from django.http import JsonResponse
+
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'POST only'}, status=405)
+    contest = get_object_or_404(Contest, pk=pk)
+    if timezone.now() >= contest.start_time:
+        return JsonResponse({'ok': False, 'error': 'Contest has started'}, status=400)
+    reg, _ = ContestRegistration.objects.get_or_create(
+        contest=contest, user=request.user,
+    )
+    want = request.POST.get('is_rated', '1') == '1'
+    if not contest.is_rated:
+        want = False
+    if not contest.allow_unrated_join and contest.is_rated:
+        want = True
+    reg.is_rated = want
+    reg.save(update_fields=['is_rated'])
+    return JsonResponse({'ok': True, 'is_rated': reg.is_rated})
+
+
+@login_required
+def leaderboard_data(request, pk):
+    """JSON leaderboard for AJAX polling."""
+    from .models import Contest, ContestSubmission, UserRating
+    from django.http import JsonResponse
+    from django.utils import timezone
+
+    contest = get_object_or_404(Contest, pk=pk)
+    now = timezone.now()
+    if contest.hide_leaderboard_until_end and contest.start_time <= now <= contest.end_time:
+        return JsonResponse({
+            'hidden': True,
+            'rows': [],
+            'updated_at': now.isoformat(),
+        })
+
+    subs = ContestSubmission.objects.filter(
+        contest=contest, is_submitted=True,
+        student__profile__role='STUDENT',
+    ).select_related('student').order_by('-total_marks', 'duration_taken')
+
+    ratings = {
+        ur.user_id: ur for ur in UserRating.objects.filter(
+            user_id__in=[s.student_id for s in subs]
+        )
+    }
+    rows = []
+    for idx, s in enumerate(subs):
+        ur = ratings.get(s.student_id)
+        title = ur.rank_title if ur else {'title': 'Newcomer', 'color': '#808080'}
+        rows.append({
+            'rank': idx + 1,
+            'username': s.student.username,
+            'score': s.total_marks,
+            'time_taken': s.duration_taken,
+            'rating': ur.rating if ur else 1000,
+            'rank_title': title['title'],
+            'rank_color': title['color'],
+            'rating_change': s.rating_change,
+            'percentile': s.percentile,
+            'is_virtual': s.is_virtual,
+            'is_me': s.student_id == request.user.id,
+        })
+    return JsonResponse({
+        'hidden': False,
+        'rows': rows,
+        'updated_at': now.isoformat(),
+        'contest_status': 'live' if contest.start_time <= now <= contest.end_time
+                          else ('past' if now > contest.end_time else 'upcoming'),
+    })
+
+
+@login_required
+def virtual_contest(request, pk):
+    """Replay a past contest as a virtual practice attempt (no rating change)."""
+    from .models import Contest, VirtualContest, ContestSubmission
+    from django.utils import timezone
+
+    contest = get_object_or_404(Contest, pk=pk)
+    if not contest.allows_virtual:
+        messages.error(request, 'Virtual replay is disabled for this contest.')
+        return redirect('contest_detail', pk=pk)
+    if timezone.now() < contest.end_time:
+        messages.error(request, 'Virtual contests are only available after the contest ends.')
+        return redirect('contest_detail', pk=pk)
+
+    vc, _ = VirtualContest.objects.get_or_create(
+        user=request.user, contest=contest, finished_at__isnull=True,
+        defaults={},
+    )
+
+    sub, _ = ContestSubmission.objects.get_or_create(
+        contest=contest, student=request.user,
+        defaults={'is_virtual': True, 'is_rated_participant': False},
+    )
+    if not sub.is_virtual:
+        sub.is_virtual = True
+        sub.is_rated_participant = False
+        sub.save(update_fields=['is_virtual', 'is_rated_participant'])
+
+    questions = contest.questions.all()
+    return render(request, 'core/virtual_contest.html', {
+        'contest': contest,
+        'questions': questions,
+        'submission': sub,
+        'virtual': vc,
+    })
+
+
+@login_required
+def badge_gallery(request):
+    """Public badge gallery: shows all badges + which the user has earned."""
+    from .models import Badge, UserBadge
+    badges = Badge.objects.filter(is_active=True).order_by('badge_type', 'rarity', 'name')
+    earned = {
+        ub.badge_id: ub for ub in UserBadge.objects.filter(user=request.user).select_related('badge')
+    }
+    grouped = {}
+    for b in badges:
+        grouped.setdefault(b.get_badge_type_display(), []).append({
+            'badge': b,
+            'earned': b.id in earned,
+            'earned_at': earned[b.id].earned_at if b.id in earned else None,
+        })
+    total_badges = badges.count()
+    earned_count = len(earned)
+    rarest = None
+    rarity_order = {'legendary': 4, 'epic': 3, 'rare': 2, 'common': 1}
+    for b in badges:
+        if b.id in earned:
+            if rarest is None or rarity_order[b.rarity] > rarity_order[rarest.rarity]:
+                rarest = b
+    return render(request, 'core/badge_gallery.html', {
+        'grouped': grouped,
+        'total_badges': total_badges,
+        'earned_count': earned_count,
+        'rarest': rarest,
+    })
+
+
+@login_required
+def profile_contests(request):
+    """Codeforces-style contest profile: rating chart, badges, history."""
+    from .models import (
+        UserRating, ContestRatingHistory, UserBadge, Badge, ContestSubmission,
+    )
+    from django.db.models import Avg
+    from django.core.paginator import Paginator
+    from django.utils import timezone
+
+    rating, _ = UserRating.objects.get_or_create(user=request.user)
+    history = ContestRatingHistory.objects.filter(
+        user=request.user,
+    ).select_related('contest').order_by('recorded_at')[:20]
+
+    earned = UserBadge.objects.filter(
+        user=request.user,
+    ).select_related('badge').order_by('-earned_at')
+    earned_ids = set(eb.badge_id for eb in earned)
+    all_badges = Badge.objects.filter(is_active=True).order_by('badge_type', 'rarity')
+
+    badge_list = []
+    for b in all_badges:
+        badge_list.append({
+            'badge': b,
+            'earned': b.id in earned_ids,
+        })
+
+    submissions = ContestSubmission.objects.filter(
+        student=request.user, is_submitted=True, is_virtual=False,
+    ).select_related('contest').order_by('-submitted_at')
+    paginator = Paginator(submissions, 15)
+    page = paginator.get_page(request.GET.get('page'))
+
+    stats = {
+        'entered': rating.contests_entered,
+        'best_rank': rating.best_rank or '—',
+        'wins': submissions.filter(rank_in_contest=1).count(),
+        'avg_percentile': submissions.aggregate(a=Avg('percentile'))['a'] or 0,
+    }
+    if rating.contests_entered:
+        stats['win_rate'] = round((stats['wins'] / rating.contests_entered) * 100, 1)
+    else:
+        stats['win_rate'] = 0
+    stats['avg_percentile'] = round(stats['avg_percentile'], 1)
+
+    chart_data = [{
+        'contest': h.contest.title[:30],
+        'rating': h.new_rating,
+        'change': h.change,
+        'date': h.recorded_at.strftime('%Y-%m-%d'),
+    } for h in history]
+
+    # Activity calendar (last 52 weeks)
+    from datetime import timedelta
+    today = timezone.now().date()
+    days = []
+    activity_map = {}
+    for s in submissions:
+        if not s.submitted_at:
+            continue
+        d = s.submitted_at.date()
+        score = 1
+        if s.percentile is not None:
+            if s.percentile <= 10 or s.rank_in_contest == 1:
+                score = 4
+            elif s.percentile <= 25:
+                score = 3
+            elif s.percentile <= 50:
+                score = 2
+        prev = activity_map.get(d, (0, None))
+        if score > prev[0]:
+            activity_map[d] = (score, s.contest.title)
+    start = today - timedelta(days=7 * 52)
+    cur = start
+    while cur <= today:
+        level, label = activity_map.get(cur, (0, None))
+        days.append({
+            'date': cur.isoformat(),
+            'level': level,
+            'label': label,
+        })
+        cur += timedelta(days=1)
+
+    return render(request, 'core/profile_contests.html', {
+        'rating': rating,
+        'history': history,
+        'chart_data_json': json.dumps(chart_data),
+        'earned_badges': earned,
+        'badge_list': badge_list,
+        'submissions_page': page,
+        'paginator': paginator,
+        'stats': stats,
+        'activity_days': days,
+    })
+
+
+@login_required
+def coin_balance_api(request):
+    from .models import UserRating
+    from django.http import JsonResponse
+    rating, _ = UserRating.objects.get_or_create(user=request.user)
+    return JsonResponse({
+        'balance': rating.coin_balance,
+        'rating': rating.rating,
+        'rank_title': rating.rank_title['title'],
+    })
+
+
+@login_required
+def check_badges_api(request):
+    """POST: run the badge engine and return any newly awarded badges."""
+    from .services import badges as badge_svc
+    from django.http import JsonResponse
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+    new_badges = badge_svc.check_and_award_badges(request.user)
+    return JsonResponse({
+        'ok': True,
+        'new_badges': [
+            {
+                'name': b.name,
+                'icon': b.icon,
+                'rarity': b.rarity,
+                'color_hex': b.color_hex,
+                'description': b.description,
+            }
+            for b in new_badges
+        ],
+    })

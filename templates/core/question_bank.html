@@ -26,6 +26,10 @@
                     <div class="text-xs text-blue-200">{% if LANG == 'en' %}Questions{% else %}প্রশ্ন{% endif %}</div>
                 </div>
                 {% if is_teacher %}
+                <a href="{% url 'manage_questions' %}"
+                   class="flex items-center gap-2 bg-white/15 border border-white/30 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-white/25 transition backdrop-blur-sm">
+                    📋 {% if LANG == 'en' %}Manage Questions{% else %}প্রশ্ন ম্যানেজ{% endif %}
+                </a>
                 <a href="{% url 'question_add' %}"
                    class="flex items-center gap-2 bg-white text-blue-700 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-blue-50 transition shadow-sm">
                     + {% if LANG == 'en' %}Add Question{% else %}প্রশ্ন যোগ করো{% endif %}
