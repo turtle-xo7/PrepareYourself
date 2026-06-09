@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.db import transaction
 from .models import Board, Subject, Class, Question, UserProfile, UserProgress
+from .services import ai as ai_svc
 from datetime import datetime
 import json
 import logging
@@ -21,6 +22,33 @@ YEARS = list(range(CURRENT_YEAR, CURRENT_YEAR - 6, -1))
 def _L(request, en, bn):
     """Return English or Bangla based on the active language."""
     return en if getattr(request, 'LANG', 'bn') == 'en' else bn
+
+
+# -------- UPLOAD VALIDATION --------
+
+ALLOWED_IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+ALLOWED_DOC_EXTS = ALLOWED_IMAGE_EXTS | {'.pdf'}
+
+
+def _upload_error(uploaded, kind='image', max_mb=10):
+    """Validate an uploaded file's extension and size.
+
+    Returns None when acceptable, otherwise an (english, bangla) error pair.
+    Pass kind='doc' to additionally allow PDFs.
+    """
+    if uploaded is None:
+        return None
+    import os
+    allowed = ALLOWED_DOC_EXTS if kind == 'doc' else ALLOWED_IMAGE_EXTS
+    ext = os.path.splitext(uploaded.name)[1].lower()
+    if ext not in allowed:
+        kinds = 'image/PDF' if kind == 'doc' else 'image'
+        return (f'"{uploaded.name}" is not an allowed {kinds} file.',
+                f'"{uploaded.name}" অনুমোদিত {kinds} ফাইল নয়।')
+    if uploaded.size > max_mb * 1024 * 1024:
+        return (f'"{uploaded.name}" is too large (max {max_mb} MB).',
+                f'"{uploaded.name}" খুব বড় (সর্বোচ্চ {max_mb} MB)।')
+    return None
 
 
 # -------- DECORATORS --------
@@ -114,6 +142,12 @@ def signup_view(request):
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already taken!')
             return redirect('login')
+
+        for doc in (request.FILES.get('nid_document'), request.FILES.get('qualification_document')):
+            err = _upload_error(doc, kind='doc', max_mb=10)
+            if err:
+                messages.error(request, _L(request, *err))
+                return redirect('login')
 
         is_superadmin = False
         if admin_code == 'PY2026ADMIN':
@@ -1579,6 +1613,11 @@ def submit_written_solve(request, question_id):
         lang = getattr(request, 'LANG', 'bn')
         messages.error(request, 'All 4 parts (ক, খ, গ, ঘ) must be uploaded.' if lang == 'en' else 'সব ৪টি অংশ (ক, খ, গ, ঘ) আপলোড করো।')
         return redirect('question_bank')
+    for photo in photos.values():
+        err = _upload_error(photo, kind='image', max_mb=10)
+        if err:
+            messages.error(request, _L(request, *err))
+            return redirect('written_question_practice', question_id=question.pk)
     sub, _ = WrittenSolveSubmission.objects.get_or_create(student=request.user, question=question)
     for field, file in photos.items():
         setattr(sub, field, file)
@@ -2439,6 +2478,10 @@ def study_note_add(request):
     if req_id:
         linked_request = NoteRequest.objects.filter(pk=req_id, status='PENDING').first()
     if request.method == 'POST':
+        err = _upload_error(request.FILES.get('pdf_file'), kind='doc', max_mb=20)
+        if err:
+            messages.error(request, _L(request, *err))
+            return redirect('study_note_add')
         note = StudyNote.objects.create(
             title=request.POST.get('title'),
             subject=get_object_or_404(Subject, pk=request.POST.get('subject')),
@@ -2505,6 +2548,10 @@ def study_note_edit(request, pk):
         note.chapter = request.POST.get('chapter')
         note.content = request.POST.get('content', '')
         if request.FILES.get('pdf_file'):
+            err = _upload_error(request.FILES['pdf_file'], kind='doc', max_mb=20)
+            if err:
+                messages.error(request, _L(request, *err))
+                return redirect('study_note_edit', pk=note.pk)
             note.pdf_file = request.FILES['pdf_file']
         note.save()
         messages.success(request, 'Note updated!')
@@ -2594,52 +2641,29 @@ def delete_comment(request, comment_pk):
 @admin_required
 def generate_note_ai(request):
     if request.method == 'POST':
-        import urllib.request
-        import urllib.error
         topic = request.POST.get('topic', '')
         subject_id = request.POST.get('subject')
         class_id = request.POST.get('class_obj')
         chapter = request.POST.get('chapter', '')
 
-        payload = json.dumps({
-            "model": "claude-sonnet-4-20250514",
-            "max_tokens": 2000,
-            "messages": [{
-                "role": "user",
-                "content": f"এই topic এর উপর একটি সম্পূর্ণ study note বাংলায় লিখো। Note টি SSC/HSC students এর জন্য। Topic: {topic}, Chapter: {chapter}. Note এ heading, subheading, examples, এবং key points থাকবে। HTML format এ দাও। Math/chemistry equation এর জন্য LaTeX delimiter use করো: inline math এর জন্য $...$ এবং display equation এর জন্য $$...$$ (যেমন: $E=mc^2$ অথবা $$\\int_0^1 x\\,dx$$)।"
-            }]
-        }, ensure_ascii=False).encode('utf-8')
-
-        req = urllib.request.Request(
-            'https://api.anthropic.com/v1/messages',
-            data=payload,
-            headers={
-                'Content-Type': 'application/json; charset=utf-8',
-                'anthropic-version': '2023-06-01',
-                'x-api-key': settings.ANTHROPIC_API_KEY,
-            },
-            method='POST'
-        )
+        prompt = f"এই topic এর উপর একটি সম্পূর্ণ study note বাংলায় লিখো। Note টি SSC/HSC students এর জন্য। Topic: {topic}, Chapter: {chapter}. Note এ heading, subheading, examples, এবং key points থাকবে। HTML format এ দাও। Math/chemistry equation এর জন্য LaTeX delimiter use করো: inline math এর জন্য $...$ এবং display equation এর জন্য $$...$$ (যেমন: $E=mc^2$ অথবা $$\\int_0^1 x\\,dx$$)।"
 
         try:
-            with urllib.request.urlopen(req) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                content = result['content'][0]['text']
-                from .models import StudyNote
-                note = StudyNote.objects.create(
-                    title=topic,
-                    subject=get_object_or_404(Subject, pk=subject_id),
-                    class_obj=get_object_or_404(Class, pk=class_id),
-                    chapter=chapter,
-                    content=content,
-                    created_by=request.user,
-                    is_active=True
-                )
-                messages.success(request, _L(request, 'Note generated with AI!', 'AI দিয়ে note তৈরি হয়েছে!'))
-                return redirect('study_note_detail', pk=note.pk)
-        except Exception as e:
-            logger.exception('AI note generation failed (topic=%s, user=%s)', topic, request.user.username)
-            messages.error(request, f'AI error: {str(e)}')
+            content = ai_svc.anthropic_complete(prompt, max_tokens=2000)
+            from .models import StudyNote
+            note = StudyNote.objects.create(
+                title=topic,
+                subject=get_object_or_404(Subject, pk=subject_id),
+                class_obj=get_object_or_404(Class, pk=class_id),
+                chapter=chapter,
+                content=content,
+                created_by=request.user,
+                is_active=True
+            )
+            messages.success(request, _L(request, 'Note generated with AI!', 'AI দিয়ে note তৈরি হয়েছে!'))
+            return redirect('study_note_detail', pk=note.pk)
+        except ai_svc.AIServiceError as e:
+            messages.error(request, f'AI error: {e}')
 
     subjects = Subject.objects.filter(is_active=True)
     classes = Class.objects.all()
@@ -2652,44 +2676,21 @@ def generate_note_ai(request):
 @login_required
 def generate_mcq(request, pk):
     if request.method == 'POST':
-        import urllib.request
-        import urllib.error
         from .models import StudyNote
 
         note = get_object_or_404(StudyNote, pk=pk)
 
-        payload = json.dumps({
-            "model": "claude-sonnet-4-20250514",
-            "max_tokens": 2000,
-            "messages": [{
-                "role": "user",
-                "content": f"এই study note থেকে ১০টি MCQ প্রশ্ন বাংলায় তৈরি করো। প্রতিটি প্রশ্নে ৪টি option এবং সঠিক উত্তর দাও। Math/chemistry equation এর জন্য LaTeX delimiter use করো ($...$ inline এর জন্য, $$...$$ display এর জন্য)। JSON format এ দাও এভাবে: {{\"mcqs\": [{{\"question\": \"...\", \"options\": [\"ক) ...\", \"খ) ...\", \"গ) ...\", \"ঘ) ...\"], \"answer\": \"ক\"}}]}}\n\nNote:\n{note.content[:3000]}"
-            }]
-        }, ensure_ascii=False).encode('utf-8')
-
-        req = urllib.request.Request(
-            'https://api.anthropic.com/v1/messages',
-            data=payload,
-            headers={
-                'Content-Type': 'application/json; charset=utf-8',
-                'anthropic-version': '2023-06-01',
-                'x-api-key': settings.ANTHROPIC_API_KEY,
-            },
-            method='POST'
-        )
+        prompt = f"এই study note থেকে ১০টি MCQ প্রশ্ন বাংলায় তৈরি করো। প্রতিটি প্রশ্নে ৪টি option এবং সঠিক উত্তর দাও। Math/chemistry equation এর জন্য LaTeX delimiter use করো ($...$ inline এর জন্য, $$...$$ display এর জন্য)। JSON format এ দাও এভাবে: {{\"mcqs\": [{{\"question\": \"...\", \"options\": [\"ক) ...\", \"খ) ...\", \"গ) ...\", \"ঘ) ...\"], \"answer\": \"ক\"}}]}}\n\nNote:\n{note.content[:3000]}"
 
         try:
-            with urllib.request.urlopen(req) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                text = result['content'][0]['text']
-                import re
-                json_match = re.search(r'\{.*\}', text, re.DOTALL)
-                if json_match:
-                    mcq_data = json.loads(json_match.group())
-                    return JsonResponse({'mcqs': mcq_data.get('mcqs', [])})
-                return JsonResponse({'mcqs': [], 'error': 'Could not parse MCQs'})
-        except Exception as e:
-            logger.exception('AI MCQ generation failed (note=%s)', pk)
+            text = ai_svc.anthropic_complete(prompt, max_tokens=2000)
+            import re
+            json_match = re.search(r'\{.*\}', text, re.DOTALL)
+            if json_match:
+                mcq_data = json.loads(json_match.group())
+                return JsonResponse({'mcqs': mcq_data.get('mcqs', [])})
+            return JsonResponse({'mcqs': [], 'error': 'Could not parse MCQs'})
+        except ai_svc.AIServiceError as e:
             return JsonResponse({'error': str(e)})
 
     return JsonResponse({'error': 'Invalid request'})
@@ -2698,39 +2699,16 @@ def generate_mcq(request, pk):
 @login_required
 def summarize_note(request, pk):
     if request.method == 'POST':
-        import urllib.request
-        import urllib.error
         from .models import StudyNote
 
         note = get_object_or_404(StudyNote, pk=pk)
 
-        payload = json.dumps({
-            "model": "claude-sonnet-4-20250514",
-            "max_tokens": 1000,
-            "messages": [{
-                "role": "user",
-                "content": f"এই study note টি সহজ বাংলায় সংক্ষেপ করো। Key points bullet points এ দাও। ৩-৫ টি main point এবং একটি summary paragraph লিখো। Math/chemistry equation এর জন্য LaTeX delimiter use করো ($...$ inline, $$...$$ display)।\n\nNote:\n{note.content[:3000]}"
-            }]
-        }, ensure_ascii=False).encode('utf-8')
-
-        req = urllib.request.Request(
-            'https://api.anthropic.com/v1/messages',
-            data=payload,
-            headers={
-                'Content-Type': 'application/json; charset=utf-8',
-                'anthropic-version': '2023-06-01',
-                'x-api-key': settings.ANTHROPIC_API_KEY,
-            },
-            method='POST'
-        )
+        prompt = f"এই study note টি সহজ বাংলায় সংক্ষেপ করো। Key points bullet points এ দাও। ৩-৫ টি main point এবং একটি summary paragraph লিখো। Math/chemistry equation এর জন্য LaTeX delimiter use করো ($...$ inline, $$...$$ display)।\n\nNote:\n{note.content[:3000]}"
 
         try:
-            with urllib.request.urlopen(req) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                summary = result['content'][0]['text']
-                return JsonResponse({'summary': summary})
-        except Exception as e:
-            logger.exception('AI note summarization failed (note=%s)', pk)
+            summary = ai_svc.anthropic_complete(prompt, max_tokens=1000)
+            return JsonResponse({'summary': summary})
+        except ai_svc.AIServiceError as e:
             return JsonResponse({'error': str(e)})
 
     return JsonResponse({'error': 'Invalid request'})
@@ -2739,46 +2717,17 @@ def summarize_note(request, pk):
 @login_required
 def ask_ai(request):
     if request.method == 'POST':
-        import urllib.request
-        import urllib.error
         data = json.loads(request.body)
         question = data.get('question', '')
         note_content = data.get('note_content', '')
 
-        payload = json.dumps({
-            "model": "claude-sonnet-4-20250514",
-            "max_tokens": 1000,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": f"Based on this study note, answer in Bengali:\n\nNote:\n{note_content}\n\nQuestion: {question}\n\nPlease respond in Bengali. For any math or chemistry equations, wrap them in LaTeX delimiters: $...$ for inline, $$...$$ for display equations."
-                }
-            ]
-        }, ensure_ascii=False).encode('utf-8')
-
-        req = urllib.request.Request(
-            'https://api.anthropic.com/v1/messages',
-            data=payload,
-            headers={
-                'Content-Type': 'application/json; charset=utf-8',
-                'anthropic-version': '2023-06-01',
-                'x-api-key': settings.ANTHROPIC_API_KEY,
-            },
-            method='POST'
-        )
+        prompt = f"Based on this study note, answer in Bengali:\n\nNote:\n{note_content}\n\nQuestion: {question}\n\nPlease respond in Bengali. For any math or chemistry equations, wrap them in LaTeX delimiters: $...$ for inline, $$...$$ for display equations."
 
         try:
-            with urllib.request.urlopen(req) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                answer = result['content'][0]['text']
-                return JsonResponse({'answer': answer})
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode('utf-8')
-            logger.error('AI ask failed: HTTP %s — %.300s', e.code, error_body)
-            return JsonResponse({'answer': f'Error: {error_body}'})
-        except Exception as e:
-            logger.exception('AI ask failed')
-            return JsonResponse({'answer': f'Error: {str(e)}'})
+            answer = ai_svc.anthropic_complete(prompt, max_tokens=1000)
+            return JsonResponse({'answer': answer})
+        except ai_svc.AIServiceError as e:
+            return JsonResponse({'answer': f'Error: {e}'})
 
     return JsonResponse({'error': 'Invalid request'})
 
@@ -3332,6 +3281,10 @@ def profile_update(request):
         profile = user.profile
 
         if request.FILES.get('profile_picture'):
+            err = _upload_error(request.FILES['profile_picture'], kind='image', max_mb=5)
+            if err:
+                messages.error(request, _L(request, *err))
+                return redirect('profile')
             profile.profile_picture = request.FILES['profile_picture']
             profile.save(update_fields=['profile_picture'])
             messages.success(request, _L(request, 'Profile picture updated!', 'প্রোফাইল ছবি আপডেট হয়েছে!'))
@@ -3931,6 +3884,12 @@ def submit_cq(request, attempt_id):
             pass
     selected_cq_ids = selected_cq_ids[:7]
 
+    for uploaded in request.FILES.values():
+        err = _upload_error(uploaded, kind='image', max_mb=10)
+        if err:
+            messages.error(request, _L(request, *err))
+            return redirect('exam_cq_phase', attempt_id=attempt.id)
+
     # CQ answer rows and the attempt's CQ_PENDING status must commit together,
     # otherwise a mid-request failure leaves answers saved but the attempt
     # still in CQ_PHASE (or vice versa).
@@ -4528,41 +4487,13 @@ def extract_text_from_image(request):
     if not image_file:
         return JsonResponse({'error': _L(request, 'Please provide an image.', 'ছবি দিন।')}, status=400)
 
-    import base64, json
-    from urllib import request as urllib_request
-    from urllib.error import HTTPError
-
-    api_key = settings.GEMINI_API_KEY
-    if not api_key:
-        return JsonResponse({'error': _L(request, 'Gemini API key is not configured. Set GEMINI_API_KEY in your .env file.', 'Gemini API key কনফিগার করা নেই। .env ফাইলে GEMINI_API_KEY সেট করুন।')}, status=500)
-
-    image_data = base64.b64encode(image_file.read()).decode('utf-8')
-    mime_type = image_file.content_type or 'image/jpeg'
-
-    payload = json.dumps({
-        'contents': [{
-            'parts': [
-                {'inline_data': {'mime_type': mime_type, 'data': image_data}},
-                {'text': 'এই ছবিতে থাকা সব বাংলা ও ইংরেজি টেক্সট হুবহু extract করো। শুধু টেক্সট দাও, কোনো ব্যাখ্যা বা মন্তব্য যোগ করো না।'}
-            ]
-        }],
-        'generationConfig': {'temperature': 0, 'maxOutputTokens': 4096}
-    }).encode('utf-8')
-
-    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}'
-    req = urllib_request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
-
     try:
-        with urllib_request.urlopen(req, timeout=60) as resp:
-            result = json.loads(resp.read().decode('utf-8'))
-        text = result['candidates'][0]['content']['parts'][0]['text']
+        text = ai_svc.gemini_extract_text(
+            image_file.read(),
+            mime_type=image_file.content_type or 'image/jpeg',
+        )
         return JsonResponse({'success': True, 'text': text})
-    except HTTPError as e:
-        err_body = e.read().decode('utf-8', errors='replace')
-        logger.error('Gemini OCR failed: HTTP %s — %.300s', e.code, err_body)
-        return JsonResponse({'error': f'Gemini error {e.code}: {err_body[:300]}'}, status=500)
-    except Exception as e:
-        logger.exception('Gemini OCR failed')
+    except ai_svc.AIServiceError as e:
         return JsonResponse({'error': str(e)}, status=500)
 
 
