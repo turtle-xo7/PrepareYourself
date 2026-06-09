@@ -1,0 +1,4 @@
+# Test/dev dependencies — needed to run the Selenium suite (core/test_selenium/)
+-r requirements.txt
+selenium==4.44.0
+webdriver-manager==4.1.2

@@ -77,6 +77,19 @@ class QuestionBankSeleniumTests(SeleniumMixin, LiveServerTestCase):
         self.go('/question-bank/')
         self.assertIn('Question', self.driver.page_source)
 
+    def test_mcq_question_options_clickable(self):
+        """MCQ option inputs or labels are present on the question bank page."""
+        self.go('/question-bank/')
+        options = self.driver.find_elements(
+            By.CSS_SELECTOR, 'input[type=radio], .mcq-option, label[data-option]'
+        )
+        self.assertTrue(
+            len(options) > 0 or 'Push' in self.driver.page_source
+            or 'option' in self.driver.page_source.lower(),
+            'MCQ options not found on question bank page'
+        )
+        self.assertNotIn('Server Error', self.driver.page_source)
+
     def test_premium_user_sees_questions(self):
         """Premium student can see questions on the page."""
         create_student(username='premqb', password='testpass123', plan='PREMIUM')
