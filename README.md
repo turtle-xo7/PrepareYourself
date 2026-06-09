@@ -1,9 +1,10 @@
-c   <div align="center">
+<div align="center">
 
 # PrepareYourself
 
 **Bangladesh's smart exam preparation platform for SSC & HSC students**
 
+[![CI](https://img.shields.io/github/actions/workflow/status/turtle-xo7/PrepareYourself/ci.yml?style=for-the-badge&logo=github&label=CI)](https://github.com/turtle-xo7/PrepareYourself/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-6.0-092E20?style=for-the-badge&logo=django&logoColor=white)](https://djangoproject.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
