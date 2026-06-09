@@ -79,7 +79,7 @@
       <p class="td-label mt-2" style="color:#6ee7b7;">{% if LANG == 'en' %}Active Today{% else %}আজ সক্রিয়{% endif %}</p>
     </div>
 
-    <div class="td-card p-5" style="border-left:3px solid #3b82f6;">
+    <div class="td-card p-5" style="border-left:3px solid #059669;">
       <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
       </div>
@@ -95,7 +95,7 @@
       <p class="td-label mt-2" style="color:#fca5a5;">{% if LANG == 'en' %}At-Risk{% else %}দুর্বল{% endif %}</p>
     </div>
 
-    <div class="td-card p-5" style="border-left:3px solid #8b5cf6;">
+    <div class="td-card p-5" style="border-left:3px solid #0d9488;">
       <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center mb-4">
         <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
       </div>
@@ -198,7 +198,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
     <div class="td-card p-6">
-      <p class="td-section-head mb-4" style="color:#6366f1;">{% if LANG == 'en' %}Subject Performance{% else %}বিষয়ভিত্তিক ফলাফল{% endif %}</p>
+      <p class="td-section-head mb-4" style="color:#0d9488;">{% if LANG == 'en' %}Subject Performance{% else %}বিষয়ভিত্তিক ফলাফল{% endif %}</p>
       {% if subject_performance %}
       <div style="display:flex;flex-direction:column;gap:14px;">
         {% for sp in subject_performance %}
@@ -224,7 +224,7 @@
     </div>
 
     <div class="td-card p-6">
-      <p class="td-section-head mb-4" style="color:#3b82f6;">{% if LANG == 'en' %}Weekly Activity{% else %}সাপ্তাহিক কার্যক্রম{% endif %}</p>
+      <p class="td-section-head mb-4" style="color:#059669;">{% if LANG == 'en' %}Weekly Activity{% else %}সাপ্তাহিক কার্যক্রম{% endif %}</p>
       <canvas id="classActivityChart" height="175"></canvas>
     </div>
   </div>
@@ -251,7 +251,7 @@
     </div>
 
     <div class="td-card p-6">
-      <p class="td-section-head mb-4" style="color:#3b82f6;">{% if LANG == 'en' %}Recent Feedback{% else %}সম্প্রতি পাঠানো মতামত{% endif %}</p>
+      <p class="td-section-head mb-4" style="color:#059669;">{% if LANG == 'en' %}Recent Feedback{% else %}সম্প্রতি পাঠানো মতামত{% endif %}</p>
       {% if recent_feedbacks %}
       <div style="display:flex;flex-direction:column;gap:0;">
         {% for fb in recent_feedbacks %}
@@ -323,7 +323,7 @@
   <div>
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
       <div>
-        <p class="td-label" style="color:#6366f1;margin-bottom:4px;">Exam Mode</p>
+        <p class="td-label" style="color:#0d9488;margin-bottom:4px;">Exam Mode</p>
         <h2 class="font-bold text-gray-900" style="font-size:16px;">{% if LANG == 'en' %}Exam Papers & Submissions{% else %}পরীক্ষার পেপার ও জমা{% endif %}</h2>
       </div>
       <div class="flex gap-2">
@@ -331,7 +331,7 @@
           {% if LANG == 'en' %}Grade Queue{% else %}মূল্যায়ন তালিকা{% endif %}
           {% if pending_cq_count > 0 %}<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">{{ pending_cq_count }}</span>{% endif %}
         </a>
-        <a href="{% url 'create_exam_paper' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition text-sm hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#4f46e5);">
+        <a href="{% url 'create_exam_paper' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition text-sm hover:opacity-90" style="background:linear-gradient(135deg,#0d9488,#4f46e5);">
           + {% if LANG == 'en' %}New Exam Paper{% else %}নতুন পরীক্ষার পেপার{% endif %}
         </a>
       </div>
@@ -342,7 +342,7 @@
       <!-- Exam Papers List -->
       <div class="td-card overflow-hidden">
         <div class="px-5 py-3.5 flex items-center justify-between" style="background:linear-gradient(to right,#f5f3ff,#fff);border-bottom:1px solid #e8edf2;">
-          <p class="td-section-head" style="color:#6366f1;">{% if LANG == 'en' %}Exam Papers{% else %}পরীক্ষার পেপার{% endif %}</p>
+          <p class="td-section-head" style="color:#0d9488;">{% if LANG == 'en' %}Exam Papers{% else %}পরীক্ষার পেপার{% endif %}</p>
           <span class="td-badge" style="background:#ede9fe;color:#4c1d95;">{{ exam_paper_data|length }} {% if LANG == 'en' %}active{% else %}সক্রিয়{% endif %}</span>
         </div>
         {% if exam_paper_data %}
@@ -396,7 +396,7 @@
                 <p class="text-xs text-gray-400">MCQ: {{ attempt.mcq_score }} &bull; {{ attempt.cq_submitted_at|date:"d M, g:i A" }}</p>
               </div>
             </div>
-            <a href="{% url 'grade_cq_submission' attempt.id %}" class="flex-shrink-0 text-xs font-black text-white px-3 py-1.5 rounded-xl hover:opacity-90 transition" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">
+            <a href="{% url 'grade_cq_submission' attempt.id %}" class="flex-shrink-0 text-xs font-black text-white px-3 py-1.5 rounded-xl hover:opacity-90 transition" style="background:linear-gradient(135deg,#0d9488,#6d28d9);">
               {% if LANG == 'en' %}Grade →{% else %}মূল্যায়ন →{% endif %}
             </a>
           </div>
@@ -473,7 +473,7 @@
             <td class="px-5 py-3">
               <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0"
-                     style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);">{{ s.profile.user.username|first|upper }}</div>
+                     style="background:linear-gradient(135deg,#059669,#0d9488);">{{ s.profile.user.username|first|upper }}</div>
                 <div>
                   <p class="font-bold text-gray-900 leading-tight">{{ s.profile.user.username }}</p>
                   {% if s.week_total >= 3 and s.week_accuracy < 50 %}<span class="td-badge mt-0.5" style="background:#fee2e2;color:#991b1b;">At-Risk</span>{% endif %}
@@ -481,7 +481,7 @@
               </div>
             </td>
             <td class="px-4 py-3">
-              {% if s.profile.plan == 'PREMIUM' %}<span class="td-badge" style="background:#f3e8ff;color:#7c3aed;">Premium</span>
+              {% if s.profile.plan == 'PREMIUM' %}<span class="td-badge" style="background:#f3e8ff;color:#0f766e;">Premium</span>
               {% elif s.profile.plan == 'BASIC' %}<span class="td-badge" style="background:#dbeafe;color:#1e40af;">Basic</span>
               {% else %}<span class="td-badge" style="background:#f1f5f9;color:#64748b;">Free</span>{% endif %}
             </td>
@@ -508,13 +508,13 @@
               {% if s.exam_attempt %}{% with a=s.exam_attempt %}
                 {% if a.status == 'GRADED' %}<span class="td-badge {% if a.grade == 'A+' %}bg-green-100 text-green-700{% elif a.grade == 'A' %}bg-blue-100 text-blue-700{% elif a.grade == 'A-' %}bg-sky-100 text-sky-700{% elif a.grade == 'B' %}bg-yellow-100 text-yellow-700{% elif a.grade == 'C' %}bg-orange-100 text-orange-700{% else %}bg-red-100 text-red-700{% endif %}">{{ a.grade }} ({{ a.total_score }})</span>
                 {% elif a.status == 'CQ_PENDING' %}<a href="{% url 'grade_cq_submission' a.id %}" class="td-badge" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">{% if LANG == 'en' %}Grade{% else %}মূল্যায়ন{% endif %}</a>
-                {% elif a.status == 'CQ_PHASE' %}<span class="td-badge" style="background:#f3e8ff;color:#7c3aed;">CQ</span>
+                {% elif a.status == 'CQ_PHASE' %}<span class="td-badge" style="background:#f3e8ff;color:#0f766e;">CQ</span>
                 {% elif a.status == 'MCQ_PHASE' %}<span class="td-badge" style="background:#dbeafe;color:#1e40af;">MCQ</span>
                 {% else %}<span class="text-xs text-gray-400">{{ a.status }}</span>{% endif %}
               {% endwith %}{% else %}<span class="text-xs text-gray-300">—</span>{% endif %}
             </td>
             <td class="px-4 py-3">
-              <a href="{% url 'student_detail' s.profile.pk %}" class="text-xs font-bold text-white px-3 py-1.5 rounded-xl hover:opacity-90 transition" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);">
+              <a href="{% url 'student_detail' s.profile.pk %}" class="text-xs font-bold text-white px-3 py-1.5 rounded-xl hover:opacity-90 transition" style="background:linear-gradient(135deg,#059669,#0d9488);">
                 {% if LANG == 'en' %}View{% else %}দেখুন{% endif %}
               </a>
             </td>
@@ -539,7 +539,7 @@ new Chart(document.getElementById('classActivityChart').getContext('2d'), {
     datasets: [{
       label: '{% if LANG == "en" %}Total{% else %}মোট{% endif %}',
       data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
-      backgroundColor: 'rgba(99,102,241,0.75)',
+      backgroundColor: 'rgba(13,148,136,0.75)',
       borderRadius: 6,
     },{
       label: '{% if LANG == "en" %}Correct{% else %}সঠিক{% endif %}',

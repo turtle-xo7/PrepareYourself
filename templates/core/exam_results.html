@@ -8,23 +8,23 @@
   <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-yellow-100 mb-6 animate-pulse">
     <span class="text-5xl">⏳</span>
   </div>
-  <h2 class="text-2xl font-bold text-gray-800 mb-2">মূল্যায়ন চলছে…</h2>
-  <p class="text-gray-500 mb-6">আপনার CQ উত্তর Teacher-এর কাছে পাঠানো হয়েছে। মূল্যায়ন সম্পন্ন হলে এখানে ফলাফল দেখা যাবে।</p>
+  <h2 class="text-2xl font-bold text-gray-800 mb-2">{% if LANG == 'en' %}Evaluation in progress…{% else %}মূল্যায়ন চলছে…{% endif %}</h2>
+  <p class="text-gray-500 mb-6">{% if LANG == 'en' %}Your CQ answers were sent to the teacher. Results will appear here once evaluation is complete.{% else %}আপনার CQ উত্তর Teacher-এর কাছে পাঠানো হয়েছে। মূল্যায়ন সম্পন্ন হলে এখানে ফলাফল দেখা যাবে।{% endif %}</p>
 
   <div class="bg-white rounded-2xl shadow p-6 mb-6 text-left">
-    <h3 class="font-semibold text-gray-700 mb-4 border-b pb-2">এখন পর্যন্ত</h3>
+    <h3 class="font-semibold text-gray-700 mb-4 border-b pb-2">{% if LANG == 'en' %}So far{% else %}এখন পর্যন্ত{% endif %}</h3>
     <div class="flex justify-between items-center py-2">
-      <span class="text-gray-600">MCQ স্কোর</span>
-      <span class="font-bold text-blue-700 text-lg">{{ attempt.mcq_score }} নম্বর</span>
+      <span class="text-gray-600">{% if LANG == 'en' %}MCQ score{% else %}MCQ স্কোর{% endif %}</span>
+      <span class="font-bold text-blue-700 text-lg">{{ attempt.mcq_score }}{% if LANG == 'en' %} marks{% else %} নম্বর{% endif %}</span>
     </div>
     <div class="flex justify-between items-center py-2 border-t">
-      <span class="text-gray-600">CQ স্কোর</span>
-      <span class="text-gray-400 italic">মূল্যায়নাধীন</span>
+      <span class="text-gray-600">{% if LANG == 'en' %}CQ score{% else %}CQ স্কোর{% endif %}</span>
+      <span class="text-gray-400 italic">{% if LANG == 'en' %}Under evaluation{% else %}মূল্যায়নাধীন{% endif %}</span>
     </div>
-    <div class="mt-3 text-sm text-gray-400">জমার সময়: {{ attempt.cq_submitted_at|date:"d M Y, g:i A" }}</div>
+    <div class="mt-3 text-sm text-gray-400">{% if LANG == 'en' %}Submitted at:{% else %}জমার সময়:{% endif %} {{ attempt.cq_submitted_at|date:"d M Y, g:i A" }}</div>
   </div>
 
-  <a href="{% url 'dashboard' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition">Dashboard এ যান</a>
+  <a href="{% url 'dashboard' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition">{% if LANG == 'en' %}Go to Dashboard{% else %}Dashboard এ যান{% endif %}</a>
 </div>
 
 {% elif attempt.status == 'GRADED' %}
@@ -42,31 +42,31 @@
   {% else %}bg-gradient-to-br from-gray-500 to-gray-700{% endif %}
   text-white">
   <div class="text-6xl font-extrabold mb-2 drop-shadow">{{ grade }}</div>
-  <div class="text-2xl font-semibold opacity-90">{{ total }}/{{ max_marks }} নম্বর</div>
+  <div class="text-2xl font-semibold opacity-90">{{ total }}/{{ max_marks }}{% if LANG == 'en' %} marks{% else %} নম্বর{% endif %}</div>
   <div class="text-sm opacity-90">({{ percentage }}%)</div>
   <div class="text-sm opacity-75 mt-1">{{ attempt.exam_paper.title }}</div>
 </div>
 
 <!-- Score Breakdown -->
 <div class="bg-white rounded-2xl shadow p-6 mb-6">
-  <h3 class="font-bold text-gray-800 mb-4 text-lg">নম্বর বিভাজন</h3>
+  <h3 class="font-bold text-gray-800 mb-4 text-lg">{% if LANG == 'en' %}Score breakdown{% else %}নম্বর বিভাজন{% endif %}</h3>
   <div class="space-y-3">
     <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
       <div>
-        <p class="font-semibold text-gray-700">MCQ পর্ব</p>
-        <p class="text-xs text-gray-400">৩০টি MCQ, প্রতিটি ১ নম্বর</p>
+        <p class="font-semibold text-gray-700">{% if LANG == 'en' %}MCQ Phase{% else %}MCQ পর্ব{% endif %}</p>
+        <p class="text-xs text-gray-400">{% if LANG == 'en' %}30 MCQs, 1 mark each{% else %}৩০টি MCQ, প্রতিটি ১ নম্বর{% endif %}</p>
       </div>
       <span class="text-2xl font-bold text-blue-700">{{ attempt.mcq_score }}/30</span>
     </div>
     <div class="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
       <div>
-        <p class="font-semibold text-gray-700">CQ পর্ব</p>
-        <p class="text-xs text-gray-400">{{ cq_submissions|length }}টি সৃজনশীল প্রশ্ন</p>
+        <p class="font-semibold text-gray-700">{% if LANG == 'en' %}CQ Phase{% else %}CQ পর্ব{% endif %}</p>
+        <p class="text-xs text-gray-400">{{ cq_submissions|length }}{% if LANG == 'en' %} creative questions{% else %}টি সৃজনশীল প্রশ্ন{% endif %}</p>
       </div>
       <span class="text-2xl font-bold text-purple-700">{{ attempt.cq_score }}/70</span>
     </div>
     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border-2 border-gray-300">
-      <span class="font-bold text-gray-700 text-lg">মোট</span>
+      <span class="font-bold text-gray-700 text-lg">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</span>
       <span class="text-2xl font-extrabold text-gray-800">{{ total }}/{{ max_marks }} <span class="text-sm font-semibold text-gray-500">({{ percentage }}%)</span></span>
     </div>
   </div>
@@ -74,22 +74,22 @@
 
 <!-- Grade Scale Reference -->
 <div class="bg-white rounded-2xl shadow p-6 mb-6">
-  <h3 class="font-semibold text-gray-700 mb-3">গ্রেড স্কেল</h3>
+  <h3 class="font-semibold text-gray-700 mb-3">{% if LANG == 'en' %}Grade scale{% else %}গ্রেড স্কেল{% endif %}</h3>
   <div class="grid grid-cols-4 gap-2 text-center text-xs">
-    <div class="p-2 rounded-lg {% if grade == 'A+' %}bg-green-100 ring-2 ring-green-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-green-700">A+</div><div class="text-gray-500">৮০+</div></div>
-    <div class="p-2 rounded-lg {% if grade == 'A' %}bg-blue-100 ring-2 ring-blue-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-blue-700">A</div><div class="text-gray-500">৭০–৭৯</div></div>
-    <div class="p-2 rounded-lg {% if grade == 'A-' %}bg-sky-100 ring-2 ring-sky-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-sky-700">A-</div><div class="text-gray-500">৬০–৬৯</div></div>
-    <div class="p-2 rounded-lg {% if grade == 'B' %}bg-yellow-100 ring-2 ring-yellow-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-yellow-700">B</div><div class="text-gray-500">৫০–৫৯</div></div>
-    <div class="p-2 rounded-lg {% if grade == 'C' %}bg-orange-100 ring-2 ring-orange-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-orange-700">C</div><div class="text-gray-500">৪০–৪৯</div></div>
-    <div class="p-2 rounded-lg {% if grade == 'D' %}bg-red-100 ring-2 ring-red-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-red-700">D</div><div class="text-gray-500">৩৩–৩৯</div></div>
-    <div class="p-2 rounded-lg col-span-2 {% if grade == 'F' %}bg-gray-200 ring-2 ring-gray-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-gray-700">F</div><div class="text-gray-500">০–৩২</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'A+' %}bg-green-100 ring-2 ring-green-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-green-700">A+</div><div class="text-gray-500">{% if LANG == 'en' %}80+{% else %}৮০+{% endif %}</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'A' %}bg-blue-100 ring-2 ring-blue-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-blue-700">A</div><div class="text-gray-500">{% if LANG == 'en' %}70–79{% else %}৭০–৭৯{% endif %}</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'A-' %}bg-sky-100 ring-2 ring-sky-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-sky-700">A-</div><div class="text-gray-500">{% if LANG == 'en' %}60–69{% else %}৬০–৬৯{% endif %}</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'B' %}bg-yellow-100 ring-2 ring-yellow-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-yellow-700">B</div><div class="text-gray-500">{% if LANG == 'en' %}50–59{% else %}৫০–৫৯{% endif %}</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'C' %}bg-orange-100 ring-2 ring-orange-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-orange-700">C</div><div class="text-gray-500">{% if LANG == 'en' %}40–49{% else %}৪০–৪৯{% endif %}</div></div>
+    <div class="p-2 rounded-lg {% if grade == 'D' %}bg-red-100 ring-2 ring-red-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-red-700">D</div><div class="text-gray-500">{% if LANG == 'en' %}33–39{% else %}৩৩–৩৯{% endif %}</div></div>
+    <div class="p-2 rounded-lg col-span-2 {% if grade == 'F' %}bg-gray-200 ring-2 ring-gray-500 font-bold{% else %}bg-gray-50{% endif %}"><div class="font-bold text-gray-700">F</div><div class="text-gray-500">{% if LANG == 'en' %}0–32{% else %}০–৩২{% endif %}</div></div>
   </div>
 </div>
 
 <!-- CQ Details -->
 {% if cq_submissions %}
 <div class="bg-white rounded-2xl shadow p-6 mb-6">
-  <h3 class="font-semibold text-gray-700 mb-4">CQ বিস্তারিত মূল্যায়ন</h3>
+  <h3 class="font-semibold text-gray-700 mb-4">{% if LANG == 'en' %}Detailed CQ evaluation{% else %}CQ বিস্তারিত মূল্যায়ন{% endif %}</h3>
   <div class="space-y-4">
     {% for sub in cq_submissions %}
     {% with q=sub.cq_question %}
@@ -106,7 +106,7 @@
       <div class="space-y-2 mb-2">
         {% if q.marks_a %}
         <div class="flex items-start gap-2 text-sm">
-          <span class="font-bold text-blue-700 w-6 shrink-0">(ক)</span>
+          <span class="font-bold text-blue-700 w-6 shrink-0">{% if LANG == 'en' %}(a){% else %}(ক){% endif %}</span>
           <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_a|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_a }}</span></span>
           {% if sub.comment_a %}
           <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_a }}</span>
@@ -115,7 +115,7 @@
         {% endif %}
         {% if q.marks_b %}
         <div class="flex items-start gap-2 text-sm">
-          <span class="font-bold text-blue-700 w-6 shrink-0">(খ)</span>
+          <span class="font-bold text-blue-700 w-6 shrink-0">{% if LANG == 'en' %}(b){% else %}(খ){% endif %}</span>
           <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_b|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_b }}</span></span>
           {% if sub.comment_b %}
           <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_b }}</span>
@@ -124,7 +124,7 @@
         {% endif %}
         {% if q.marks_c %}
         <div class="flex items-start gap-2 text-sm">
-          <span class="font-bold text-blue-700 w-6 shrink-0">(গ)</span>
+          <span class="font-bold text-blue-700 w-6 shrink-0">{% if LANG == 'en' %}(c){% else %}(গ){% endif %}</span>
           <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_c|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_c }}</span></span>
           {% if sub.comment_c %}
           <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_c }}</span>
@@ -133,7 +133,7 @@
         {% endif %}
         {% if q.marks_d %}
         <div class="flex items-start gap-2 text-sm">
-          <span class="font-bold text-blue-700 w-6 shrink-0">(ঘ)</span>
+          <span class="font-bold text-blue-700 w-6 shrink-0">{% if LANG == 'en' %}(d){% else %}(ঘ){% endif %}</span>
           <span class="font-semibold text-gray-700 shrink-0">{{ sub.marks_d|default_if_none:"—" }}<span class="text-xs text-gray-400">/{{ q.marks_d }}</span></span>
           {% if sub.comment_d %}
           <span class="flex-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-1.5 ml-2">💬 {{ sub.comment_d }}</span>
@@ -154,7 +154,7 @@
 
 {% if attempt.graded_by %}
 <div class="text-sm text-gray-400 text-center mb-6">
-  মূল্যায়ন করেছেন: {{ attempt.graded_by.get_full_name|default:attempt.graded_by.username }} • {{ attempt.graded_at|date:"d M Y, g:i A" }}
+  {% if LANG == 'en' %}Evaluated by:{% else %}মূল্যায়ন করেছেন:{% endif %} {{ attempt.graded_by.get_full_name|default:attempt.graded_by.username }} • {{ attempt.graded_at|date:"d M Y, g:i A" }}
 </div>
 {% endif %}
 
@@ -168,8 +168,8 @@
 {% else %}
 <!-- Fallback for other statuses -->
 <div class="text-center py-16">
-  <p class="text-gray-500">পরীক্ষার তথ্য পাওয়া যাচ্ছে না।</p>
-  <a href="{% url 'dashboard' %}" class="mt-4 inline-block text-blue-600 hover:underline">Dashboard এ ফিরুন</a>
+  <p class="text-gray-500">{% if LANG == 'en' %}Exam information is not available.{% else %}পরীক্ষার তথ্য পাওয়া যাচ্ছে না।{% endif %}</p>
+  <a href="{% url 'dashboard' %}" class="mt-4 inline-block text-blue-600 hover:underline">{% if LANG == 'en' %}Back to Dashboard{% else %}Dashboard এ ফিরুন{% endif %}</a>
 </div>
 {% endif %}
 

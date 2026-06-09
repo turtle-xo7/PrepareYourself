@@ -101,9 +101,9 @@
                     📊 Activity Timeline
                 </div>
                 <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight hero-anim-1">
-                    📊 অগ্রগতি
+                    {% if LANG == 'en' %}📊 Progress{% else %}📊 অগ্রগতি{% endif %}
                 </h1>
-                <p class="text-emerald-100 mt-1 text-sm hero-anim-2">তোমার সব practice activity timeline-এ</p>
+                <p class="text-emerald-100 mt-1 text-sm hero-anim-2">{% if LANG == 'en' %}All your practice activity on a timeline{% else %}তোমার সব practice activity timeline-এ{% endif %}</p>
             </div>
 
             <!-- Right: big accuracy number or motivational text -->
@@ -368,9 +368,9 @@
             </h3>
             <p class="text-sm text-gray-500 mb-6">
                 {% if has_filters %}
-                    এই filter এর জন্য কিছু পাইনি। অন্য filter try করো অথবা clear করে দেখো।
+                    {% if LANG == 'en' %}Nothing found for this filter. Try another filter or clear it.{% else %}এই filter এর জন্য কিছু পাইনি। অন্য filter try করো অথবা clear করে দেখো।{% endif %}
                 {% else %}
-                    Question bank-এ গিয়ে কয়েকটা প্রশ্ন practice করে আসো — এখানে timeline তৈরি হবে।
+                    {% if LANG == 'en' %}Go to the question bank and practice a few questions — your timeline will appear here.{% else %}Question bank-এ গিয়ে কয়েকটা প্রশ্ন practice করে আসো — এখানে timeline তৈরি হবে।{% endif %}
                 {% endif %}
             </p>
             {% if has_filters %}

@@ -80,10 +80,10 @@
         </div>
 
         <div id="cq_question_text_wrap">
-          <label class="block text-sm font-medium text-gray-700 mb-1">উদ্দীপক / Question Text <span class="text-red-400" id="qt_star">*</span></label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{% if LANG == 'en' %}Stimulus / Question Text{% else %}উদ্দীপক / Question Text{% endif %} <span class="text-red-400" id="qt_star">*</span></label>
           <textarea name="question_text" id="cq_question_text" rows="3"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="CQ-র উদ্দীপক লিখুন (MCQ-র জন্য প্রতিটি প্রশ্ন আলাদা ভাবে নিচে যোগ করুন)">{{ question.question_text }}</textarea>
+            placeholder="{% if LANG == 'en' %}Write the CQ stimulus (for MCQs, add each question separately below){% else %}CQ-র উদ্দীপক লিখুন (MCQ-র জন্য প্রতিটি প্রশ্ন আলাদা ভাবে নিচে যোগ করুন){% endif %}">{{ question.question_text }}</textarea>
         </div>
       </div>
 
@@ -95,7 +95,7 @@
           <label class="block text-sm font-semibold text-gray-800 mb-1">
             📎 Full MCQ File <span class="text-gray-400 font-normal text-xs">(Image / PDF / DOC — optional, shared across all MCQs below)</span>
           </label>
-          <p class="text-xs text-gray-500 mb-2">পুরো MCQ set একটি PDF/ছবি/DOC ফাইলে দিতে চাইলে এখানে upload করুন। নিচের সব MCQ এর সাথে এই ফাইলটি যুক্ত থাকবে।</p>
+          <p class="text-xs text-gray-500 mb-2">{% if LANG == 'en' %}If you want to provide the whole MCQ set in one PDF/image/DOC file, upload it here. It will be attached to all MCQs below.{% else %}পুরো MCQ set একটি PDF/ছবি/DOC ফাইলে দিতে চাইলে এখানে upload করুন। নিচের সব MCQ এর সাথে এই ফাইলটি যুক্ত থাকবে।{% endif %}</p>
           <input type="file" name="mcq_question_file" accept="image/*,.pdf,.doc,.docx"
                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white">
         </div>
@@ -110,7 +110,7 @@
               Parse → Add
             </button>
           </div>
-          <textarea id="bulk-mcq-text" rows="5" placeholder="MCQ-গুলো এখানে paste করুন…"
+          <textarea id="bulk-mcq-text" rows="5" placeholder="{% if LANG == 'en' %}Paste the MCQs here…{% else %}MCQ-গুলো এখানে paste করুন…{% endif %}"
                     class="w-full border border-emerald-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 bg-white"></textarea>
 
           <!-- Format hints -->
@@ -163,7 +163,7 @@ Option D</pre>
         <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <div class="flex items-center justify-between">
             <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">
-              MCQ Questions <span id="mcq-count-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium ml-1">0টি</span>
+              MCQ Questions <span id="mcq-count-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium ml-1">{% if LANG == "en" %}0{% else %}0টি{% endif %}</span>
             </h2>
             {% if action == 'Add' %}
             <button type="button" onclick="addMCQ()"
@@ -177,12 +177,12 @@ Option D</pre>
       </div>
 
       <div id="written_fields" class="hidden bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Written CQ — ছবি ও hint</h2>
+        <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{% if LANG == 'en' %}Written CQ — image & hint{% else %}Written CQ — ছবি ও hint{% endif %}</h2>
 
         <!-- Stimulus (image / PDF / DOC) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
-            উদ্দীপক <span class="text-gray-500">(Image / PDF / DOC)</span>
+            {% if LANG == 'en' %}Stimulus{% else %}উদ্দীপক{% endif %} <span class="text-gray-500">(Image / PDF / DOC)</span>
             <span class="text-gray-400 text-xs font-normal ml-1">(optional — passage/image/file students write on)</span>
           </label>
           {% if question.stimulus_image %}
@@ -206,7 +206,7 @@ Option D</pre>
           <label class="block text-sm font-medium text-gray-700 mb-1">Answer Hint</label>
           <textarea name="answer_hint" rows="3"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="উত্তরের hint লিখুন...">{{ question.answer_hint }}</textarea>
+            placeholder="{% if LANG == 'en' %}Write an answer hint...{% else %}উত্তরের hint লিখুন...{% endif %}">{{ question.answer_hint }}</textarea>
         </div>
 
         <!-- Solution (image / PDF / DOC) -->
@@ -234,7 +234,7 @@ Option D</pre>
 
       <div class="flex gap-3">
         <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700">
-          {{ action }} করো
+          {% if LANG == 'en' %}{{ action }}{% else %}{{ action }} করো{% endif %}
         </button>
         <a href="{% url 'manage_questions' %}" class="px-6 py-2.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50">
           Cancel
@@ -250,50 +250,50 @@ Option D</pre>
   <div class="mcq-row border border-gray-200 rounded-2xl p-5 bg-gray-50 relative" data-idx="__IDX__">
     <div class="flex items-center justify-between mb-3">
       <span class="text-sm font-bold text-blue-700">MCQ #<span class="mcq-num">__NUM__</span></span>
-      <button type="button" onclick="removeMCQ(this)" class="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition">✕ সরান</button>
+      <button type="button" onclick="removeMCQ(this)" class="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition">{% if LANG == 'en' %}✕ Remove{% else %}✕ সরান{% endif %}</button>
     </div>
     <div class="mb-3">
-      <label class="block text-xs font-medium text-gray-600 mb-1">প্রশ্ন <span class="text-red-400">*</span></label>
-      <textarea name="mcq_question_text" rows="2" placeholder="MCQ প্রশ্নটি লিখুন…"
+      <label class="block text-xs font-medium text-gray-600 mb-1">{% if LANG == 'en' %}Question{% else %}প্রশ্ন{% endif %} <span class="text-red-400">*</span></label>
+      <textarea name="mcq_question_text" rows="2" placeholder="{% if LANG == 'en' %}Write the MCQ question…{% else %}MCQ প্রশ্নটি লিখুন…{% endif %}"
                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none bg-white"></textarea>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">ক</span>)</label>
-        <input type="text" name="mcq_option1" placeholder="ক"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">{% if LANG == 'en' %}a{% else %}ক{% endif %}</span>)</label>
+        <input type="text" name="mcq_option1" placeholder="{% if LANG == 'en' %}a{% else %}ক{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="0">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">খ</span>)</label>
-        <input type="text" name="mcq_option2" placeholder="খ"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">{% if LANG == 'en' %}b{% else %}খ{% endif %}</span>)</label>
+        <input type="text" name="mcq_option2" placeholder="{% if LANG == 'en' %}b{% else %}খ{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="1">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">গ</span>)</label>
-        <input type="text" name="mcq_option3" placeholder="গ"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">{% if LANG == 'en' %}c{% else %}গ{% endif %}</span>)</label>
+        <input type="text" name="mcq_option3" placeholder="{% if LANG == 'en' %}c{% else %}গ{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="2">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">ঘ</span>)</label>
-        <input type="text" name="mcq_option4" placeholder="ঘ"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">{% if LANG == 'en' %}d{% else %}ঘ{% endif %}</span>)</label>
+        <input type="text" name="mcq_option4" placeholder="{% if LANG == 'en' %}d{% else %}ঘ{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="3">
       </div>
     </div>
     <div class="flex items-center gap-4 flex-wrap">
-      <p class="text-xs font-medium text-gray-600">সঠিক উত্তর <span class="text-red-400">*</span></p>
+      <p class="text-xs font-medium text-gray-600">{% if LANG == 'en' %}Correct answer{% else %}সঠিক উত্তর{% endif %} <span class="text-red-400">*</span></p>
       <input type="hidden" name="mcq_correct_option" value="1" class="hidden-correct-input">
       <div class="flex gap-3">
         <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="1" checked> <span class="mcq-lbl" data-i="0">ক</span>
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="1" checked> <span class="mcq-lbl" data-i="0">{% if LANG == 'en' %}a{% else %}ক{% endif %}</span>
         </label>
         <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="2"> <span class="mcq-lbl" data-i="1">খ</span>
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="2"> <span class="mcq-lbl" data-i="1">{% if LANG == 'en' %}b{% else %}খ{% endif %}</span>
         </label>
         <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="3"> <span class="mcq-lbl" data-i="2">গ</span>
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="3"> <span class="mcq-lbl" data-i="2">{% if LANG == 'en' %}c{% else %}গ{% endif %}</span>
         </label>
         <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="4"> <span class="mcq-lbl" data-i="3">ঘ</span>
+          <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="4"> <span class="mcq-lbl" data-i="3">{% if LANG == 'en' %}d{% else %}ঘ{% endif %}</span>
         </label>
       </div>
     </div>
@@ -301,7 +301,7 @@ Option D</pre>
 </template>
 
 <script>
-const BN_LABELS = ['ক', 'খ', 'গ', 'ঘ'];
+const BN_LABELS = [{% if LANG == 'en' %}'a', 'b', 'c', 'd'{% else %}'ক', 'খ', 'গ', 'ঘ'{% endif %}];
 const EN_LABELS = ['a', 'b', 'c', 'd'];
 let mcqCount = 0;
 
@@ -322,7 +322,7 @@ function renumberMCQs() {
 
 function refreshCount() {
   const c = document.querySelectorAll('#mcq-list .mcq-row').length;
-  document.getElementById('mcq-count-badge').textContent = c + 'টি';
+  document.getElementById('mcq-count-badge').textContent = c + '{% if LANG == "en" %}{% else %}টি{% endif %}';
   if (c === 0) mcqCount = 0;
   renumberMCQs();
 }
@@ -391,7 +391,7 @@ function toggleType() {
   const isMCQ = type === 'MCQ';
   document.getElementById('mcq_fields').classList.toggle('hidden', !isMCQ);
   document.getElementById('written_fields').classList.toggle('hidden', isMCQ);
-  // উদ্দীপক / Question Text is CQ-only — hide for MCQ
+  // {% if LANG == 'en' %}Stimulus / Question Text{% else %}উদ্দীপক / Question Text{% endif %} is CQ-only — hide for MCQ
   const cqWrap = document.getElementById('cq_question_text_wrap');
   if (cqWrap) cqWrap.classList.toggle('hidden', isMCQ);
   const qt = document.getElementById('cq_question_text');

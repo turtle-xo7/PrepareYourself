@@ -26,13 +26,13 @@
             {% endif %}
           </div>
           <p class="text-gray-500 text-sm mt-1">{{ profile.user.email }}</p>
-          <p class="text-gray-400 text-xs mt-0.5">সদস্য হয়েছেন: {{ profile.user.date_joined|date:"d M Y" }}</p>
+          <p class="text-gray-400 text-xs mt-0.5">{% if LANG == 'en' %}Member since:{% else %}সদস্য হয়েছেন:{% endif %} {{ profile.user.date_joined|date:"d M Y" }}</p>
         </div>
       </div>
       <div class="flex items-center gap-3 flex-wrap">
         <button onclick="document.getElementById('feedbackModal').classList.remove('hidden')"
             class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-          Feedback পাঠান
+          {% if LANG == 'en' %}Send Feedback{% else %}Feedback পাঠান{% endif %}
         </button>
         <a href="{% url 'contest_create' %}" class="border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50">
           Practice Assign
@@ -44,7 +44,7 @@
   <!-- Quick Stats -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
     <div class="bg-white rounded-2xl border border-gray-200 p-5">
-      <p class="text-xs text-gray-500 mb-1">মোট প্রশ্ন</p>
+      <p class="text-xs text-gray-500 mb-1">{% if LANG == 'en' %}Total questions{% else %}মোট প্রশ্ন{% endif %}</p>
       <p class="text-3xl font-bold text-gray-900">{{ total_answered }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-200 p-5">
@@ -53,7 +53,7 @@
     </div>
     <div class="bg-white rounded-2xl border border-gray-200 p-5">
       <p class="text-xs text-gray-500 mb-1">Current Streak</p>
-      <p class="text-3xl font-bold text-orange-500">{{ streak }} দিন</p>
+      <p class="text-3xl font-bold text-orange-500">{{ streak }}{% if LANG == 'en' %} days</p>{% else %} দিন</p>{% endif %}
     </div>
     <div class="bg-white rounded-2xl border border-gray-200 p-5">
       <p class="text-xs text-gray-500 mb-1">Class Rank</p>
@@ -72,11 +72,11 @@
       </button>
       <button onclick="showTab('history')" id="tab-history"
           class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
-        প্রশ্নের ইতিহাস
+        {% if LANG == 'en' %}Question history{% else %}প্রশ্নের ইতিহাস{% endif %}
       </button>
       <button onclick="showTab('feedbacks')" id="tab-feedbacks"
           class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
-        আমার Feedback <span class="ml-1 bg-blue-100 text-blue-600 text-xs px-1.5 rounded-full">{{ teacher_feedbacks|length }}</span>
+        {% if LANG == 'en' %}My Feedback{% else %}আমার Feedback{% endif %} <span class="ml-1 bg-blue-100 text-blue-600 text-xs px-1.5 rounded-full">{{ teacher_feedbacks|length }}</span>
       </button>
     </nav>
   </div>
@@ -106,7 +106,7 @@
           {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-400 text-sm text-center py-6">কোনো progress নেই।</p>
+        <p class="text-gray-400 text-sm text-center py-6">{% if LANG == 'en' %}No progress.{% else %}কোনো progress নেই।{% endif %}</p>
         {% endif %}
       </div>
 
@@ -177,7 +177,7 @@
 
     <!-- 30-Day Heatmap -->
     <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-      <h2 class="font-semibold text-gray-900 mb-4">Activity Heatmap — গত ৩০ দিন</h2>
+      <h2 class="font-semibold text-gray-900 mb-4">{% if LANG == 'en' %}Activity Heatmap — last 30 days{% else %}Activity Heatmap — গত ৩০ দিন{% endif %}</h2>
       <div class="flex gap-1 flex-wrap">
         {% for day in heatmap_days %}
         {% if day.count == 0 %}
@@ -204,13 +204,13 @@
         {% endfor %}
       </div>
       <div class="flex items-center gap-2 mt-3 text-xs text-gray-400">
-        <span>কম</span>
+        <span{% if LANG == 'en' %}>Low<{% else %}>কম<{% endif %}/span>
         <div class="w-4 h-4 rounded bg-gray-100"></div>
         <div class="w-4 h-4 rounded bg-green-200"></div>
         <div class="w-4 h-4 rounded bg-green-400"></div>
         <div class="w-4 h-4 rounded bg-green-500"></div>
         <div class="w-4 h-4 rounded bg-green-700"></div>
-        <span>বেশি</span>
+        <span{% if LANG == 'en' %}>High<{% else %}>বেশি<{% endif %}/span>
       </div>
     </div>
 
@@ -229,7 +229,7 @@
   <div id="pane-history" class="hidden">
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="font-semibold text-gray-900">সাম্প্রতিক প্রশ্নের ইতিহাস (সর্বশেষ ৩০টি)</h2>
+        <h2 class="font-semibold text-gray-900">{% if LANG == 'en' %}Recent question history (last 30){% else %}সাম্প্রতিক প্রশ্নের ইতিহাস (সর্বশেষ ৩০টি){% endif %}</h2>
       </div>
       <div class="divide-y divide-gray-50">
         {% for p in history %}
@@ -238,9 +238,9 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1 flex-wrap">
                 {% if p.is_correct %}
-                <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">✓ সঠিক</span>
+                <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">{% if LANG == 'en' %}✓ Correct{% else %}✓ সঠিক{% endif %}</span>
                 {% else %}
-                <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-medium">✗ ভুল</span>
+                <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-medium">{% if LANG == 'en' %}✗ Wrong{% else %}✗ ভুল{% endif %}</span>
                 {% endif %}
                 <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ p.question.subject.name }}</span>
                 <span class="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full border border-gray-200">{{ p.question.difficulty }}</span>
@@ -261,7 +261,7 @@
             <div class="flex-shrink-0">
               <form method="post" action="{% url 'give_feedback' p.pk %}" class="flex gap-1.5">
                 {% csrf_token %}
-                <input type="text" name="comment" placeholder="Feedback লিখুন..."
+                <input type="text" name="comment" placeholder="{% if LANG == 'en' %}Write feedback...{% else %}Feedback লিখুন...{% endif %}"
                     class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none w-32 focus:ring-1 focus:ring-blue-500">
                 <button type="submit"
                     class="text-xs bg-blue-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-blue-700 whitespace-nowrap">
@@ -272,7 +272,7 @@
           </div>
         </div>
         {% empty %}
-        <div class="px-6 py-8 text-center text-gray-400">কোনো প্রশ্ন করা হয়নি।</div>
+        <div class="px-6 py-8 text-center text-gray-400">{% if LANG == 'en' %}No questions attempted.{% else %}কোনো প্রশ্ন করা হয়নি।{% endif %}</div>
         {% endfor %}
       </div>
     </div>
@@ -282,7 +282,7 @@
   <div id="pane-feedbacks" class="hidden">
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="font-semibold text-gray-900">{{ profile.user.username }}-কে পাঠানো সব Feedback</h2>
+        <h2 class="font-semibold text-gray-900">{{ profile.user.username }}{% if LANG == 'en' %} — all feedback sent{% else %}-কে পাঠানো সব Feedback{% endif %}</h2>
       </div>
       <div class="divide-y divide-gray-50">
         {% for fb in teacher_feedbacks %}
@@ -291,21 +291,21 @@
             <div class="flex-1 min-w-0">
               <p class="text-sm text-gray-800">{{ fb.comment }}</p>
               <p class="text-xs text-gray-400 mt-1">
-                বিষয়: {{ fb.progress.question.question_text|truncatechars:50 }}
+                {% if LANG == 'en' %}Subject: {% else %}বিষয়: {% endif %}{{ fb.progress.question.question_text|truncatechars:50 }}
               </p>
             </div>
             <div class="text-right flex-shrink-0">
               <p class="text-xs text-gray-400">{{ fb.created_at|date:"d M Y, H:i" }}</p>
               {% if fb.is_read %}
-              <span class="text-xs text-green-500">পড়া হয়েছে ✓</span>
+              <span class="text-xs text-green-500">{% if LANG == 'en' %}Read ✓{% else %}পড়া হয়েছে ✓{% endif %}</span>
               {% else %}
-              <span class="text-xs text-blue-500 font-medium">অপঠিত</span>
+              <span class="text-xs text-blue-500 font-medium"{% if LANG == 'en' %}>Unread<{% else %}>অপঠিত<{% endif %}/span>
               {% endif %}
             </div>
           </div>
         </div>
         {% empty %}
-        <div class="px-6 py-8 text-center text-gray-400">এখনো কোনো feedback পাঠানো হয়নি।</div>
+        <div class="px-6 py-8 text-center text-gray-400">{% if LANG == 'en' %}No feedback sent yet.{% else %}এখনো কোনো feedback পাঠানো হয়নি।{% endif %}</div>
         {% endfor %}
       </div>
     </div>
@@ -317,17 +317,17 @@
 <div id="feedbackModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
   <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="font-semibold text-gray-900">{{ profile.user.username }}-কে Feedback পাঠান</h3>
+      <h3 class="font-semibold text-gray-900">{{ profile.user.username }}{% if LANG == 'en' %} — Send Feedback{% else %}-কে Feedback পাঠান{% endif %}</h3>
       <button onclick="document.getElementById('feedbackModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
     </div>
     <form method="post" action="{% url 'send_general_feedback' profile.pk %}">
       {% csrf_token %}
-      <textarea name="comment" rows="4" placeholder="Feedback লিখুন..."
+      <textarea name="comment" rows="4" placeholder="{% if LANG == 'en' %}Write feedback...{% else %}Feedback লিখুন...{% endif %}"
           class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" required></textarea>
       <div class="flex gap-3 mt-4">
-        <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700">পাঠান</button>
+        <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700"{% if LANG == 'en' %}>Send<{% else %}>পাঠান<{% endif %}/button>
         <button type="button" onclick="document.getElementById('feedbackModal').classList.add('hidden')"
-            class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">বাতিল</button>
+            class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50"{% if LANG == 'en' %}>Cancel<{% else %}>বাতিল<{% endif %}/button>
       </div>
     </form>
   </div>
@@ -340,12 +340,12 @@
     data: {
       labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}],
       datasets: [{
-        label: 'মোট',
+        label: '{% if LANG == "en" %}Total{% else %}মোট{% endif %}',
         data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
         backgroundColor: '#93c5fd',
         borderRadius: 4,
       }, {
-        label: 'সঠিক',
+        label: '{% if LANG == "en" %}Correct{% else %}সঠিক{% endif %}',
         data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
         backgroundColor: '#22c55e',
         borderRadius: 4,

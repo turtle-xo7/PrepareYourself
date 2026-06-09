@@ -130,12 +130,12 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <span class="section-badge inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3 backdrop-blur-sm border border-white/20" data-aos="fade-down">
-                    📋 সিলেবাস
+                    {% if LANG == 'en' %}📋 Syllabus{% else %}📋 সিলেবাস{% endif %}
                 </span>
                 <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight" data-aos="fade-up" data-aos-delay="50">
                     📋 Syllabus
                 </h1>
-                <p class="text-indigo-200 mt-1 text-sm font-medium" data-aos="fade-up" data-aos-delay="100">Board অনুযায়ী পূর্ণ সিলেবাস দেখো এবং পড়ার পরিকল্পনা করো</p>
+                <p class="text-indigo-200 mt-1 text-sm font-medium" data-aos="fade-up" data-aos-delay="100">{% if LANG == 'en' %}See the full syllabus by board and plan your studies{% else %}Board অনুযায়ী পূর্ণ সিলেবাস দেখো এবং পড়ার পরিকল্পনা করো{% endif %}</p>
             </div>
             {% if is_admin %}
             <div data-aos="fade-left" data-aos-delay="150">
@@ -234,7 +234,7 @@
              style="background: linear-gradient(135deg, #e0e7ff, #ede9fe);">
             <span class="text-2xl">&#128203;</span>
         </div>
-        <p class="text-gray-400 text-sm font-medium">কোনো syllabus নেই এখনো।</p>
+        <p class="text-gray-400 text-sm font-medium">{% if LANG == 'en' %}No syllabus yet.{% else %}কোনো syllabus নেই এখনো।{% endif %}</p>
     </div>
     {% endif %}
 

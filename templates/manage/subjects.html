@@ -25,7 +25,7 @@
 
     <form method="post" action="{% url 'subject_add' %}" class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
       {% csrf_token %}
-      <p class="text-sm font-medium text-gray-700 mb-3">নতুন Subject যোগ করো</p>
+      <p class="text-sm font-medium text-gray-700 mb-3">{% if LANG == 'en' %}Add a new subject{% else %}নতুন Subject যোগ করো{% endif %}</p>
       <div class="flex gap-3">
         <input type="text" name="name" placeholder="Subject name (e.g. Physics)" required
           class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -60,14 +60,14 @@
               </span>
             </td>
             <td class="px-4 py-3">
-              <form method="post" action="{% url 'subject_delete' s.pk %}" onsubmit="return confirm('Delete করবে?')">
+              <form method="post" action="{% url 'subject_delete' s.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete?{% else %}Delete করবে?{% endif %}')">
                 {% csrf_token %}
                 <button type="submit" class="text-red-500 hover:underline text-sm">Delete</button>
               </form>
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">কোনো subject নেই।</td></tr>
+          <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">{% if LANG == 'en' %}No subjects.{% else %}কোনো subject নেই।{% endif %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

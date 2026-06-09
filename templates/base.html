@@ -12,17 +12,35 @@
     <!-- Dark mode: apply before paint to prevent flash -->
     <script>(function(){var t=localStorage.getItem('py-theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');})()</script>
 
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Bricolage Grotesque (display) + Plus Jakarta Sans (Latin body)
+         + Anek Bangla (Bengali display) + Hind Siliguri (Bengali body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..600&family=Anek+Bangla:wght@300..800&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config={darkMode:'class'}</script>
+    <script>tailwind.config={
+        darkMode:'class',
+        theme:{extend:{
+            fontFamily:{
+                sans:['"Plus Jakarta Sans"','"Hind Siliguri"','system-ui','-apple-system','Segoe UI','sans-serif'],
+                display:['"Bricolage Grotesque"','"Anek Bangla"','"Hind Siliguri"','system-ui','sans-serif'],
+                bn:['"Hind Siliguri"','"Plus Jakarta Sans"','sans-serif']
+            },
+            colors:{
+                /* Brand recolor: blue utilities -> emerald, purple utilities -> teal */
+                blue:{50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b',950:'#022c22'},
+                purple:{50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a',950:'#042f2e'}
+            }
+        }}
+    }</script>
 
-    <!-- AOS — Animate on Scroll -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+    <!-- GSAP + ScrollTrigger -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <!-- Lenis — butter-smooth scroll -->
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
 
     <!-- Custom CSS -->
     {% load static %}
@@ -49,6 +67,25 @@
     <!-- Scroll progress bar -->
     <div id="scroll-progress"></div>
 
+    <!-- Global search modal -->
+    <div id="search-modal" class="search-modal" aria-hidden="true">
+        <div class="search-backdrop" data-close-search></div>
+        <div class="search-box" role="dialog" aria-modal="true" aria-label="Search">
+            <div class="search-input-row">
+                <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg>
+                <input type="text" id="search-input" autocomplete="off" placeholder="{% if LANG == 'en' %}Search questions, notes, papers…{% else %}প্রশ্ন, নোট, পেপার খুঁজুন…{% endif %}">
+                <kbd class="search-esc">ESC</kbd>
+            </div>
+            <div id="search-results" class="search-results">
+                <div class="search-hint">{% if LANG == 'en' %}Start typing to search across all content.{% else %}সব কন্টেন্টে খুঁজতে টাইপ শুরু করুন।{% endif %}</div>
+            </div>
+            <div class="search-foot">
+                <span>{% if LANG == 'en' %}Scoped to your board & class{% else %}তোমার বোর্ড ও শ্রেণি অনুযায়ী{% endif %}</span>
+                <span><kbd>↵</kbd> {% if LANG == 'en' %}see all{% else %}সব দেখুন{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
     {% include 'includes/navbar.html' %}
 
     <main class="min-h-screen">
@@ -63,9 +100,6 @@
             <polyline points="18 15 12 9 6 15"></polyline>
         </svg>
     </button>
-
-    <!-- AOS JS -->
-    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 
     <script>
     /* ─── KaTeX ─────────────────────────────────────── */
@@ -87,14 +121,74 @@
         window.addEventListener('load', function () { window.renderMath(); });
     })();
 
-    /* ─── AOS init ──────────────────────────────────── */
-    AOS.init({
-        duration: 650,
-        easing: 'ease-out-expo',
-        once: true,
-        offset: 70,
-        delay: 0,
-    });
+    /* ─── Lenis smooth scroll ───────────────────────── */
+    (function () {
+        if (typeof Lenis === 'undefined') return;
+        var lenis = new Lenis({
+            duration: 1.2,
+            easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+        });
+        window.lenis = lenis;
+        if (typeof gsap !== 'undefined') {
+            gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+            gsap.ticker.lagSmoothing(0);
+        }
+        if (typeof ScrollTrigger !== 'undefined') {
+            lenis.on('scroll', ScrollTrigger.update);
+        }
+    })();
+
+    /* ─── GSAP ScrollTrigger (replaces AOS) ─────────── */
+    (function () {
+        if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        var ANIM = {
+            'fade-up':    { y: 32,  opacity: 0 },
+            'fade-down':  { y: -24, opacity: 0 },
+            'fade-left':  { x: 32,  opacity: 0 },
+            'fade-right': { x: -32, opacity: 0 },
+            'zoom-in':    { scale: 0.88, opacity: 0 },
+            'fade':       { opacity: 0 },
+        };
+
+        var SHIMMER_TARGETS = ['feature-card', 'board-badge', 'testimonial-card'];
+
+        document.querySelectorAll('[data-aos]').forEach(function (el) {
+            var type      = el.dataset.aos || 'fade-up';
+            var delay     = parseFloat(el.dataset.aosDelay || 0) / 1000;
+            var isHeading = /^H[1-3]$/.test(el.tagName);
+            var needsShimmer = SHIMMER_TARGETS.some(function(c){ return el.classList.contains(c); });
+
+            if (isHeading) {
+                /* Stagger heading text + its gradient child span */
+                var targets = [el];
+                var inner   = el.querySelector('span');
+                if (inner && inner.parentNode === el) targets.push(inner);
+                gsap.set(targets, { opacity: 0, y: 22 });
+                ScrollTrigger.create({
+                    trigger: el, start: 'top 88%', once: true,
+                    onEnter: function () {
+                        gsap.to(targets, { opacity: 1, y: 0, duration: 0.75, ease: 'expo.out', stagger: 0.1, delay: delay });
+                    }
+                });
+            } else {
+                var from = ANIM[type] || { opacity: 0, y: 24 };
+                gsap.fromTo(el,
+                    Object.assign({}, from),
+                    {
+                        opacity: 1, y: 0, x: 0, scale: 1,
+                        duration: 0.75, delay: delay, ease: 'expo.out',
+                        scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+                        onComplete: needsShimmer ? function () {
+                            el.classList.add('shimmer-reveal');
+                            setTimeout(function () { el.classList.remove('shimmer-reveal'); }, 850);
+                        } : null,
+                    }
+                );
+            }
+        });
+    })();
 
     /* ─── Scroll progress bar ───────────────────────── */
     (function () {
@@ -113,7 +207,8 @@
             btn.classList.toggle('visible', window.scrollY > 400);
         }, { passive: true });
         btn.addEventListener('click', function () {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (window.lenis) window.lenis.scrollTo(0);
+            else window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     })();
 
@@ -124,6 +219,135 @@
         function update() { nav.classList.toggle('scrolled', window.scrollY > 60); }
         window.addEventListener('scroll', update, { passive: true });
         update();
+    })();
+
+    /* ─── Global search modal ───────────────────────── */
+    (function () {
+        var modal   = document.getElementById('search-modal');
+        var input   = document.getElementById('search-input');
+        var results = document.getElementById('search-results');
+        if (!modal || !input) return;
+
+        var GROUPS = [
+            { key: 'questions', label: {% if LANG == 'en' %}'Questions'{% else %}'প্রশ্ন'{% endif %}, icon: '📚' },
+            { key: 'notes',     label: {% if LANG == 'en' %}'Study Notes'{% else %}'স্টাডি নোটস'{% endif %}, icon: '📖' },
+            { key: 'papers',    label: {% if LANG == 'en' %}'Exam Papers'{% else %}'পরীক্ষার প্রশ্ন'{% endif %}, icon: '📝' },
+        ];
+        var debounceTimer, lastQuery = '', flat = [], activeIdx = -1;
+
+        function openModal() {
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(function () { input.focus(); }, 30);
+        }
+        function closeModal() {
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        var openBtn = document.getElementById('open-search');
+        if (openBtn) openBtn.addEventListener('click', openModal);
+
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openModal(); }
+            if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+        });
+        modal.querySelectorAll('[data-close-search]').forEach(function (el) {
+            el.addEventListener('click', closeModal);
+        });
+
+        function render(data) {
+            flat = []; activeIdx = -1;
+            if (!data || data.total === 0) {
+                results.innerHTML = '<div class="search-empty">' + ({% if LANG == 'en' %}'No results found.'{% else %}'কোনো ফলাফল নেই।'{% endif %}) + '</div>';
+                return;
+            }
+            var html = '';
+            GROUPS.forEach(function (g) {
+                var items = data[g.key] || [];
+                if (!items.length) return;
+                html += '<div class="search-group-label">' + g.icon + ' ' + g.label + '</div>';
+                items.forEach(function (it) {
+                    var idx = flat.length;
+                    flat.push(it.url);
+                    html += '<a class="search-item" data-idx="' + idx + '" href="' + it.url + '">' +
+                            '<div class="search-item-title">' + escapeHtml(it.title) + '</div>' +
+                            (it.meta ? '<div class="search-item-meta">' + escapeHtml(it.meta) + '</div>' : '') +
+                            '</a>';
+                });
+            });
+            results.innerHTML = html;
+        }
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"]/g, function (c) {
+                return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+            });
+        }
+
+        input.addEventListener('input', function () {
+            var q = input.value.trim();
+            clearTimeout(debounceTimer);
+            if (q.length < 2) {
+                results.innerHTML = '<div class="search-hint">' + ({% if LANG == 'en' %}'Keep typing…'{% else %}'টাইপ করতে থাকো…'{% endif %}) + '</div>';
+                return;
+            }
+            debounceTimer = setTimeout(function () {
+                lastQuery = q;
+                fetch('{% url "search_api" %}?q=' + encodeURIComponent(q))
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) { if (input.value.trim() === lastQuery) render(data); })
+                    .catch(function () {});
+            }, 220);
+        });
+
+        input.addEventListener('keydown', function (e) {
+            var items = results.querySelectorAll('.search-item');
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeIdx >= 0 && flat[activeIdx]) { window.location.href = flat[activeIdx]; }
+                else if (input.value.trim()) { window.location.href = '{% url "search_page" %}?q=' + encodeURIComponent(input.value.trim()); }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); highlight(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); highlight(items);
+            }
+        });
+        function highlight(items) {
+            items.forEach(function (el, i) { el.classList.toggle('active', i === activeIdx); });
+            if (items[activeIdx]) items[activeIdx].scrollIntoView({ block: 'nearest' });
+        }
+    })();
+
+    /* ─── Nav dropdowns (Study / Contests) ──────────── */
+    (function () {
+        var dds = document.querySelectorAll('[data-dd]');
+        if (!dds.length) return;
+        function closeAll(except) {
+            dds.forEach(function (dd) {
+                if (dd !== except) {
+                    dd.classList.remove('open');
+                    var t = dd.querySelector('.nav-dd-trigger');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+        dds.forEach(function (dd) {
+            var trigger = dd.querySelector('.nav-dd-trigger');
+            if (!trigger) return;
+            /* Open on hover (desktop) */
+            dd.addEventListener('mouseenter', function () { closeAll(dd); dd.classList.add('open'); trigger.setAttribute('aria-expanded','true'); });
+            dd.addEventListener('mouseleave', function () { dd.classList.remove('open'); trigger.setAttribute('aria-expanded','false'); });
+            /* Toggle on click (keyboard / touch) */
+            trigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var isOpen = dd.classList.contains('open');
+                closeAll(dd);
+                dd.classList.toggle('open', !isOpen);
+                trigger.setAttribute('aria-expanded', String(!isOpen));
+            });
+        });
+        document.addEventListener('click', function () { closeAll(null); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(null); });
     })();
 
     /* ─── Mobile hamburger menu ─────────────────────── */
@@ -143,30 +367,37 @@
         });
     })();
 
-    /* ─── 3D Tilt effect ────────────────────────────── */
+    /* ─── GSAP 3D Tilt ──────────────────────────────── */
     (function () {
+        if (typeof gsap === 'undefined') return;
         function initTilt() {
             document.querySelectorAll('[data-tilt]').forEach(function (el) {
                 var max = parseFloat(el.dataset.tiltMax || '10');
+                gsap.set(el, { transformPerspective: 800, transformStyle: 'preserve-3d' });
+
                 el.addEventListener('mousemove', function (e) {
                     var r = el.getBoundingClientRect();
                     var x = ((e.clientX - r.left) / r.width  - 0.5) * 2;
                     var y = ((e.clientY - r.top)  / r.height - 0.5) * 2;
-                    var rx = -y * max, ry = x * max;
-                    var shadowX = ry * 0.5, shadowY = -rx * 0.5;
-                    el.style.transition = 'transform 0.05s ease';
-                    el.style.transform  = 'perspective(800px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) scale3d(1.04,1.04,1.04)';
-                    el.style.boxShadow  = shadowX + 'px ' + (shadowY + 12) + 'px 32px rgba(59,130,246,0.22)';
+                    gsap.to(el, {
+                        rotateX: -y * max,
+                        rotateY:  x * max,
+                        scale: 1.04,
+                        boxShadow: (x * max * 0.5) + 'px ' + (-(-y * max) * 0.5 + 12) + 'px 32px rgba(5,150,105,0.22)',
+                        duration: 0.35, ease: 'power2.out', overwrite: 'auto',
+                    });
                 });
                 el.addEventListener('mouseleave', function () {
-                    el.style.transition = 'transform 0.55s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease';
-                    el.style.transform  = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
-                    el.style.boxShadow  = '';
+                    gsap.to(el, {
+                        rotateX: 0, rotateY: 0, scale: 1, boxShadow: 'none',
+                        duration: 0.9, ease: 'elastic.out(1,0.45)', overwrite: 'auto',
+                    });
                 });
             });
         }
         document.addEventListener('DOMContentLoaded', initTilt);
     })();
+
 
     /* ─── Ripple effect on .ripple elements ─────────── */
     (function () {
@@ -227,7 +458,30 @@
 
     </script>
 
-    {% block scripts %}{% endblock %}
+    <script>
+    /* ─── Hover spotlight on cards ──────────────────── */
+    (function () {
+        function attach() {
+            document.querySelectorAll('.feature-card, .testimonial-card, .board-badge, .stat-box').forEach(function (el) {
+                if (el.querySelector('.card-spotlight')) return;
+                var spot = document.createElement('div');
+                spot.className = 'card-spotlight';
+                el.insertBefore(spot, el.firstChild);
+
+                el.addEventListener('mousemove', function (e) {
+                    var r = el.getBoundingClientRect();
+                    var x = ((e.clientX - r.left) / r.width  * 100).toFixed(1);
+                    var y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
+                    spot.style.background =
+                        'radial-gradient(circle at ' + x + '% ' + y + '%, ' +
+                        'rgba(13,148,136,0.14) 0%, rgba(13,148,136,0.07) 40%, transparent 68%)';
+                });
+                el.addEventListener('mouseleave', function () { spot.style.background = ''; });
+            });
+        }
+        document.addEventListener('DOMContentLoaded', attach);
+    })();
+    </script>
 
     {% if LANG == 'bn' %}
     <script>

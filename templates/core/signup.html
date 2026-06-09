@@ -28,7 +28,7 @@
     }
     .input-field:focus {
       border-color: #93c5fd;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
     }
     .role-card {
       border: 1.5px solid #e5e7eb;
@@ -39,9 +39,9 @@
     }
     .role-card:hover { border-color: #93c5fd; }
     .role-card.selected {
-      border-color: #3b82f6;
+      border-color: #059669;
       background: #eff6ff;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
     }
     .plan-row {
       border: 1.5px solid #e5e7eb;
@@ -50,28 +50,28 @@
       cursor: pointer;
     }
     .plan-row:hover { border-color: #93c5fd; }
-    .plan-row.selected { border-color: #3b82f6; background: #eff6ff; }
+    .plan-row.selected { border-color: #059669; background: #eff6ff; }
 
     /* Dark mode */
     .dark body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%) !important; }
     .dark .card-box { background: #1e293b !important; border-color: #334155 !important; }
     .dark .input-field { background: #0f172a; border-color: #334155; color: #f1f5f9; }
     .dark .input-field::placeholder { color: #64748b; }
-    .dark .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+    .dark .input-field:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.2); }
     .dark .role-card { border-color: #334155; color: #f1f5f9; }
-    .dark .role-card:hover { border-color: #3b82f6; }
-    .dark .role-card.selected { background: rgba(59,130,246,0.15); border-color: #3b82f6; }
+    .dark .role-card:hover { border-color: #059669; }
+    .dark .role-card.selected { background: rgba(5,150,105,0.15); border-color: #059669; }
     .dark .role-card .sub-text { color: #64748b; }
     .dark .plan-row { border-color: #334155; }
-    .dark .plan-row:hover { border-color: #3b82f6; }
-    .dark .plan-row.selected { background: rgba(59,130,246,0.15); border-color: #3b82f6; }
+    .dark .plan-row:hover { border-color: #059669; }
+    .dark .plan-row.selected { background: rgba(5,150,105,0.15); border-color: #059669; }
     .dark .plan-row .plan-name { color: #f1f5f9; }
     .dark .plan-row .plan-sub { color: #64748b; }
     .dark .plan-row .plan-price { color: #cbd5e1; }
     .dark .label-text { color: #cbd5e1 !important; }
     .dark .muted { color: #94a3b8 !important; }
     .dark .footer-text { color: #475569; }
-    .dark .ctrl-btn { background: rgba(99,102,241,0.2) !important; color: #a5b4fc !important; }
+    .dark .ctrl-btn { background: rgba(13,148,136,0.2) !important; color: #a5b4fc !important; }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-8"
@@ -86,23 +86,23 @@
         <div class="absolute right-0 top-0 flex items-center gap-1.5">
           <a href="{% url 'toggle_language' %}"
              class="ctrl-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-indigo-600 transition hover:scale-105"
-             style="background: rgba(99,102,241,0.1);">
+             style="background: rgba(13,148,136,0.1);">
             {% if LANG == 'en' %}বাং{% else %}EN{% endif %}
           </a>
           <button id="theme-btn" onclick="toggleTheme()"
             class="ctrl-btn w-9 h-9 rounded-xl flex items-center justify-center transition hover:scale-110 text-indigo-600"
-            style="background: rgba(99,102,241,0.1);">
+            style="background: rgba(13,148,136,0.1);">
             <span id="theme-icon">🌙</span>
           </button>
         </div>
 
         <a href="/" class="inline-flex flex-col items-center gap-2">
           <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md"
-               style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+               style="background: linear-gradient(135deg, #059669, #0d9488);">
             <span class="text-white text-2xl font-extrabold tracking-tight">PY</span>
           </div>
           <span class="text-xl font-bold"
-                style="background: linear-gradient(135deg,#3b82f6,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+                style="background: linear-gradient(135deg,#059669,#0d9488); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
             Prepare Yourself
           </span>
         </a>
@@ -232,7 +232,7 @@
 
         <button type="submit"
           class="w-full py-3 rounded-xl font-bold text-white text-sm transition hover:opacity-90 active:scale-95 shadow-md ripple btn-glow"
-          style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+          style="background: linear-gradient(135deg, #059669, #0d9488);">
           {% if LANG == 'en' %}Sign Up{% else %}নিবন্ধন করো{% endif %}
         </button>
       </form>
@@ -294,7 +294,7 @@
   <style>
     @keyframes rippleGrow { to { transform: scale(4); opacity: 0; } }
     .btn-glow { position: relative; overflow: hidden; }
-    .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(59,130,246,0.4); }
+    .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(5,150,105,0.4); }
   </style>
 </body>
 </html>

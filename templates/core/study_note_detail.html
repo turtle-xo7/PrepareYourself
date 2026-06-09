@@ -11,8 +11,8 @@
     transition: box-shadow 0.25s ease;
 }
 .content-card:hover {
-    box-shadow: 0 8px 32px rgba(59,130,246,0.12);
-    border-color: rgba(59,130,246,0.2);
+    box-shadow: 0 8px 32px rgba(5,150,105,0.12);
+    border-color: rgba(5,150,105,0.2);
 }
 .related-card {
     background: white;
@@ -24,15 +24,15 @@
 }
 .related-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(59,130,246,0.12);
-    border-color: rgba(59,130,246,0.2);
+    box-shadow: 0 8px 32px rgba(5,150,105,0.12);
+    border-color: rgba(5,150,105,0.2);
 }
 </style>
 
 <!-- Fixed Reading Progress Bar -->
 <div class="fixed top-0 left-0 w-full z-50 h-1.5 bg-gray-100">
     <div id="progress-bar" class="h-1.5 transition-all duration-300"
-        style="width: {{ read_progress.scroll_percent }}%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+        style="width: {{ read_progress.scroll_percent }}%; background: linear-gradient(90deg, #059669, #0d9488);"></div>
 </div>
 
 <!-- Progress % badge -->
@@ -43,7 +43,7 @@
 </div>
 
 <!-- Page Header -->
-<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%); min-height: 160px;">
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #059669 50%, #0d9488 100%); min-height: 160px;">
     <div class="hero-dot-grid absolute inset-0"></div>
     <div class="float-shape float-shape-1"></div>
     <div class="float-shape float-shape-2"></div>
@@ -92,7 +92,7 @@
             </button>
             <a href="{% url 'study_note_edit' note.pk %}"
                 class="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-xl transition text-white"
-                style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                style="background: linear-gradient(135deg, #059669, #0d9488);">
                 ✏️ Edit
             </a>
             {% endif %}
@@ -114,12 +114,12 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="font-semibold text-gray-900 flex items-center gap-2">
                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-sm"
-                    style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white;">📄</span>
-                PDF ফাইল
+                    style="background: linear-gradient(135deg, #059669, #0d9488); color: white;">📄</span>
+                {% if LANG == 'en' %}PDF file{% else %}PDF ফাইল{% endif %}
             </h2>
             <a href="{{ note.pdf_file.url }}" download
                 class="inline-flex items-center gap-1.5 text-white text-sm font-semibold px-4 py-2 rounded-xl transition"
-                style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                style="background: linear-gradient(135deg, #059669, #0d9488);">
                 ⬇️ Download
             </a>
         </div>
@@ -134,8 +134,8 @@
     <div class="content-card p-6" data-aos="fade-up" data-aos-delay="100">
         <h2 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-sm"
-                style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white;">📚</span>
-            সম্পর্কিত Notes
+                style="background: linear-gradient(135deg, #059669, #0d9488); color: white;">📚</span>
+            {% if LANG == 'en' %}Related Notes{% else %}সম্পর্কিত Notes{% endif %}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             {% for rn in related_notes %}
@@ -152,7 +152,7 @@
     <div class="content-card p-6" data-aos="fade-up" data-aos-delay="120">
         <h2 class="font-semibold text-gray-900 mb-5 flex items-center gap-2">
             <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-sm"
-                style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white;">💬</span>
+                style="background: linear-gradient(135deg, #059669, #0d9488); color: white;">💬</span>
             Comments
         </h2>
 
@@ -211,44 +211,44 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-400 text-sm mb-5">কোনো comment নেই এখনো।</p>
+        <p class="text-gray-400 text-sm mb-5">{% if LANG == 'en' %}No comments yet.{% else %}কোনো comment নেই এখনো।{% endif %}</p>
         {% endif %}
 
         <!-- Add Comment Form -->
         <form method="post" action="{% url 'add_comment' note.pk %}" class="flex gap-2">
             {% csrf_token %}
-            <input type="text" name="comment" placeholder="Comment লিখো..."
+            <input type="text" name="comment" placeholder="{% if LANG == 'en' %}Write a comment...{% else %}Comment লিখো...{% endif %}"
                 class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 transition">
             <button type="submit"
                 class="text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition"
-                style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                style="background: linear-gradient(135deg, #059669, #0d9488);">
                 Post
             </button>
         </form>
         {% if not is_teacher %}
-        <p class="text-xs text-gray-400 mt-2">* তোমার comment teacher approve করার পরে দেখা যাবে।</p>
+        <p class="text-xs text-gray-400 mt-2">{% if LANG == 'en' %}* Your comment will be visible after a teacher approves it.{% else %}* তোমার comment teacher approve করার পরে দেখা যাবে।{% endif %}</p>
         {% endif %}
     </div>
 
     <!-- AI Q&A -->
     <div class="rounded-2xl border p-6" data-aos="fade-up" data-aos-delay="140"
-        style="background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-color: rgba(59,130,246,0.15); box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+        style="background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-color: rgba(5,150,105,0.15); box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
         <h2 class="font-semibold text-gray-900 mb-1 flex items-center gap-2">
             <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-sm"
-                style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white;">🤖</span>
-            AI কে জিজ্ঞেস করো
+                style="background: linear-gradient(135deg, #059669, #0d9488); color: white;">🤖</span>
+            {% if LANG == 'en' %}Ask AI{% else %}AI কে জিজ্ঞেস করো{% endif %}
         </h2>
-        <p class="text-sm text-gray-500 mb-4 ml-9">এই note সম্পর্কে যেকোনো প্রশ্ন করো</p>
+        <p class="text-sm text-gray-500 mb-4 ml-9">{% if LANG == 'en' %}Ask anything about this note{% else %}এই note সম্পর্কে যেকোনো প্রশ্ন করো{% endif %}</p>
 
         <div id="chat-box" class="space-y-3 mb-4 max-h-64 overflow-y-auto"></div>
 
         <div class="flex gap-2">
             <input type="text" id="ai-question"
-                placeholder="এই note সম্পর্কে প্রশ্ন করো..."
+                placeholder="{% if LANG == 'en' %}Ask a question about this note...{% else %}এই note সম্পর্কে প্রশ্ন করো...{% endif %}"
                 class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white transition">
             <button onclick="askAI()"
                 class="text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition"
-                style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                style="background: linear-gradient(135deg, #059669, #0d9488);">
                 Ask
             </button>
         </div>
@@ -306,10 +306,10 @@ async function askAI() {
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML += `
         <div class="flex justify-end">
-            <div class="text-white text-sm px-4 py-2 rounded-xl max-w-xs" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">${question}</div>
+            <div class="text-white text-sm px-4 py-2 rounded-xl max-w-xs" style="background: linear-gradient(135deg, #059669, #0d9488);">${question}</div>
         </div>`;
     document.getElementById('ai-question').value = '';
-    chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">AI ভাবছে...</div>`;
+    chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">{% if LANG == 'en' %}AI is thinking...{% else %}AI ভাবছে...{% endif %}</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
@@ -328,7 +328,7 @@ async function askAI() {
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (e) {
         document.getElementById('loading').remove();
-        chatBox.innerHTML += `<div class="text-red-500 text-sm">Error হয়েছে।</div>`;
+        chatBox.innerHTML += `<div class="text-red-500 text-sm">{% if LANG == 'en' %}An error occurred.{% else %}Error হয়েছে।{% endif %}</div>`;
     }
 }
 
@@ -339,7 +339,7 @@ document.getElementById('ai-question').addEventListener('keypress', function(e) 
 // MCQ Generate
 async function generateMCQ() {
     const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">MCQ generate হচ্ছে...</div>`;
+    chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">{% if LANG == 'en' %}Generating MCQ...{% else %}MCQ generate হচ্ছে...{% endif %}</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
     try {
         const res = await fetch(`/study-notes/${noteId}/generate-mcq/`, {
@@ -364,7 +364,7 @@ async function generateMCQ() {
         }
     } catch (e) {
         document.getElementById('loading')?.remove();
-        chatBox.innerHTML += `<div class="text-red-500 text-sm">Error হয়েছে।</div>`;
+        chatBox.innerHTML += `<div class="text-red-500 text-sm">{% if LANG == 'en' %}An error occurred.{% else %}Error হয়েছে।{% endif %}</div>`;
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -372,7 +372,7 @@ async function generateMCQ() {
 // Summarize
 async function summarizeNote() {
     const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">Summary তৈরি হচ্ছে...</div>`;
+    chatBox.innerHTML += `<div id="loading" class="text-sm text-gray-400">{% if LANG == 'en' %}Generating summary...{% else %}Summary তৈরি হচ্ছে...{% endif %}</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
     try {
         const res = await fetch(`/study-notes/${noteId}/summarize/`, {
@@ -384,7 +384,7 @@ async function summarizeNote() {
         if (data.summary) {
             chatBox.innerHTML += `
                 <div class="flex justify-start">
-                    <div class="border text-sm px-4 py-2 rounded-xl max-w-sm text-gray-800" style="background: #f5f3ff; border-color: rgba(139,92,246,0.2); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <div class="border text-sm px-4 py-2 rounded-xl max-w-sm text-gray-800" style="background: #f5f3ff; border-color: rgba(13,148,136,0.2); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                         <p class="font-semibold mb-2">📋 Summary:</p>
                         ${data.summary}
                     </div>
@@ -393,7 +393,7 @@ async function summarizeNote() {
         }
     } catch (e) {
         document.getElementById('loading')?.remove();
-        chatBox.innerHTML += `<div class="text-red-500 text-sm">Error হয়েছে।</div>`;
+        chatBox.innerHTML += `<div class="text-red-500 text-sm">{% if LANG == 'en' %}An error occurred.{% else %}Error হয়েছে।{% endif %}</div>`;
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }

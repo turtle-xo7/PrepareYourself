@@ -20,24 +20,35 @@
             <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment Simulation</h1>
             <p class="text-gray-500 text-sm mb-6">Test payment flow without real transactions</p>
 
-            <!-- Current Plan Info -->
-            {% if request.user.is_authenticated %}
-            <div class="bg-gray-50 rounded-xl px-4 py-3 mb-6">
+            <!-- Order Info -->
+            <div class="bg-gray-50 rounded-xl px-4 py-3 mb-6 space-y-1.5">
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-600">Current Plan</span>
-                    <span class="font-medium">{{ request.user.profile.plan }}</span>
+                    <span class="text-gray-600">Plan</span>
+                    <span class="font-semibold">{{ payment.plan|title }}</span>
+                </div>
+                {% if payment.method %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Method</span>
+                    <span class="font-medium capitalize">{{ payment.method }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Amount</span>
+                    <span class="font-semibold">৳{{ payment.amount }}</span>
+                </div>
+                <div class="flex justify-between text-xs text-gray-400 pt-1">
+                    <span>Txn</span><span class="font-mono">{{ payment.tran_id|slice:":16" }}</span>
                 </div>
             </div>
-            {% endif %}
 
             <!-- Simulation Form -->
-            <form method="post" action="{% url 'checkout' %}" class="space-y-4">
+            <form method="post" action="{% url 'payment_process' payment.tran_id %}" class="space-y-4">
                 {% csrf_token %}
 
                 <div class="flex flex-col gap-3">
                     <!-- Success Button -->
                     <button type="submit"
-                            name="simulation"
+                            name="result"
                             value="success"
                             class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,7 +59,7 @@
 
                     <!-- Failure Button -->
                     <button type="submit"
-                            name="simulation"
+                            name="result"
                             value="failure"
                             class="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

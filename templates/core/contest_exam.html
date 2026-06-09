@@ -22,7 +22,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <p class="font-medium text-gray-900 dark:text-white">{{ forloop.counter }}. {{ q.question_text }}</p>
                     <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded-full ml-4 whitespace-nowrap">
-                        {{ q.marks }} {% if LANG == 'en' %}{% if q.marks == 1 %}mark{% else %}marks{% endif %}{% else %}নম্বর{% endif %}
+                        {{ q.marks }} {% if LANG == 'en' %}{% if q.marks == 1 %}mark{% else %}marks{% endif %}{% else %}{% if LANG == 'en' %}marks{% else %}নম্বর{% endif %}{% endif %}
                     </span>
                 </div>
 

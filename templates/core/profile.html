@@ -1,444 +1,299 @@
 {% extends 'base.html' %}
-{% block title %}Profile{% endblock %}
-
-{% block extra_head %}
-<style>
-    /* ── Profile: Indigo → Violet theme ── */
-
-    /* Card base */
-    .profile-card {
-        background: #fff;
-        border: 1px solid #e0e7ff;
-        border-radius: 1rem;
-        box-shadow: 0 2px 12px rgba(67,56,202,0.06);
-        transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease;
-    }
-    .profile-card:hover {
-        box-shadow: 0 8px 32px rgba(124,58,237,0.12);
-        border-color: rgba(124,58,237,0.18);
-    }
-
-    /* Form inputs */
-    .form-input {
-        width: 100%;
-        border: 1px solid #e0e7ff;
-        border-radius: 0.75rem;
-        padding: 0.625rem 1rem;
-        font-size: 0.875rem;
-        outline: none;
-        transition: border-color .2s, box-shadow .2s;
-        background: white;
-    }
-    .form-input:focus {
-        border-color: #7c3aed;
-        box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
-    }
-    .form-input:disabled {
-        background: #f5f3ff;
-        color: #9ca3af;
-        border-color: #ede9fe;
-        cursor: not-allowed;
-    }
-
-    /* Large avatar circle in hero */
-    .hero-avatar {
-        width: 96px;
-        height: 96px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        font-weight: 900;
-        color: #fff;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%);
-        border: 4px solid rgba(255,255,255,0.35);
-        box-shadow: 0 8px 32px rgba(124,58,237,0.35);
-        flex-shrink: 0;
-    }
-
-    /* Role badge pills */
-    .role-badge-admin {
-        background: rgba(245,158,11,0.22);
-        border: 1px solid rgba(251,191,36,0.45);
-        color: #fef3c7;
-    }
-    .role-badge-student {
-        background: rgba(99,102,241,0.25);
-        border: 1px solid rgba(165,180,252,0.45);
-        color: #e0e7ff;
-    }
-    .role-badge-superadmin {
-        background: rgba(168,85,247,0.28);
-        border: 1px solid rgba(216,180,254,0.45);
-        color: #f3e8ff;
-    }
-
-    /* Plan badges in account info card */
-    .plan-pill-premium { background: #f3e8ff; color: #7c3aed; }
-    .plan-pill-basic   { background: #e0e7ff; color: #4338ca; }
-    .plan-pill-free    { background: #f1f5f9; color: #64748b; }
-
-    /* Left column avatar info block */
-    .info-col-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        font-weight: 900;
-        color: #fff;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%);
-        border: 3px solid #ede9fe;
-        box-shadow: 0 4px 16px rgba(124,58,237,0.20);
-    }
-
-    /* Orb animations */
-    @keyframes floatY {
-        0%, 100% { transform: translateY(0); }
-        50%       { transform: translateY(-18px); }
-    }
-    @keyframes floatRotate {
-        0%   { transform: rotate(0deg) scale(1); }
-        50%  { transform: rotate(15deg) scale(1.07); }
-        100% { transform: rotate(0deg) scale(1); }
-    }
-    @keyframes avatarPulse {
-        0%, 100% { box-shadow: 0 8px 32px rgba(124,58,237,0.35); }
-        50%       { box-shadow: 0 8px 48px rgba(124,58,237,0.55); }
-    }
-    .hero-avatar { animation: avatarPulse 4s ease-in-out infinite; }
-</style>
-{% endblock %}
+{% block title %}{% if LANG == 'en' %}My Profile{% else %}আমার প্রোফাইল{% endif %}{% endblock %}
 
 {% block content %}
+{% with is_staff_user=is_admin %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-<!-- ════════════════════════════════════════════
-     HERO  —  Indigo → Violet, CENTERED layout
-════════════════════════════════════════════ -->
-<div class="relative overflow-hidden"
-     style="background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #7c3aed 100%);
-            min-height: 230px; display:flex; align-items:center;">
+    <!-- ═══════════ HERO ═══════════ -->
+    <div class="rounded-3xl relative overflow-hidden mb-6" style="background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 45%,#0f766e 100%);" data-aos="fade-up">
+        <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+        <div class="float-shape" style="width:280px;height:280px;top:-90px;right:-30px;background:radial-gradient(circle,rgba(167,139,250,0.16) 0%,transparent 70%);animation:floatY 16s ease-in-out infinite;"></div>
+        <div class="float-shape" style="width:150px;height:150px;bottom:-50px;left:8%;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);animation:floatY 12s ease-in-out infinite reverse;"></div>
 
-    <!-- Background texture -->
-    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
-
-    <!-- Floating orbs -->
-    <div class="float-shape absolute" style="width:280px;height:280px;top:-90px;right:-30px;
-        background:radial-gradient(circle,rgba(167,139,250,0.14) 0%,transparent 70%);
-        animation:floatY 15s ease-in-out infinite;"></div>
-    <div class="float-shape absolute" style="width:140px;height:140px;bottom:-60px;left:5%;
-        background:radial-gradient(circle,rgba(255,255,255,0.07) 0%,transparent 70%);
-        animation:floatY 11s ease-in-out infinite reverse;"></div>
-    <div class="float-shape absolute" style="width:70px;height:70px;top:20%;left:15%;
-        background:rgba(167,139,250,0.12);border-radius:40% 60% 60% 40% / 40% 40% 60% 60%;
-        animation:floatRotate 10s ease-in-out infinite;"></div>
-    <div class="float-shape absolute" style="width:50px;height:50px;bottom:15%;right:18%;
-        background:rgba(216,180,254,0.12);border-radius:30% 70% 70% 30% / 30% 30% 70% 70%;
-        animation:floatRotate 13s ease-in-out infinite reverse;"></div>
-
-    <!-- CENTERED content -->
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 w-full">
-        <div class="flex flex-col items-center text-center gap-4">
-
-            <!-- Large avatar circle -->
-            <div class="hero-avatar hero-anim-down relative">
-                {% if profile.profile_picture %}
-                <img src="{{ profile.profile_picture.url }}" alt="profile"
-                     class="w-full h-full object-cover rounded-full">
-                {% else %}
-                {{ request.user.username|first|upper }}
-                {% endif %}
-            </div>
-
-            <!-- Label tag -->
-            <div class="inline-flex items-center gap-2 bg-white/12 border border-white/20
-                        rounded-full px-3 py-1 text-xs font-semibold text-violet-100 hero-anim-down">
-                👤 My Profile
-            </div>
-
-            <!-- Username bold -->
-            <h1 class="text-2xl md:text-3xl font-extrabold text-white leading-tight hero-anim-1">
-                {{ request.user.username }}
-            </h1>
-
-            <!-- Role badge + Plan badge row -->
-            <div class="flex flex-wrap items-center justify-center gap-2 hero-anim-2">
-
-                <!-- Role badge — three variants -->
-                {% if profile.is_superadmin %}
-                <span class="role-badge-superadmin text-xs px-3 py-1 rounded-full font-bold tracking-wide">
-                    👑 Superadmin
-                </span>
-                {% elif profile.role == 'ADMIN' %}
-                <span class="role-badge-admin text-xs px-3 py-1 rounded-full font-bold tracking-wide">
-                    Teacher / Admin
-                </span>
-                {% else %}
-                <span class="role-badge-student text-xs px-3 py-1 rounded-full font-bold tracking-wide">
-                    Student
-                </span>
-                {% endif %}
-
-                <!-- Plan badge -->
-                {% if profile.plan == 'PREMIUM' %}
-                <span class="bg-purple-500/30 border border-purple-400/40 text-white text-xs px-2.5 py-0.5 rounded-full font-semibold">
-                    ✦ Premium
-                </span>
-                {% elif profile.plan == 'BASIC' %}
-                <span class="bg-indigo-400/30 border border-indigo-300/40 text-white text-xs px-2.5 py-0.5 rounded-full font-semibold">
-                    Basic
-                </span>
-                {% else %}
-                <span class="bg-white/15 border border-white/25 text-white text-xs px-2.5 py-0.5 rounded-full font-semibold">
-                    Free
-                </span>
-                {% endif %}
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-
-    <!-- ═══════════════════════════════════
-         EDIT PROFILE FORM
-         2-column desktop: left=avatar info, right=fields
-    ═══════════════════════════════════ -->
-    <div class="profile-card overflow-hidden" data-aos="fade-up" data-aos-delay="0">
-
-        <!-- Card header -->
-        <div class="px-6 pt-6 pb-4 border-b border-indigo-50 flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                 style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-            </div>
-            <h2 class="text-base font-bold text-gray-900">Edit Profile</h2>
-        </div>
-
-        <!-- 2-column body -->
-        <div class="p-6">
-            <div class="flex flex-col md:flex-row gap-8">
-
-                <!-- LEFT column: avatar + static info -->
-                <div class="flex flex-col items-center md:items-start gap-4 md:w-40 flex-shrink-0">
-                    <!-- Avatar -->
-                    <div class="info-col-avatar">
-                        {{ request.user.username|first|upper }}
-                    </div>
-                    <div class="text-center md:text-left">
-                        <p class="text-sm font-bold text-gray-900">{{ request.user.username }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ request.user.email|default:"—" }}</p>
-                    </div>
-                    <!-- Role display chip -->
-                    <div class="text-xs font-semibold px-2.5 py-1 rounded-full
-                        {% if profile.is_superadmin %}bg-purple-100 text-purple-700
-                        {% elif profile.role == 'ADMIN' %}bg-amber-100 text-amber-700
-                        {% else %}bg-indigo-100 text-indigo-700{% endif %}">
-                        {% if profile.is_superadmin %}
-                            👑 Superadmin
-                        {% elif profile.role == 'ADMIN' %}
-                            Teacher
-                        {% else %}
-                            Student
-                        {% endif %}
-                    </div>
+        <div class="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-end gap-6">
+            <!-- Avatar + edit overlay -->
+            <div class="relative">
+                <div class="w-28 h-28 rounded-3xl overflow-hidden flex items-center justify-center font-extrabold text-white text-5xl ring-4 ring-white/30 shadow-2xl"
+                     style="background:linear-gradient(135deg,#0d9488,#a855f7);">
+                    {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="profile" class="w-full h-full object-cover">
+                    {% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}
                 </div>
+                <button type="button" onclick="var p=document.getElementById('edit-panel');if(p){p.open=true;p.scrollIntoView({behavior:'smooth'});}document.getElementById('pic-input').click();"
+                        class="absolute -bottom-1 -right-1 w-9 h-9 rounded-xl bg-white text-violet-600 shadow-lg flex items-center justify-center hover:scale-110 transition"
+                        title="{% if LANG == 'en' %}Change photo{% else %}ছবি পরিবর্তন{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+            </div>
 
-                <!-- RIGHT column: editable fields -->
-                <div class="flex-1 min-w-0 space-y-5">
+            <!-- Identity -->
+            <div class="flex-1 text-center sm:text-left">
+                <h1 class="text-3xl font-extrabold text-white leading-tight">{{ request.user.get_full_name|default:request.user.username }}</h1>
+                <p class="text-violet-200 text-sm">@{{ request.user.username }}{% if request.user.email %} · {{ request.user.email }}{% endif %}</p>
 
-                    <!-- Profile picture section (separate form) -->
-                    <div class="pb-5 border-b border-gray-100">
-                        <label class="block text-sm font-semibold text-gray-700 mb-3">
-                            {% if LANG == 'en' %}Profile Picture{% else %}প্রোফাইল ছবি{% endif %}
-                        </label>
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center font-bold text-white text-xl flex-shrink-0"
-                                 style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
-                                {% if profile.profile_picture %}
-                                <img src="{{ profile.profile_picture.url }}" alt="profile" class="w-full h-full object-cover">
-                                {% else %}
-                                {{ request.user.username|first|upper }}
-                                {% endif %}
-                            </div>
-                            <div class="flex-1">
-                                <form method="post" action="{% url 'profile_update' %}" enctype="multipart/form-data" class="flex items-center gap-2 flex-wrap">
-                                    {% csrf_token %}
-                                    <input type="file" name="profile_picture" accept="image/*"
-                                           class="block text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                                    <button type="submit" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-2 transition">
-                                        {% if LANG == 'en' %}Upload{% else %}আপলোড{% endif %}
-                                    </button>
-                                </form>
-                                <p class="text-xs text-gray-400 mt-1">{% if LANG == 'en' %}JPG, PNG — max 2MB{% else %}JPG, PNG — সর্বোচ্চ ২MB{% endif %}</p>
-                                {% if profile.profile_picture %}
-                                <form method="post" action="{% url 'profile_picture_delete' %}" class="mt-1.5">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            onclick="return confirm('{% if LANG == 'en' %}Remove profile picture?{% else %}ছবি মুছে ফেলবেন?{% endif %}')"
-                                            class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-700 transition">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        {% if LANG == 'en' %}Remove picture{% else %}ছবি মুছুন{% endif %}
-                                    </button>
-                                </form>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                    {% if is_superadmin %}
+                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-purple-200 text-purple-800">👑 {% if LANG == 'en' %}Superadmin{% else %}সুপার এডমিন{% endif %}</span>
+                    {% elif is_admin %}
+                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-200 text-amber-800">🎓 {% if LANG == 'en' %}Teacher{% else %}শিক্ষক{% endif %}</span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full text-white" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);">
+                        <span style="color:{{ rank.color }};text-shadow:0 0 6px rgba(0,0,0,0.4);">{{ rank.stars }}</span> {{ rank.title }}
+                    </span>
+                    {% endif %}
 
-                    <!-- Info fields form -->
-                    <form method="post" action="{% url 'profile_update' %}" class="space-y-4">
-                        {% csrf_token %}
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
-                                <input type="text" name="first_name" value="{{ request.user.first_name }}"
-                                    class="form-input">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
-                                <input type="text" name="last_name" value="{{ request.user.last_name }}"
-                                    class="form-input">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
-                            <input type="email" name="email" value="{{ request.user.email }}"
-                                class="form-input">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Username</label>
-                            <input type="text" value="{{ request.user.username }}" disabled
-                                class="form-input">
-                            <p class="text-xs text-gray-400 mt-1.5">Username পরিবর্তন করা যাবে না।</p>
-                        </div>
-                        <button type="submit"
-                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
-                            style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            Save Changes
-                        </button>
-                    </form>
+                    <span class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full
+                        {% if profile.plan == 'PREMIUM' %}bg-purple-200 text-purple-800{% elif profile.plan == 'BASIC' %}bg-indigo-200 text-indigo-800{% else %}bg-white/80 text-gray-700{% endif %}">
+                        {% if profile.plan != 'FREE' %}✨ {% endif %}{{ profile.plan|title }}
+                    </span>
+
+                    {% if not is_admin and not is_superadmin and profile.board %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full bg-white/15 text-white border border-white/25">
+                        🏫 {{ profile.board.name }}{% if profile.class_obj %} · {{ profile.class_obj.name }}{% endif %}
+                    </span>
+                    {% endif %}
                 </div>
-
+                {% if not is_admin and not is_superadmin and profile.exam_goal %}
+                <p class="text-violet-100 text-sm mt-2">🎯 {{ profile.exam_goal }}</p>
+                {% endif %}
+                <p class="text-violet-300 text-xs mt-2">{% if LANG == 'en' %}Member since{% else %}সদস্য{% endif %} {{ request.user.date_joined|date:"M Y" }}</p>
             </div>
+
+            {% if not is_admin and not is_superadmin %}
+            <div class="text-center bg-white/15 border border-white/25 rounded-2xl px-5 py-3 backdrop-blur-sm">
+                <div class="text-3xl font-extrabold text-white">🪙 {{ rating.coin_balance }}</div>
+                <div class="text-xs text-violet-200 mt-0.5">{% if LANG == 'en' %}PrepCoins{% else %}প্রেপকয়েন{% endif %}</div>
+            </div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════
-         ACCOUNT INFO
-    ═══════════════════════════════════ -->
-    <div class="profile-card p-6" data-aos="fade-up" data-aos-delay="80">
-        <div class="flex items-center gap-2 mb-5">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-violet-100">
-                <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <h2 class="text-base font-bold text-gray-900">Account Info</h2>
+    {% if not is_admin and not is_superadmin %}
+    <!-- ═══════════ STUDENT: STAT STRIP ═══════════ -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-tile" data-tilt data-tilt-max="8" data-aos="fade-up" style="--c1:#f59e0b;--c2:#f97316;">
+            <div class="stat-ic">📈</div><div class="stat-num">{{ rating.rating }}</div>
+            <div class="stat-lbl">{% if LANG == 'en' %}Rating{% else %}রেটিং{% endif %}</div>
         </div>
-
-        <div class="space-y-3">
-            <div class="flex items-center justify-between py-2.5 border-b border-indigo-50">
-                <span class="text-sm text-gray-500 font-medium">Member since</span>
-                <span class="text-sm font-semibold text-gray-900">{{ request.user.date_joined|date:"d M Y" }}</span>
-            </div>
-            <div class="flex items-center justify-between py-2.5 border-b border-indigo-50">
-                <span class="text-sm text-gray-500 font-medium">Plan</span>
-                <span class="text-sm font-semibold">
-                    {% if profile.plan == 'PREMIUM' %}
-                    <span class="plan-pill-premium px-2.5 py-0.5 rounded-full text-xs font-bold">{{ profile.plan }}</span>
-                    {% elif profile.plan == 'BASIC' %}
-                    <span class="plan-pill-basic px-2.5 py-0.5 rounded-full text-xs font-bold">{{ profile.plan }}</span>
-                    {% else %}
-                    <span class="plan-pill-free px-2.5 py-0.5 rounded-full text-xs font-bold">{{ profile.plan }}</span>
-                    {% endif %}
-                </span>
-            </div>
-            <div class="flex items-center justify-between py-2.5">
-                <span class="text-sm text-gray-500 font-medium">Role</span>
-                <!-- Colored role badge in account info too -->
-                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full
-                    {% if profile.is_superadmin %}bg-purple-100 text-purple-700
-                    {% elif profile.role == 'ADMIN' %}bg-amber-100 text-amber-700
-                    {% else %}bg-indigo-100 text-indigo-700{% endif %}">
-                    {% if profile.is_superadmin %}
-                        👑 Superadmin
-                    {% else %}
-                        {{ profile.get_role_display }}
-                    {% endif %}
-                </span>
-            </div>
+        <div class="stat-tile" data-tilt data-tilt-max="8" data-aos="fade-up" data-aos-delay="60" style="--c1:#059669;--c2:#0d9488;">
+            <div class="stat-ic">📚</div><div class="stat-num">{{ total_answered }}</div>
+            <div class="stat-lbl">{% if LANG == 'en' %}Solved{% else %}সমাধান{% endif %}</div>
         </div>
-
-        {% if profile.plan == 'FREE' and not profile.is_superadmin %}
-        <a href="{% url 'pricing' %}"
-            class="mt-5 flex items-center justify-center gap-2 w-full text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition shadow-sm"
-            style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
-            ✦ Upgrade to Premium →
-        </a>
-        {% endif %}
-    </div>
-
-    <!-- ═══════════════════════════════════
-         TEACHING SUBJECTS  (teachers only)
-    ═══════════════════════════════════ -->
-    {% if profile.role == 'ADMIN' and not profile.is_superadmin and all_subjects %}
-    <div class="profile-card p-6" data-aos="fade-up" data-aos-delay="120">
-        <div class="flex items-center gap-2 mb-5">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-indigo-100">
-                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                </svg>
-            </div>
-            <h2 class="text-base font-bold text-gray-900">My Teaching Subjects</h2>
+        <div class="stat-tile" data-tilt data-tilt-max="8" data-aos="fade-up" data-aos-delay="120" style="--c1:#22c55e;--c2:#10b981;">
+            <div class="stat-ic">🎯</div><div class="stat-num">{{ accuracy }}%</div>
+            <div class="stat-lbl">{% if LANG == 'en' %}Accuracy{% else %}নির্ভুলতা{% endif %}</div>
         </div>
-
-        <!-- Current subjects -->
-        <div class="flex flex-wrap gap-2 mb-5">
-            {% for sub in profile.subjects.all %}
-            <span class="bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1 rounded-full border border-indigo-200">
-                {{ sub.name }}
-            </span>
-            {% empty %}
-            <p class="text-sm text-gray-400 italic">No subjects selected yet. Choose below.</p>
-            {% endfor %}
+        <div class="stat-tile" data-tilt data-tilt-max="8" data-aos="fade-up" data-aos-delay="180" style="--c1:#ef4444;--c2:#f97316;">
+            <div class="stat-ic">🔥</div><div class="stat-num">{{ rating.current_streak }}</div>
+            <div class="stat-lbl">{% if LANG == 'en' %}Day Streak{% else %}দিন স্ট্রিক{% endif %}</div>
         </div>
-
-        <!-- Subject selection form -->
-        <form method="post" action="{% url 'profile_update' %}">
-            {% csrf_token %}
-            <input type="hidden" name="update_subjects" value="1">
-            <p class="text-xs text-gray-400 mb-3">Choose one subject you teach.</p>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-                {% for sub in all_subjects %}
-                <label class="flex items-center gap-2.5 text-sm cursor-pointer p-2 rounded-lg hover:bg-indigo-50 transition">
-                    <input type="radio" name="subjects" value="{{ sub.id }}"
-                           {% if sub in profile.subjects.all %}checked{% endif %}
-                           class="accent-indigo-600 w-4 h-4 shrink-0">
-                    <span class="text-gray-700">{{ sub.name }}</span>
-                </label>
-                {% endfor %}
-            </div>
-            <button type="submit"
-                class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
-                style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
-                Save Subject
-            </button>
-        </form>
     </div>
     {% endif %}
 
+    <div class="grid lg:grid-cols-3 gap-6 items-start">
+        <!-- ═══════════ LEFT COLUMN ═══════════ -->
+        <div class="lg:col-span-2 space-y-6">
+
+            {% if not is_admin and not is_superadmin %}
+            <!-- Subscription -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 profile-card" style="box-shadow:var(--shadow-sm);" data-aos="fade-up">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-gray-900 flex items-center gap-2">💳 {% if LANG == 'en' %}Subscription{% else %}সাবস্ক্রিপশন{% endif %}</h2>
+                    {% if profile.plan == 'FREE' %}
+                    <a href="{% url 'pricing' %}" class="ripple btn-glow text-xs font-bold text-white px-4 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#f59e0b,#f97316);">✨ {% if LANG == 'en' %}Upgrade{% else %}আপগ্রেড{% endif %}</a>
+                    {% else %}
+                    <a href="{% url 'pricing' %}" class="text-xs font-semibold text-violet-600 hover:underline">{% if LANG == 'en' %}Manage{% else %}ম্যানেজ{% endif %}</a>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 {% if profile.plan == 'PREMIUM' %}bg-purple-100{% elif profile.plan == 'BASIC' %}bg-indigo-100{% else %}bg-gray-100{% endif %}">
+                        {% if profile.plan == 'PREMIUM' %}👑{% elif profile.plan == 'BASIC' %}⭐{% else %}🎓{% endif %}
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-bold text-gray-900">{{ profile.plan|title }} {% if LANG == 'en' %}Plan{% else %}প্ল্যান{% endif %}</div>
+                        {% if profile.plan == 'FREE' %}
+                        <div class="text-sm text-gray-500">{% if LANG == 'en' %}Limited access — upgrade for everything.{% else %}সীমিত অ্যাক্সেস — সব পেতে আপগ্রেড করো।{% endif %}</div>
+                        {% elif days_left is not None %}
+                        <div class="text-sm text-gray-500">{% if LANG == 'en' %}{{ days_left }} days left · renews {{ profile.plan_expires_at|date:"d M Y" }}{% else %}{{ days_left }} দিন বাকি · {{ profile.plan_expires_at|date:"d M Y" }}{% endif %}</div>
+                        {% else %}
+                        <div class="text-sm text-green-600">{% if LANG == 'en' %}Active{% else %}সক্রিয়{% endif %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if days_left is not None and profile.plan != 'FREE' %}
+                <div class="mt-4 h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div class="h-full rounded-full" style="width:{% widthratio days_left 30 100 %}%;background:linear-gradient(90deg,#0d9488,#a855f7);"></div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Study scope -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 profile-card" style="box-shadow:var(--shadow-sm);" data-aos="fade-up" data-aos-delay="60">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-gray-900 flex items-center gap-2">🎓 {% if LANG == 'en' %}Study Profile{% else %}স্টাডি প্রোফাইল{% endif %}</h2>
+                    <a href="{% url 'onboarding' %}" class="text-xs font-semibold text-violet-600 hover:underline">{% if LANG == 'en' %}Edit{% else %}সম্পাদনা{% endif %}</a>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <div class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{% if LANG == 'en' %}Board{% else %}বোর্ড{% endif %}</div>
+                        <div class="font-semibold text-gray-800 text-sm">{{ profile.board.name|default:"—" }}</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <div class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{% if LANG == 'en' %}Class{% else %}শ্রেণি{% endif %}</div>
+                        <div class="font-semibold text-gray-800 text-sm">{{ profile.class_obj.name|default:"—" }}</div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-400 uppercase tracking-wide mb-2">{% if LANG == 'en' %}Subjects{% else %}বিষয়{% endif %}</div>
+                <div class="flex flex-wrap gap-2">
+                    {% for s in study_subjects %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">{% if s.icon %}{{ s.icon }}{% endif %} {{ s.name }}</span>
+                    {% empty %}
+                    <a href="{% url 'onboarding' %}" class="text-sm text-gray-400 hover:text-violet-600">{% if LANG == 'en' %}+ Add your subjects{% else %}+ বিষয় যোগ করো{% endif %}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if is_admin and not is_superadmin and all_subjects %}
+            <!-- Teaching subjects (teachers) -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 profile-card" style="box-shadow:var(--shadow-sm);" data-aos="fade-up">
+                <h2 class="font-bold text-gray-900 mb-4 flex items-center gap-2">📚 {% if LANG == 'en' %}My Teaching Subjects{% else %}আমার শেখানো বিষয়{% endif %}</h2>
+                <div class="flex flex-wrap gap-2 mb-5">
+                    {% for sub in profile.subjects.all %}
+                    <span class="bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1 rounded-full border border-indigo-200">{{ sub.name }}</span>
+                    {% empty %}
+                    <p class="text-sm text-gray-400 italic">{% if LANG == 'en' %}No subjects selected yet.{% else %}এখনো বিষয় বাছাই করা হয়নি।{% endif %}</p>
+                    {% endfor %}
+                </div>
+                <form method="post" action="{% url 'profile_update' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="update_subjects" value="1">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+                        {% for sub in all_subjects %}
+                        <label class="flex items-center gap-2.5 text-sm cursor-pointer p-2 rounded-lg hover:bg-indigo-50 transition">
+                            <input type="radio" name="subjects" value="{{ sub.id }}" {% if sub in profile.subjects.all %}checked{% endif %} class="accent-indigo-600 w-4 h-4 shrink-0">
+                            <span class="text-gray-700">{{ sub.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="cta-btn ripple text-white font-semibold px-5 py-2 rounded-xl text-sm" style="background:linear-gradient(135deg,#4f46e5,#0f766e);">{% if LANG == 'en' %}Save Subject{% else %}বিষয় সংরক্ষণ{% endif %}</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Edit account (collapsible) — everyone -->
+            <details id="edit-panel" class="bg-white rounded-2xl border border-gray-100 profile-card overflow-hidden" style="box-shadow:var(--shadow-sm);" data-aos="fade-up" data-aos-delay="120">
+                <summary class="flex items-center justify-between p-6 cursor-pointer select-none list-none">
+                    <h2 class="font-bold text-gray-900 flex items-center gap-2">⚙️ {% if LANG == 'en' %}Edit Account{% else %}অ্যাকাউন্ট সম্পাদনা{% endif %}</h2>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" id="edit-chev" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <form method="post" action="{% url 'profile_update' %}" enctype="multipart/form-data" class="px-6 pb-6 space-y-4 border-t border-gray-100 pt-5">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{% if LANG == 'en' %}First Name{% else %}নামের প্রথম অংশ{% endif %}</label>
+                            <input type="text" name="first_name" value="{{ request.user.first_name }}" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{% if LANG == 'en' %}Last Name{% else %}নামের শেষ অংশ{% endif %}</label>
+                            <input type="text" name="last_name" value="{{ request.user.last_name }}" class="form-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{% if LANG == 'en' %}Email{% else %}ইমেইল{% endif %}</label>
+                        <input type="email" name="email" value="{{ request.user.email }}" class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{% if LANG == 'en' %}Profile Picture{% else %}প্রোফাইল ছবি{% endif %}</label>
+                        <input id="pic-input" type="file" name="profile_picture" accept="image/*" class="form-input">
+                        <p class="text-xs text-gray-400 mt-1.5">{% if LANG == 'en' %}Username cannot be changed.{% else %}Username পরিবর্তন করা যাবে না।{% endif %}</p>
+                    </div>
+                    <div class="flex items-center gap-3 pt-1">
+                        <button type="submit" class="cta-btn ripple text-white font-semibold px-6 py-2.5 rounded-xl text-sm" style="background:linear-gradient(135deg,#4f46e5,#0f766e);">{% if LANG == 'en' %}Save Changes{% else %}পরিবর্তন সংরক্ষণ{% endif %}</button>
+                        {% if profile.profile_picture %}
+                        <button type="submit" form="rm-pic" class="text-sm text-gray-400 hover:text-red-500 transition">{% if LANG == 'en' %}Remove photo{% else %}ছবি মুছো{% endif %}</button>
+                        {% endif %}
+                    </div>
+                </form>
+                {% if profile.profile_picture %}
+                <form id="rm-pic" method="post" action="{% url 'profile_picture_delete' %}" class="hidden">{% csrf_token %}</form>
+                {% endif %}
+            </details>
+        </div>
+
+        <!-- ═══════════ RIGHT COLUMN ═══════════ -->
+        <div class="space-y-6">
+            {% if not is_admin and not is_superadmin %}
+            <!-- Rank progress -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 profile-card" style="box-shadow:var(--shadow-sm);" data-aos="fade-left">
+                <h2 class="font-bold text-gray-900 mb-4 flex items-center gap-2">🏅 {% if LANG == 'en' %}Contest Rank{% else %}কনটেস্ট র‍্যাঙ্ক{% endif %}</h2>
+                <div class="text-center mb-4">
+                    <div class="text-4xl font-extrabold" style="color:{{ rank.color }};">{{ rating.rating }}</div>
+                    <div class="text-sm font-bold mt-1" style="color:{{ rank.color }};">{{ rank.stars }} {{ rank.title }}</div>
+                </div>
+                {% if next_rank %}
+                <div class="h-2.5 rounded-full bg-gray-100 overflow-hidden mb-2">
+                    <div class="h-full rounded-full" style="width:{{ band_pct }}%;background:linear-gradient(90deg,{{ rank.color }},#0d9488);"></div>
+                </div>
+                <p class="text-xs text-gray-500 text-center">{% if LANG == 'en' %}{{ next_rank.points_needed }} pts to next rank{% else %}পরের র‍্যাঙ্কে {{ next_rank.points_needed }} পয়েন্ট{% endif %}</p>
+                {% else %}
+                <p class="text-xs text-center text-amber-600 font-semibold">🏆 {% if LANG == 'en' %}Top rank reached!{% else %}সর্বোচ্চ র‍্যাঙ্ক!{% endif %}</p>
+                {% endif %}
+                <div class="grid grid-cols-2 gap-3 mt-4 text-center">
+                    <div class="bg-gray-50 rounded-xl p-2.5"><div class="font-bold text-gray-800">{{ rating.peak_rating }}</div><div class="text-xs text-gray-400">{% if LANG == 'en' %}Peak{% else %}সর্বোচ্চ{% endif %}</div></div>
+                    <div class="bg-gray-50 rounded-xl p-2.5"><div class="font-bold text-gray-800">{{ rating.contests_entered }}</div><div class="text-xs text-gray-400">{% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}</div></div>
+                </div>
+            </div>
+
+            <!-- Badges -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 profile-card" style="box-shadow:var(--shadow-sm);" data-aos="fade-left" data-aos-delay="60">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-gray-900 flex items-center gap-2">🎖️ {% if LANG == 'en' %}Badges{% else %}ব্যাজ{% endif %}</h2>
+                    <span class="text-xs font-semibold text-gray-400">{{ badge_count }}</span>
+                </div>
+                {% if badges %}
+                <div class="grid grid-cols-5 gap-2">
+                    {% for ub in badges %}
+                    <div class="aspect-square rounded-xl flex items-center justify-center text-xl" style="background:{{ ub.badge.color_hex }}22;border:1px solid {{ ub.badge.color_hex }}55;" title="{{ ub.badge.name }}">{{ ub.badge.icon }}</div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'badge_gallery' %}" class="block text-center text-xs font-semibold text-violet-600 hover:underline mt-4">{% if LANG == 'en' %}View all badges →{% else %}সব ব্যাজ দেখো →{% endif %}</a>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="text-3xl mb-2 opacity-40">🎖️</div>
+                    <p class="text-sm text-gray-400">{% if LANG == 'en' %}No badges yet — join a contest to earn your first!{% else %}এখনো ব্যাজ নেই — কনটেস্টে যোগ দিয়ে প্রথমটি অর্জন করো!{% endif %}</p>
+                    <a href="{% url 'contest_list' %}" class="inline-block mt-3 text-xs font-bold text-white px-4 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#4f46e5,#0f766e);">🏆 {% if LANG == 'en' %}Join a Contest{% else %}কনটেস্টে যোগ দাও{% endif %}</a>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Quick links -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-3 profile-card" style="box-shadow:var(--shadow-sm);" data-aos="fade-left" data-aos-delay="120">
+                {% if not is_admin and not is_superadmin %}
+                <a href="{% url 'progress_history' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition text-sm text-gray-700"><span>📊</span> {% if LANG == 'en' %}Progress history{% else %}অগ্রগতির ইতিহাস{% endif %}</a>
+                <a href="{% url 'profile_contests' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition text-sm text-gray-700"><span>🪙</span> {% if LANG == 'en' %}Coins & rating{% else %}কয়েন ও রেটিং{% endif %}</a>
+                {% endif %}
+                {% if is_admin or is_superadmin %}
+                <a href="{% url 'manage_dashboard' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition text-sm text-gray-700"><span>⚙️</span> {% if LANG == 'en' %}Manage panel{% else %}ম্যানেজ প্যানেল{% endif %}</a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 transition text-sm text-red-500"><span>🚪</span> {% if LANG == 'en' %}Log out{% else %}লগ আউট{% endif %}</a>
+            </div>
+        </div>
+    </div>
 </div>
+{% endwith %}
+
+<style>
+.stat-tile { background:#fff; border:1px solid #f1f5f9; border-radius:1.25rem; padding:1.25rem; text-align:center; position:relative; overflow:hidden; box-shadow:var(--shadow-sm); transform-style:preserve-3d; }
+.stat-tile::before { content:''; position:absolute; inset:0 0 auto 0; height:4px; background:linear-gradient(90deg,var(--c1),var(--c2)); }
+.stat-ic { width:44px;height:44px;margin:0 auto 0.5rem;border-radius:0.85rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 6px 16px -4px var(--c1); }
+.stat-num { font-size:1.75rem;font-weight:800;color:#0f172a;line-height:1; }
+.stat-lbl { font-size:0.72rem;color:#94a3b8;margin-top:0.35rem;text-transform:uppercase;letter-spacing:0.04em;font-weight:600; }
+html.dark .stat-tile { background:#1e293b;border-color:#334155; }
+html.dark .stat-num { color:#f1f5f9; }
+details > summary::-webkit-details-marker { display:none; }
+details[open] #edit-chev { transform:rotate(180deg); }
+</style>
 {% endblock %}

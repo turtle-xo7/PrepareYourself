@@ -12,13 +12,13 @@
         📩 {% if LANG == 'en' %}Student Note Requests{% else %}শিক্ষার্থীদের Note Request{% endif %}
       </h1>
       <p class="text-sm text-gray-400 mt-1">
-        {% if LANG == 'en' %}{{ pending_count }} pending request(s){% else %}{% if LANG == 'bn' %}{{ pending_count|bn_num }}{% else %}{{ pending_count }}{% endif %} টি request অপেক্ষমাণ{% endif %}
+        {% if LANG == 'en' %}{{ pending_count }} pending request(s){% else %}{% if LANG == 'bn' %}{{ pending_count|bn_num }}{% else %}{{ pending_count }}{% endif %} {% if LANG == 'en' %} request(s) pending{% else %}টি request অপেক্ষমাণ{% endif %}{% endif %}
       </p>
     </div>
     <div class="flex gap-2">
       <a href="{% url 'study_note_add' %}"
          class="text-sm font-semibold text-white px-4 py-2 rounded-xl transition"
-         style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+         style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
         + {% if LANG == 'en' %}Add Note{% else %}নোট যোগ করুন{% endif %}
       </a>
       <a href="{% url 'manage_dashboard' %}"
@@ -75,7 +75,7 @@
         <!-- Fulfill by adding a note linked to this request -->
         <a href="{% url 'study_note_add' %}?req={{ req.pk }}"
            class="text-xs font-bold text-white px-3 py-2 rounded-xl text-center transition hover:opacity-90"
-           style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+           style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
           ✏️ {% if LANG == 'en' %}Add Note{% else %}নোট লিখুন{% endif %}
         </a>
         <!-- Quick fulfill (mark without adding note) -->
@@ -92,7 +92,7 @@
           <input type="hidden" name="action" value="reject">
           <button type="submit"
             class="w-full text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition">
-            ✕ {% if LANG == 'en' %}Reject{% else %}বাতিল করুন{% endif %}
+            ✕ {% if LANG == 'en' %}Reject{% else %}{% if LANG == 'en' %}Cancel{% else %}বাতিল করুন{% endif %}{% endif %}
           </button>
         </form>
       </div>

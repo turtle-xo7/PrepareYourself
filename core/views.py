@@ -8,9 +8,15 @@ from django.conf import settings
 from .models import Board, Subject, Class, Question, UserProfile, UserProgress
 from datetime import datetime
 import json
+import uuid
 
 CURRENT_YEAR = datetime.now().year
 YEARS = list(range(CURRENT_YEAR, CURRENT_YEAR - 6, -1))
+
+
+def _L(request, en, bn):
+    """Return English or Bangla based on the active language."""
+    return en if getattr(request, 'LANG', 'bn') == 'en' else bn
 
 
 # -------- DECORATORS --------
@@ -22,7 +28,7 @@ def admin_required(view_func):
         try:
             profile = request.user.profile
             if profile.role != 'ADMIN':
-                messages.error(request, 'শুধু Teacher/Tutor/Institution এই page access করতে পারবে।')
+                messages.error(request, _L(request, 'Only Teachers/Tutors/Institutions can access this page.', 'শুধু Teacher/Tutor/Institution এই page access করতে পারবে।'))
                 return redirect('home')
             if not profile.is_approved and not profile.is_superadmin:
                 return redirect('teacher_pending')
@@ -56,7 +62,7 @@ def premium_required(view_func):
             if profile.role == 'ADMIN' or profile.is_superadmin:
                 return view_func(request, *args, **kwargs)
             if not profile.is_premium:
-                messages.error(request, 'এই feature শুধু Premium users এর জন্য।')
+                messages.error(request, _L(request, 'This feature is for Premium users only.', 'এই feature শুধু Premium users এর জন্য।'))
                 return redirect('pricing')
         except UserProfile.DoesNotExist:
             return redirect('pricing')
@@ -88,7 +94,7 @@ def login_view(request):
             login(request, user)
             return redirect('home')
         else:
-            messages.error(request, 'Username/Email বা Password ভুল।')
+            messages.error(request, _L(request, 'Incorrect username/email or password.', 'Username/Email বা Password ভুল।'))
     return render(request, 'core/login.html')
 
 
@@ -141,9 +147,48 @@ def signup_view(request):
         if plan != 'FREE':
             return redirect(f'/checkout/?plan={plan}')
 
-        return redirect('home')
+        # New students go through onboarding first
+        return redirect('onboarding')
 
     return redirect('login')
+
+
+@login_required
+def onboarding(request):
+    """One-time setup: capture Board + Class + Subjects so content is personalized."""
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        return redirect('home')
+
+    # Teachers/admins don't onboard as students
+    if profile.role == 'ADMIN' or profile.is_superadmin:
+        return redirect('home')
+
+    if request.method == 'POST':
+        board_id = request.POST.get('board')
+        class_id = request.POST.get('class')
+        subject_ids = request.POST.getlist('subjects')
+        goal = request.POST.get('goal', '').strip()
+
+        if board_id:
+            profile.board_id = board_id
+        if class_id:
+            profile.class_obj_id = class_id
+        profile.exam_goal = goal[:120]
+        profile.onboarded = True
+        profile.save()
+        if subject_ids:
+            profile.study_subjects.set(subject_ids)
+
+        messages.success(request, 'Your study space is ready! 🎉' if getattr(request, 'LANG', 'bn') == 'en' else 'তোমার স্টাডি স্পেস তৈরি! 🎉')
+        return redirect('dashboard' if profile.is_premium else 'question_bank')
+
+    return render(request, 'core/onboarding.html', {
+        'boards': Board.objects.filter(is_active=True),
+        'classes': Class.objects.all(),
+        'subjects': Subject.objects.filter(is_active=True),
+    })
 
 
 def logout_view(request):
@@ -165,14 +210,110 @@ def toggle_language(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
+PLAN_PRICES = {'FREE': 0, 'BASIC': 99, 'PREMIUM': 199}
+PLAN_LABELS = {'FREE': 'Free', 'BASIC': 'Basic', 'PREMIUM': 'Premium'}
+
+
+def _activate_plan(profile, plan):
+    """Single source of truth for granting a paid plan (30 days; extends if still active)."""
+    from django.utils import timezone
+    from datetime import timedelta
+    now = timezone.now()
+    base = profile.plan_expires_at if (profile.plan_expires_at and profile.plan_expires_at > now) else now
+    profile.plan = plan
+    profile.plan_expires_at = base + timedelta(days=30)
+    profile.save(update_fields=['plan', 'plan_expires_at'])
+
+
 @login_required
 def checkout(request):
+    from .models import Payment
     if request.method == 'POST':
-        request.user.profile.plan = request.POST.get('plan', 'BASIC')
-        request.user.profile.save()
-        messages.success(request, f'{request.user.profile.plan} plan activated!')
-        return redirect('home')
-    return render(request, 'core/checkout.html')
+        plan = (request.POST.get('plan') or 'BASIC').upper()
+        if plan not in ('BASIC', 'PREMIUM'):
+            plan = 'BASIC'
+        payment = Payment.objects.create(
+            user=request.user,
+            plan=plan,
+            amount=PLAN_PRICES[plan],
+            method=request.POST.get('method', ''),
+            tran_id=uuid.uuid4().hex,
+            gateway='simulation',
+            status='PENDING',
+        )
+        # Plan is NOT activated here. Activation only happens after a verified
+        # payment (payment_process). To go live, replace this redirect with the
+        # gateway "initiate" call and redirect to the returned checkout URL.
+        return redirect('payment_simulate', tran_id=payment.tran_id)
+
+    plan = request.GET.get('plan') or request.user.profile.plan or 'BASIC'
+    plan = plan.upper()
+    if plan not in PLAN_PRICES or plan == 'FREE':
+        plan = 'BASIC'
+    return render(request, 'core/checkout.html', {
+        'plan': plan,
+        'plan_label': PLAN_LABELS.get(plan, plan.title()),
+        'price': PLAN_PRICES.get(plan, 99),
+    })
+
+
+@login_required
+def payment_simulate(request, tran_id):
+    """Dev-only fake gateway. Disabled when DEBUG is False, so production cannot
+    grant free plans before a real gateway is integrated."""
+    from .models import Payment
+    if not settings.DEBUG:
+        messages.error(request, _L(request, 'Online payment is not available yet.', 'অনলাইন পেমেন্ট এখনো চালু হয়নি।'))
+        return redirect('pricing')
+    payment = get_object_or_404(Payment, tran_id=tran_id, user=request.user)
+    if payment.status == 'COMPLETED':
+        return redirect('payment_success', tran_id=tran_id)
+    if payment.status != 'PENDING':
+        return redirect('pricing')
+    return render(request, 'core/payment_simulate.html', {'payment': payment})
+
+
+@login_required
+def payment_process(request, tran_id):
+    """Completes a simulated payment. In a real gateway this becomes the
+    server-side validation callback: verify val_id + amount with the gateway
+    BEFORE calling _activate_plan."""
+    from .models import Payment
+    if request.method != 'POST' or not settings.DEBUG:
+        return redirect('pricing')
+    payment = get_object_or_404(Payment, tran_id=tran_id, user=request.user)
+    if payment.status != 'PENDING':
+        return redirect('payment_success', tran_id=tran_id)
+    if request.POST.get('result') == 'success':
+        payment.status = 'COMPLETED'
+        payment.val_id = 'SIM-' + payment.tran_id[:12]
+        payment.save(update_fields=['status', 'val_id', 'updated_at'])
+        _activate_plan(request.user.profile, payment.plan)
+        return redirect('payment_success', tran_id=tran_id)
+    payment.status = 'FAILED'
+    payment.save(update_fields=['status', 'updated_at'])
+    return redirect('payment_failed')
+
+
+@login_required
+def payment_success(request, tran_id):
+    from .models import Payment
+    payment = get_object_or_404(Payment, tran_id=tran_id, user=request.user)
+    profile = request.user.profile
+    needs_onboarding = (not profile.onboarded and profile.role != 'ADMIN'
+                        and not profile.is_superadmin)
+    return render(request, 'core/payment_success.html', {
+        'payment': payment,
+        'needs_onboarding': needs_onboarding,
+    })
+
+
+def payment_failed(request):
+    return render(request, 'core/payment_failed.html', {
+        'error_message': _L(request,
+                            'The payment was cancelled or could not be completed.',
+                            'পেমেন্ট বাতিল হয়েছে বা সম্পন্ন করা যায়নি।'),
+    })
 
 
 # -------- FRONTEND VIEWS --------
@@ -184,6 +325,111 @@ def home(request):
 
 def pricing(request):
     return render(request, 'core/pricing.html')
+
+
+def _search_scope(request):
+    """Return (board_id, class_id) to scope search to, from the user's profile."""
+    if request.user.is_authenticated:
+        try:
+            p = request.user.profile
+            return (getattr(p, 'board_id', None), getattr(p, 'class_obj_id', None))
+        except UserProfile.DoesNotExist:
+            pass
+    return (None, None)
+
+
+def _run_search(query, board_id=None, class_id=None, scoped=True, limit=6):
+    """Search questions, notes, exam papers. Returns dict of grouped lists."""
+    from .models import StudyNote, ExamPaper
+    from django.db.models import Q
+    q = (query or '').strip()
+    if not q:
+        return {'questions': [], 'notes': [], 'papers': []}
+
+    questions = Question.objects.select_related('subject', 'board', 'class_obj').filter(
+        is_active=True
+    ).filter(
+        Q(question_text__icontains=q) | Q(chapter__icontains=q) | Q(subject__name__icontains=q)
+    )
+    notes = StudyNote.objects.select_related('subject', 'class_obj').filter(
+        is_active=True
+    ).filter(
+        Q(title__icontains=q) | Q(chapter__icontains=q) | Q(content__icontains=q)
+    )
+    papers = ExamPaper.objects.select_related('subject', 'class_obj', 'board').filter(
+        is_active=True
+    ).filter(
+        Q(title__icontains=q) | Q(subject__name__icontains=q)
+    )
+
+    if scoped and class_id:
+        questions = questions.filter(class_obj_id=class_id)
+        notes = notes.filter(class_obj_id=class_id)
+        papers = papers.filter(class_obj_id=class_id)
+    if scoped and board_id:
+        questions = questions.filter(board_id=board_id)
+        papers = papers.filter(Q(board_id=board_id) | Q(board__isnull=True))
+
+    return {
+        'questions': list(questions[:limit]),
+        'notes': list(notes[:limit]),
+        'papers': list(papers[:limit]),
+    }
+
+
+def search_api(request):
+    """JSON endpoint for the ⌘K quick-search modal."""
+    query = request.GET.get('q', '')
+    scoped = request.GET.get('all') != '1'
+    board_id, class_id = _search_scope(request)
+    results = _run_search(query, board_id, class_id, scoped=scoped, limit=5)
+
+    def label(obj_subject, obj_class):
+        bits = []
+        if obj_subject:
+            bits.append(obj_subject)
+        if obj_class:
+            bits.append(obj_class)
+        return ' · '.join(bits)
+
+    payload = {
+        'questions': [{
+            'id': x.pk,
+            'title': (x.question_text[:80] + '…') if len(x.question_text) > 80 else x.question_text,
+            'meta': label(x.subject.name if x.subject_id else '', x.class_obj.name if x.class_obj_id else '') + (' · ' + str(x.year) if x.year else ''),
+            'url': f'/question-bank/?subject={x.subject_id}' if x.subject_id else '/question-bank/',
+        } for x in results['questions']],
+        'notes': [{
+            'id': x.pk,
+            'title': x.title,
+            'meta': label(x.subject.name if x.subject_id else '', x.class_obj.name if x.class_obj_id else ''),
+            'url': f'/study-notes/{x.pk}/',
+        } for x in results['notes']],
+        'papers': [{
+            'id': x.pk,
+            'title': x.title,
+            'meta': label(x.subject.name if x.subject_id else '', x.class_obj.name if x.class_obj_id else ''),
+            'url': f'/exam-papers/{x.pk}/',
+        } for x in results['papers']],
+    }
+    payload['total'] = len(payload['questions']) + len(payload['notes']) + len(payload['papers'])
+    payload['scoped'] = scoped
+    return JsonResponse(payload)
+
+
+def search_page(request):
+    """Full-page grouped search results."""
+    query = request.GET.get('q', '')
+    scoped = request.GET.get('all') != '1'
+    board_id, class_id = _search_scope(request)
+    results = _run_search(query, board_id, class_id, scoped=scoped, limit=30)
+    total = len(results['questions']) + len(results['notes']) + len(results['papers'])
+    return render(request, 'core/search.html', {
+        'query': query,
+        'results': results,
+        'total': total,
+        'scoped': scoped,
+    })
 
 
 SUBJECT_COLOR_HEX = {
@@ -262,7 +508,7 @@ def dashboard(request):
 
     try:
         if not request.user.profile.is_premium:
-            messages.error(request, 'এই feature শুধু Premium users এর জন্য।')
+            messages.error(request, _L(request, 'This feature is for Premium users only.', 'এই feature শুধু Premium users এর জন্য।'))
             return redirect('pricing')
     except:
         return redirect('pricing')
@@ -581,7 +827,7 @@ def progress_history(request):
 
     try:
         if not request.user.profile.is_premium:
-            messages.error(request, 'এই feature শুধু Premium users এর জন্য।')
+            messages.error(request, _L(request, 'This feature is for Premium users only.', 'এই feature শুধু Premium users এর জন্য।'))
             return redirect('pricing')
     except:
         return redirect('pricing')
@@ -709,6 +955,21 @@ def question_bank(request):
     subject = request.GET.get('subject')
     class_id = request.GET.get('class')
     year = request.GET.get('year')
+    qtype = request.GET.get('type')                 # MCQ | WRITTEN
+    difficulties = request.GET.getlist('difficulty')  # Easy/Medium/Hard (multi)
+    status = request.GET.get('status')              # unsolved | wrong
+
+    # Default scope to the student's profile board/class if not overridden
+    profile = None
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            profile = None
+    if profile and 'board' not in request.GET and getattr(profile, 'board_id', None):
+        board = str(profile.board_id)
+    if profile and 'class' not in request.GET and getattr(profile, 'class_obj_id', None):
+        class_id = str(profile.class_obj_id)
 
     if board:
         questions = questions.filter(board_id=board)
@@ -718,16 +979,35 @@ def question_bank(request):
         questions = questions.filter(class_obj_id=class_id)
     if year:
         questions = questions.filter(year=year)
+    if qtype in ('MCQ', 'WRITTEN'):
+        questions = questions.filter(question_type=qtype)
+    if difficulties:
+        valid = [d for d in difficulties if d in ('Easy', 'Medium', 'Hard')]
+        if valid:
+            questions = questions.filter(difficulty__in=valid)
 
     is_premium = False
     is_teacher = False
-    if request.user.is_authenticated:
-        try:
-            profile = request.user.profile
-            is_premium = profile.is_premium
-            is_teacher = profile.role == 'ADMIN' or profile.is_superadmin
-        except UserProfile.DoesNotExist:
-            pass
+    if profile:
+        is_premium = profile.is_premium
+        is_teacher = profile.role == 'ADMIN' or profile.is_superadmin
+
+    # Personal status filters (logged-in students only)
+    if request.user.is_authenticated and not is_teacher and status in ('unsolved', 'wrong'):
+        answered_ids = UserProgress.objects.filter(user=request.user).values_list('question_id', flat=True)
+        if status == 'unsolved':
+            questions = questions.exclude(pk__in=list(answered_ids))
+        elif status == 'wrong':
+            wrong_ids = UserProgress.objects.filter(user=request.user, is_correct=False).values_list('question_id', flat=True)
+            questions = questions.filter(pk__in=list(wrong_ids))
+
+    # Count of active refine filters (for the UI badge)
+    active_filters = sum([
+        bool(request.GET.get('board')), bool(request.GET.get('class')),
+        bool(subject), bool(year), bool(qtype),
+        bool(difficulties), bool(status),
+    ])
+    total_matched = questions.count()
 
     if not is_premium and not is_teacher:
         questions = questions[:10]
@@ -767,6 +1047,11 @@ def question_bank(request):
         'is_premium': is_premium,
         'is_teacher': is_teacher,
         'written_solves': written_solves,
+        'active_filters': active_filters,
+        'total_matched': total_matched,
+        'sel_type': qtype or '',
+        'sel_difficulties': difficulties,
+        'sel_status': status or '',
     })
 
 
@@ -988,7 +1273,7 @@ def question_add(request):
             mcq_correct = request.POST.getlist('mcq_correct_option')
 
             if not any(t.strip() for t in mcq_texts):
-                messages.error(request, 'কমপক্ষে ১টি MCQ যোগ করুন।')
+                messages.error(request, _L(request, 'Add at least 1 MCQ.', 'কমপক্ষে ১টি MCQ যোগ করুন।'))
                 return render(request, 'manage/question_form.html', {
                     'boards': boards, 'subjects': subjects,
                     'classes': classes, 'years': YEARS, 'action': 'Add',
@@ -1070,7 +1355,7 @@ def question_add(request):
                     title_bn=f'নতুন প্রশ্ন যোগ হয়েছে — {last_q.subject.name}',
                     message_bn=f'{last_q.subject.name}, {last_q.class_obj.name} (MCQ)',
                 )
-                messages.success(request, 'MCQ question যোগ করা হয়েছে।')
+                messages.success(request, _L(request, 'MCQ question added.', 'MCQ question যোগ করা হয়েছে।'))
             return redirect('manage_questions')
 
         # WRITTEN (CQ) branch: single question with stimulus + image + hint + solution
@@ -1157,10 +1442,10 @@ def question_add_mcq_bulk(request):
         difficulty = 'Medium'
 
         errors = []
-        if not board_pk: errors.append('Board বেছে নিন।')
-        if not subject_pk: errors.append('Subject বেছে নিন।')
-        if not class_pk: errors.append('Class বেছে নিন।')
-        if not year_val: errors.append('Year বেছে নিন।')
+        if not board_pk: errors.append(_L(request, 'Select a board.', 'Board বেছে নিন।'))
+        if not subject_pk: errors.append(_L(request, 'Select a subject.', 'Subject বেছে নিন।'))
+        if not class_pk: errors.append(_L(request, 'Select a class.', 'Class বেছে নিন।'))
+        if not year_val: errors.append(_L(request, 'Select a year.', 'Year বেছে নিন।'))
 
         mcq_texts = request.POST.getlist('mcq_question_text')
         mcq_opt1 = request.POST.getlist('mcq_option1')
@@ -1171,7 +1456,7 @@ def question_add_mcq_bulk(request):
         mcq_marks_list = request.POST.getlist('mcq_marks')
 
         if not any(t.strip() for t in mcq_texts):
-            errors.append('কমপক্ষে ১টি MCQ যোগ করুন।')
+            errors.append(_L(request, 'Add at least 1 MCQ.', 'কমপক্ষে ১টি MCQ যোগ করুন।'))
 
         if errors:
             for err in errors:
@@ -1254,7 +1539,7 @@ def question_add_mcq_bulk(request):
                 })
 
         if added:
-            messages.success(request, 'MCQ question যোগ করা হয়েছে।')
+            messages.success(request, _L(request, 'MCQ question added.', 'MCQ question যোগ করা হয়েছে।'))
         return redirect('manage_questions')
 
     return render(request, 'manage/question_add_mcq.html', {
@@ -1317,7 +1602,7 @@ def written_question_practice(request, question_id):
 def upload_question_solution(request, question_id):
     question = get_object_or_404(Question, pk=question_id, question_type='WRITTEN', is_active=True)
     if not _is_exam_staff(request.user):
-        messages.error(request, 'শুধু Teacher এই কাজটি করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers can do this.', 'শুধু Teacher এই কাজটি করতে পারবে।'))
         return redirect('written_question_practice', question_id=question.pk)
     if request.method == 'POST' and request.FILES.get('solution_image'):
         question.solution_image = request.FILES['solution_image']
@@ -1331,7 +1616,7 @@ def upload_question_solution(request, question_id):
 def delete_question_solution(request, question_id):
     question = get_object_or_404(Question, pk=question_id, question_type='WRITTEN', is_active=True)
     if not _is_exam_staff(request.user):
-        messages.error(request, 'শুধু Teacher এই কাজটি করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers can do this.', 'শুধু Teacher এই কাজটি করতে পারবে।'))
         return redirect('written_question_practice', question_id=question.pk)
     if request.method == 'POST' and question.solution_image:
         question.solution_image.delete(save=False)
@@ -1347,7 +1632,7 @@ def delete_student_submission(request, submission_id):
     from .models import WrittenSolveSubmission
     sub = get_object_or_404(WrittenSolveSubmission, pk=submission_id)
     if not _is_exam_staff(request.user):
-        messages.error(request, 'শুধু Teacher এই কাজটি করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers can do this.', 'শুধু Teacher এই কাজটি করতে পারবে।'))
         return redirect('written_question_practice', question_id=sub.question_id)
     question_id = sub.question_id
     if request.method == 'POST':
@@ -1711,17 +1996,17 @@ def teacher_dashboard(request):
     insights = []
     inactive_count = sum(1 for s in student_data if s['week_total'] == 0)
     if inactive_count:
-        insights.append(f"⚠️ {inactive_count} জন student গত সপ্তাহে একটিও প্রশ্ন করেননি।")
+        insights.append(_L(request, f"⚠️ {inactive_count} students did not attempt a single question last week.", f"⚠️ {inactive_count} জন student গত সপ্তাহে একটিও প্রশ্ন করেননি।"))
     if subject_performance:
         weakest = min(subject_performance, key=lambda x: x['accuracy'])
         if weakest['accuracy'] < 60:
-            insights.append(f"📚 {weakest['name']}-এ class-এর গড় accuracy মাত্র {weakest['accuracy']}% — revision দরকার।")
+            insights.append(_L(request, f"📚 Class average accuracy in {weakest['name']} is only {weakest['accuracy']}% — revision needed.", f"📚 {weakest['name']}-এ class-এর গড় accuracy মাত্র {weakest['accuracy']}% — revision দরকার।"))
     if at_risk:
-        insights.append(f"🔴 {len(at_risk)} জন student এই সপ্তাহে ৫০%-এর নিচে — তাদের সাথে কথা বলুন।")
+        insights.append(_L(request, f"🔴 {len(at_risk)} students are below 50% this week — talk to them.", f"🔴 {len(at_risk)} জন student এই সপ্তাহে ৫০%-এর নিচে — তাদের সাথে কথা বলুন।"))
     if len(students) > 0 and active_today < len(students) * 0.3:
-        insights.append(f"📉 আজ মাত্র {active_today} জন active — engagement বাড়ানো দরকার।")
+        insights.append(_L(request, f"📉 Only {active_today} active today — engagement needs a boost.", f"📉 আজ মাত্র {active_today} জন active — engagement বাড়ানো দরকার।"))
     if not insights:
-        insights.append("✅ সব ঠিকঠাক আছে। Class ভালো perform করছে!")
+        insights.append(_L(request, "✅ All good. The class is performing well!", "✅ সব ঠিকঠাক আছে। Class ভালো perform করছে!"))
 
     # ---- Exam Mode data ----
     exam_papers = ExamPaper.objects.filter(is_active=True).select_related(
@@ -1768,7 +2053,7 @@ def teacher_dashboard(request):
         s['exam_attempt'] = latest_attempt_map.get(s['profile'].user.id)
 
     if pending_cq_count:
-        insights.append(f"📝 {pending_cq_count}টি CQ submission এখনো grade করা হয়নি।")
+        insights.append(_L(request, f"📝 {pending_cq_count} CQ submissions are still ungraded.", f"📝 {pending_cq_count}টি CQ submission এখনো grade করা হয়নি।"))
 
     return render(request, 'teacher/dashboard.html', {
         'student_data': student_data,
@@ -1875,24 +2160,24 @@ def student_detail(request, pk):
     if subject_progress:
         weakest = min(subject_progress, key=lambda x: x['accuracy'])
         if weakest['total'] >= 3 and weakest['accuracy'] < 60:
-            insights.append(f"⚠️ {weakest['question__subject__name']}-এ মাত্র {weakest['accuracy']}% accuracy — এই বিষয়ে বিশেষ মনোযোগ দরকার।")
+            insights.append(_L(request, f"⚠️ Only {weakest['accuracy']}% accuracy in {weakest['question__subject__name']} — this subject needs special attention.", f"⚠️ {weakest['question__subject__name']}-এ মাত্র {weakest['accuracy']}% accuracy — এই বিষয়ে বিশেষ মনোযোগ দরকার।"))
     easy_acc = difficulty_data['Easy']['accuracy']
     hard_acc = difficulty_data['Hard']['accuracy']
     if difficulty_data['Hard']['total'] >= 3 and difficulty_data['Easy']['total'] >= 3:
         if easy_acc >= 70 and hard_acc < 50:
-            insights.append(f"সহজ প্রশ্নে ভালো ({easy_acc}%) কিন্তু কঠিনে দুর্বল ({hard_acc}%) — Medium থেকে Hard-এ নিয়ে যান।")
+            insights.append(_L(request, f"Strong on easy ({easy_acc}%) but weak on hard ({hard_acc}%) — move from Medium toward Hard.", f"সহজ প্রশ্নে ভালো ({easy_acc}%) কিন্তু কঠিনে দুর্বল ({hard_acc}%) — Medium থেকে Hard-এ নিয়ে যান।"))
     recent_7 = sum(d['count'] for d in daily_data[-7:])
     prev_7 = sum(d['count'] for d in daily_data[:7])
     if prev_7 > 0 and recent_7 < prev_7 * 0.5:
-        insights.append("📉 এই সপ্তাহে engagement উল্লেখযোগ্যভাবে কমেছে — motivational feedback পাঠান।")
+        insights.append(_L(request, "📉 Engagement dropped notably this week — send motivational feedback.", "📉 এই সপ্তাহে engagement উল্লেখযোগ্যভাবে কমেছে — motivational feedback পাঠান।"))
     elif recent_7 > prev_7 * 1.5 and recent_7 > 0:
-        insights.append("📈 এই সপ্তাহে দারুণ active! উৎসাহ দিতে ভুলবেন না।")
+        insights.append(_L(request, "📈 Very active this week! Do not forget to encourage them.", "📈 এই সপ্তাহে দারুণ active! উৎসাহ দিতে ভুলবেন না।"))
     if streak == 0:
-        insights.append("❌ আজ কোনো প্রশ্ন করেনি। Reminder পাঠানো যেতে পারে।")
+        insights.append(_L(request, "❌ No questions attempted today. Consider sending a reminder.", "❌ আজ কোনো প্রশ্ন করেনি। Reminder পাঠানো যেতে পারে।"))
     elif streak >= 7:
-        insights.append(f"🔥 {streak} দিনের দারুণ streak! এটা acknowledge করুন।")
+        insights.append(_L(request, f"🔥 Great {streak}-day streak! Acknowledge it.", f"🔥 {streak} দিনের দারুণ streak! এটা acknowledge করুন।"))
     if not insights:
-        insights.append("📊 সব ঠিকঠাক আছে। Regular feedback দিতে থাকুন।")
+        insights.append(_L(request, "📊 All good. Keep giving regular feedback.", "📊 সব ঠিকঠাক আছে। Regular feedback দিতে থাকুন।"))
 
     teacher_feedbacks = TeacherFeedback.objects.filter(
         teacher=request.user, student=profile.user
@@ -1936,7 +2221,7 @@ def give_feedback(request, progress_pk):
                 progress=progress,
                 comment=comment
             )
-            messages.success(request, 'Feedback পাঠানো হয়েছে!')
+            messages.success(request, _L(request, 'Feedback sent!', 'Feedback পাঠানো হয়েছে!'))
     return redirect('student_detail', pk=progress.user.profile.pk)
 
 
@@ -1955,9 +2240,9 @@ def send_general_feedback(request, student_pk):
                     progress=latest,
                     comment=comment
                 )
-                messages.success(request, 'Feedback পাঠানো হয়েছে!')
+                messages.success(request, _L(request, 'Feedback sent!', 'Feedback পাঠানো হয়েছে!'))
             else:
-                messages.warning(request, 'Student এখনো কোনো প্রশ্ন করেননি।')
+                messages.warning(request, _L(request, 'The student has not attempted any questions yet.', 'Student এখনো কোনো প্রশ্ন করেননি।'))
     return redirect('student_detail', pk=student_pk)
 
 
@@ -2335,7 +2620,7 @@ def generate_note_ai(request):
                     created_by=request.user,
                     is_active=True
                 )
-                messages.success(request, 'AI দিয়ে note তৈরি হয়েছে!')
+                messages.success(request, _L(request, 'Note generated with AI!', 'AI দিয়ে note তৈরি হয়েছে!'))
                 return redirect('study_note_detail', pk=note.pk)
         except Exception as e:
             messages.error(request, f'AI error: {str(e)}')
@@ -2701,22 +2986,22 @@ def contest_join(request, pk):
     from django.utils import timezone
     try:
         if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
-            messages.info(request, 'Teacher/Admin contest-এ অংশ নিতে পারবেন না — শুধু দেখতে পারবেন।')
+            messages.info(request, _L(request, 'Teachers/Admins cannot join contests — view only.', 'Teacher/Admin contest-এ অংশ নিতে পারবেন না — শুধু দেখতে পারবেন।'))
             return redirect('contest_detail', pk=pk)
     except Exception:
         pass
     try:
         contest = Contest.objects.get(pk=pk)
     except Contest.DoesNotExist:
-        messages.warning(request, 'এই contest আর available নেই।')
+        messages.warning(request, _L(request, 'This contest is no longer available.', 'এই contest আর available নেই।'))
         return redirect('contest_list')
     now = timezone.now()
 
     if now < contest.start_time:
-        messages.error(request, 'Contest এখনো শুরু হয়নি।')
+        messages.error(request, _L(request, 'The contest has not started yet.', 'Contest এখনো শুরু হয়নি।'))
         return redirect('contest_detail', pk=pk)
     if now > contest.end_time:
-        messages.error(request, 'Contest শেষ হয়ে গেছে।')
+        messages.error(request, _L(request, 'The contest has ended.', 'Contest শেষ হয়ে গেছে।'))
         return redirect('contest_detail', pk=pk)
 
     submission, created = ContestSubmission.objects.get_or_create(
@@ -2724,7 +3009,7 @@ def contest_join(request, pk):
         student=request.user,
     )
     if submission.is_submitted:
-        messages.error(request, 'তুমি আগেই submit করেছ।')
+        messages.error(request, _L(request, 'You have already submitted.', 'তুমি আগেই submit করেছ।'))
         return redirect('contest_leaderboard', pk=pk)
 
     questions = contest.questions.all()
@@ -2741,7 +3026,7 @@ def contest_submit(request, pk):
     from django.utils import timezone
     try:
         if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
-            messages.error(request, 'Teacher/Admin contest answer submit করতে পারবেন না।')
+            messages.error(request, _L(request, 'Teachers/Admins cannot submit contest answers.', 'Teacher/Admin contest answer submit করতে পারবেন না।'))
             return redirect('contest_detail', pk=pk)
     except Exception:
         pass
@@ -2961,9 +3246,44 @@ def contest_delete(request, pk):
 
 @login_required
 def profile_view(request):
-    ctx = {'profile': request.user.profile}
-    if request.user.profile.role == 'ADMIN':
+    from .models import UserProgress, UserRating, UserBadge
+    from django.utils import timezone
+
+    profile = request.user.profile
+    ctx = {'profile': profile}
+    if profile.role == 'ADMIN':
         ctx['all_subjects'] = Subject.objects.filter(is_active=True).order_by('name')
+
+    rating, _ = UserRating.objects.get_or_create(user=request.user)
+    progress = UserProgress.objects.filter(user=request.user)
+    total = progress.count()
+    correct = progress.filter(is_correct=True).count()
+
+    days_left = None
+    if profile.plan_expires_at:
+        days_left = max((profile.plan_expires_at - timezone.now()).days, 0)
+
+    # Rating band progress (toward next rank)
+    thresholds = [0, 800, 1000, 1200, 1400, 1600, 1800]
+    r = rating.rating
+    lo = max([t for t in thresholds if t <= r] or [0])
+    higher = [t for t in thresholds if t > r]
+    hi = min(higher) if higher else lo + 200
+    band_pct = round((r - lo) / (hi - lo) * 100) if hi > lo else 100
+
+    ctx.update({
+        'rating': rating,
+        'rank': rating.rank_title,
+        'next_rank': rating.next_rank_info,
+        'band_pct': band_pct,
+        'total_answered': total,
+        'total_correct': correct,
+        'accuracy': round(correct / total * 100) if total else 0,
+        'badges': list(UserBadge.objects.filter(user=request.user).select_related('badge')[:10]),
+        'badge_count': UserBadge.objects.filter(user=request.user).count(),
+        'days_left': days_left,
+        'study_subjects': profile.study_subjects.all(),
+    })
     return render(request, 'core/profile.html', ctx)
 
 
@@ -2975,7 +3295,7 @@ def profile_picture_delete(request):
             profile.profile_picture.delete(save=False)
             profile.profile_picture = None
             profile.save(update_fields=['profile_picture'])
-            messages.success(request, 'ছবি মুছে ফেলা হয়েছে।')
+            messages.success(request, _L(request, 'Picture removed.', 'ছবি মুছে ফেলা হয়েছে।'))
     return redirect('profile')
 
 
@@ -2988,7 +3308,7 @@ def profile_update(request):
         if request.FILES.get('profile_picture'):
             profile.profile_picture = request.FILES['profile_picture']
             profile.save(update_fields=['profile_picture'])
-            messages.success(request, 'প্রোফাইল ছবি আপডেট হয়েছে!')
+            messages.success(request, _L(request, 'Profile picture updated!', 'প্রোফাইল ছবি আপডেট হয়েছে!'))
             return redirect('profile')
 
         if 'update_subjects' in request.POST:
@@ -3001,7 +3321,7 @@ def profile_update(request):
         user.last_name = request.POST.get('last_name', user.last_name)
         user.email = request.POST.get('email', user.email)
         user.save()
-        messages.success(request, 'প্রোফাইল আপডেট হয়েছে!')
+        messages.success(request, _L(request, 'Profile updated!', 'প্রোফাইল আপডেট হয়েছে!'))
         return redirect('profile')
     ctx = {'profile': request.user.profile}
     if request.user.profile.role == 'ADMIN':
@@ -3349,7 +3669,7 @@ def exam_paper_detail(request, pk):
 def preview_exam(request, pk):
     from .models import ExamPaper
     if not _is_exam_staff(request.user):
-        messages.error(request, 'শুধুমাত্র Teacher/Admin এই page দেখতে পারবেন।')
+        messages.error(request, _L(request, 'Only Teachers/Admins can view this page.', 'শুধুমাত্র Teacher/Admin এই page দেখতে পারবেন।'))
         return redirect('exam_paper_detail', pk=pk)
     paper = get_object_or_404(ExamPaper, pk=pk, is_active=True)
     mcqs = paper.mcqs.all()
@@ -3414,7 +3734,7 @@ def start_exam(request, pk):
     from .models import ExamPaper, ExamAttempt
     try:
         if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
-            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            messages.error(request, _L(request, 'Teachers/Admins cannot take exams.', 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।'))
             return redirect('exam_paper_detail', pk=pk)
     except Exception:
         pass
@@ -3514,7 +3834,7 @@ def submit_mcq(request):
 def exam_cq_phase(request, attempt_id):
     try:
         if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
-            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            messages.error(request, _L(request, 'Teachers/Admins cannot take exams.', 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।'))
             return redirect('exam_paper_list')
     except Exception:
         pass
@@ -3536,7 +3856,7 @@ def exam_cq_phase(request, attempt_id):
         attempt.status = 'CQ_PENDING'
         attempt.cq_submitted_at = timezone.now()
         attempt.save()
-        messages.info(request, 'CQ সময় শেষ। উত্তর auto-submit হয়েছে।')
+        messages.info(request, _L(request, 'CQ time is up. Answers were auto-submitted.', 'CQ সময় শেষ। উত্তর auto-submit হয়েছে।'))
         return redirect('exam_results', attempt_id=attempt.id)
 
     cqs = attempt.exam_paper.cqs.all()
@@ -3556,7 +3876,7 @@ def exam_cq_phase(request, attempt_id):
 def submit_cq(request, attempt_id):
     try:
         if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
-            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            messages.error(request, _L(request, 'Teachers/Admins cannot take exams.', 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।'))
             return redirect('exam_paper_list')
     except Exception:
         pass
@@ -3568,13 +3888,13 @@ def submit_cq(request, attempt_id):
     attempt = get_object_or_404(ExamAttempt, id=attempt_id, student=request.user)
 
     if attempt.status in ('CQ_PENDING', 'GRADED'):
-        messages.info(request, 'এই পরীক্ষার উত্তর আগেই জমা হয়েছে।')
+        messages.info(request, _L(request, 'This exam has already been submitted.', 'এই পরীক্ষার উত্তর আগেই জমা হয়েছে।'))
         return redirect('exam_results', attempt_id=attempt.id)
     if attempt.status == 'MCQ_PHASE':
-        messages.error(request, 'এখনো MCQ পর্ব শেষ হয়নি।')
+        messages.error(request, _L(request, 'The MCQ phase is not finished yet.', 'এখনো MCQ পর্ব শেষ হয়নি।'))
         return redirect('start_exam', pk=attempt.exam_paper.id)
     if attempt.status not in ('CQ_PHASE', 'MCQ_DONE'):
-        messages.error(request, 'এই মুহূর্তে CQ submit করা যাচ্ছে না।')
+        messages.error(request, _L(request, 'CQ cannot be submitted right now.', 'এই মুহূর্তে CQ submit করা যাচ্ছে না।'))
         return redirect('exam_results', attempt_id=attempt.id)
 
     selected_cq_ids = []
@@ -3641,7 +3961,7 @@ def submit_cq(request, attempt_id):
             link=grade_link,
         )
 
-    messages.success(request, 'আপনার CQ উত্তর সফলভাবে জমা হয়েছে। Teacher এর মূল্যায়নের জন্য অপেক্ষা করুন।')
+    messages.success(request, _L(request, 'Your CQ answers were submitted successfully. Please wait for evaluation by the teacher.', 'আপনার CQ উত্তর সফলভাবে জমা হয়েছে। Teacher এর মূল্যায়নের জন্য অপেক্ষা করুন।'))
     return redirect('exam_results', attempt_id=attempt.id)
 
 
@@ -3649,7 +3969,7 @@ def submit_cq(request, attempt_id):
 def exam_results(request, attempt_id):
     try:
         if request.user.profile.role == 'ADMIN' or request.user.profile.is_superadmin:
-            messages.error(request, 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।')
+            messages.error(request, _L(request, 'Teachers/Admins cannot take exams.', 'Teacher/Admin রা পরীক্ষা দিতে পারবেন না।'))
             return redirect('exam_paper_list')
     except Exception:
         pass
@@ -3702,7 +4022,7 @@ def _notify_all_students(notif_type, title, message, link='', title_bn='', messa
 def create_exam_paper(request):
     from .models import ExamPaper, ExamPaperMCQ, CQQuestion
     if not _is_exam_staff(request.user):
-        messages.error(request, 'Teacher/Staff শুধু এই page access করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers/Staff can access this page.', 'Teacher/Staff শুধু এই page access করতে পারবে।'))
         return redirect('home')
 
     subjects = Subject.objects.filter(is_active=True).order_by('name')
@@ -3719,11 +4039,11 @@ def create_exam_paper(request):
 
         errors = []
         if not title:
-            errors.append('Title দিন।')
+            errors.append(_L(request, 'Enter a title.', 'Title দিন।'))
         if not subject_id:
-            errors.append('Subject বেছে নিন।')
+            errors.append(_L(request, 'Select a subject.', 'Subject বেছে নিন।'))
         if not class_id:
-            errors.append('Class বেছে নিন।')
+            errors.append(_L(request, 'Select a class.', 'Class বেছে নিন।'))
 
         # Duplicate check: Board + Year combination must be unique per subject/class
         if board_id and year and subject_id and class_id:
@@ -3747,7 +4067,7 @@ def create_exam_paper(request):
         mcq_texts = request.POST.getlist('mcq_question_text')
         cq_texts = request.POST.getlist('cq_question_text')
         if not any(t.strip() for t in mcq_texts) and not any(t.strip() for t in cq_texts):
-            errors.append('কমপক্ষে ১টি MCQ অথবা ১টি CQ প্রশ্ন দিন।')
+            errors.append(_L(request, 'Add at least 1 MCQ or 1 CQ question.', 'কমপক্ষে ১টি MCQ অথবা ১টি CQ প্রশ্ন দিন।'))
 
         if errors:
             for err in errors:
@@ -3860,7 +4180,7 @@ def edit_exam_paper(request, pk):
     import json as _json
     from .models import ExamPaper, ExamPaperMCQ, CQQuestion, ExamAttempt
     if not _is_exam_staff(request.user):
-        messages.error(request, 'Teacher/Staff শুধু এই page access করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers/Staff can access this page.', 'Teacher/Staff শুধু এই page access করতে পারবে।'))
         return redirect('home')
 
     paper = get_object_or_404(ExamPaper, pk=pk)
@@ -3891,9 +4211,9 @@ def edit_exam_paper(request, pk):
         year = request.POST.get('year', '').strip()
 
         errors = []
-        if not title: errors.append('Title দিন।')
-        if not subject_id: errors.append('Subject বেছে নিন।')
-        if not class_id: errors.append('Class বেছে নিন।')
+        if not title: errors.append(_L(request, 'Enter a title.', 'Title দিন।'))
+        if not subject_id: errors.append(_L(request, 'Select a subject.', 'Subject বেছে নিন।'))
+        if not class_id: errors.append(_L(request, 'Select a class.', 'Class বেছে নিন।'))
 
         # Duplicate check: Board + Year combination must be unique (excluding self)
         if board_id and year and subject_id and class_id:
@@ -3919,7 +4239,7 @@ def edit_exam_paper(request, pk):
         mcq_texts = request.POST.getlist('mcq_question_text')
         cq_texts = request.POST.getlist('cq_question_text')
         if not any(t.strip() for t in mcq_texts) and not any(t.strip() for t in cq_texts):
-            errors.append('কমপক্ষে ১টি MCQ অথবা ১টি CQ প্রশ্ন দিন।')
+            errors.append(_L(request, 'Add at least 1 MCQ or 1 CQ question.', 'কমপক্ষে ১টি MCQ অথবা ১টি CQ প্রশ্ন দিন।'))
 
         if errors:
             for err in errors:
@@ -4026,7 +4346,7 @@ def edit_exam_paper(request, pk):
 def delete_exam_paper(request, pk):
     from .models import ExamPaper, ExamAttempt
     if not _is_exam_staff(request.user):
-        messages.error(request, 'Teacher/Staff শুধু এই page access করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers/Staff can access this page.', 'Teacher/Staff শুধু এই page access করতে পারবে।'))
         return redirect('home')
 
     if request.method != 'POST':
@@ -4048,7 +4368,7 @@ def delete_exam_paper(request, pk):
     paper_title = paper.title
     paper.is_active = False
     paper.save()
-    messages.success(request, f'"{paper_title}" সফলভাবে মুছে ফেলা হয়েছে।')
+    messages.success(request, _L(request, f'"{paper_title}" deleted successfully.', f'"{paper_title}" সফলভাবে মুছে ফেলা হয়েছে।'))
     return redirect('exam_paper_list')
 
 
@@ -4155,7 +4475,7 @@ def parse_exam_text(request):
 
     text = request.POST.get('text', '').strip()
     if not text:
-        return JsonResponse({'error': 'Text দিন।'}, status=400)
+        return JsonResponse({'error': _L(request, 'Please provide text.', 'Text দিন।')}, status=400)
 
     mcqs, cqs = _parse_exam_questions(text)
     return JsonResponse({
@@ -4173,7 +4493,7 @@ def extract_text_from_image(request):
 
     image_file = request.FILES.get('image')
     if not image_file:
-        return JsonResponse({'error': 'ছবি দিন।'}, status=400)
+        return JsonResponse({'error': _L(request, 'Please provide an image.', 'ছবি দিন।')}, status=400)
 
     import base64, json
     from urllib import request as urllib_request
@@ -4181,7 +4501,7 @@ def extract_text_from_image(request):
 
     api_key = settings.GEMINI_API_KEY
     if not api_key:
-        return JsonResponse({'error': 'Gemini API key কনফিগার করা নেই। settings.py-তে GEMINI_API_KEY সেট করুন।'}, status=500)
+        return JsonResponse({'error': _L(request, 'Gemini API key is not configured. Set GEMINI_API_KEY in settings.py.', 'Gemini API key কনফিগার করা নেই। settings.py-তে GEMINI_API_KEY সেট করুন।')}, status=500)
 
     image_data = base64.b64encode(image_file.read()).decode('utf-8')
     mime_type = image_file.content_type or 'image/jpeg'
@@ -4215,7 +4535,7 @@ def extract_text_from_image(request):
 def grade_cq_submission(request, attempt_id):
     from .models import ExamAttempt, CQSubmission
     if not _is_exam_staff(request.user):
-        messages.error(request, 'শুধু Teacher/Staff এই page access করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers/Staff can access this page.', 'শুধু Teacher/Staff এই page access করতে পারবে।'))
         return redirect('home')
 
     attempt = get_object_or_404(
@@ -4225,7 +4545,7 @@ def grade_cq_submission(request, attempt_id):
 
     is_super = getattr(getattr(request.user, 'profile', None), 'is_superadmin', False)
     if attempt.status == 'CQ_PENDING' and attempt.assigned_teacher != request.user and not is_super:
-        messages.error(request, 'এই answer script grade করতে হলে আগে Claim করুন।')
+        messages.error(request, _L(request, 'Claim this answer script before grading it.', 'এই answer script grade করতে হলে আগে Claim করুন।'))
         return redirect('manage_grade_list')
 
     cq_submissions = attempt.cq_submissions.select_related('cq_question').all()
@@ -4284,7 +4604,7 @@ def grade_cq_submission(request, attempt_id):
             link=reverse('exam_results', args=[attempt.id]),
         )
 
-        messages.success(request, f'{"Re-grading" if is_regrade else "Grading"} সম্পন্ন। Grade: {attempt.grade}')
+        messages.success(request, _L(request, f'{"Re-grading" if is_regrade else "Grading"} complete. Grade: {attempt.grade}', f'{"Re-grading" if is_regrade else "Grading"} সম্পন্ন। Grade: {attempt.grade}'))
         return redirect('manage_grade_list')
 
     return render(request, 'manage/grade_cq_submission.html', {
@@ -4297,7 +4617,7 @@ def grade_cq_submission(request, attempt_id):
 @login_required
 def manage_grade_list(request):
     if not _is_exam_staff(request.user):
-        messages.error(request, 'শুধু Teacher/Staff এই page access করতে পারবে।')
+        messages.error(request, _L(request, 'Only Teachers/Staff can access this page.', 'শুধু Teacher/Staff এই page access করতে পারবে।'))
         return redirect('home')
 
     from .models import ExamAttempt

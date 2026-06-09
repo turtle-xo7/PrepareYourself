@@ -3,7 +3,7 @@
 {% block content %}
 
 <!-- ── Page Header ── -->
-<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%); min-height: 160px; display:flex; align-items:center;">
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #059669 50%, #0d9488 100%); min-height: 160px; display:flex; align-items:center;">
     <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
     <div class="float-shape" style="width:260px;height:260px;top:-80px;right:-40px;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);animation:floatY 14s ease-in-out infinite;"></div>
     <div class="float-shape" style="width:140px;height:140px;bottom:-50px;left:5%;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);animation:floatY 10s ease-in-out infinite reverse;"></div>
@@ -76,12 +76,53 @@
                 <option value="{{ y }}" {% if request.GET.year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
             </select>
-            {% if request.GET.board or request.GET.class or request.GET.subject or request.GET.year %}
-            <a href="{% url 'question_bank' %}" class="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors duration-200 ml-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                {% if LANG == 'en' %}Clear{% else %}মুছুন{% endif %}
-            </a>
+
+            <!-- Type -->
+            <select name="type" onchange="this.form.submit()"
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                <option value="">{% if LANG == 'en' %}All Types{% else %}সব ধরন{% endif %}</option>
+                <option value="MCQ" {% if sel_type == 'MCQ' %}selected{% endif %}>MCQ</option>
+                <option value="WRITTEN" {% if sel_type == 'WRITTEN' %}selected{% endif %}>{% if LANG == 'en' %}Written{% else %}সৃজনশীল{% endif %}</option>
+            </select>
+
+            <!-- Status (logged-in students) -->
+            {% if request.user.is_authenticated and not is_teacher %}
+            <select name="status" onchange="this.form.submit()"
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                <option value="">{% if LANG == 'en' %}Any Status{% else %}যেকোনো অবস্থা{% endif %}</option>
+                <option value="unsolved" {% if sel_status == 'unsolved' %}selected{% endif %}>{% if LANG == 'en' %}Unsolved{% else %}অমীমাংসিত{% endif %}</option>
+                <option value="wrong" {% if sel_status == 'wrong' %}selected{% endif %}>{% if LANG == 'en' %}Got wrong before{% else %}আগে ভুল করেছি{% endif %}</option>
+            </select>
             {% endif %}
+
+            <!-- Difficulty chips -->
+            <div class="flex items-center gap-1.5 pl-1">
+                <label class="diff-chip {% if 'Easy' in sel_difficulties %}on{% endif %}">
+                    <input type="checkbox" name="difficulty" value="Easy" class="hidden" onchange="this.form.submit()" {% if 'Easy' in sel_difficulties %}checked{% endif %}>
+                    🟢 {% if LANG == 'en' %}Easy{% else %}সহজ{% endif %}
+                </label>
+                <label class="diff-chip {% if 'Medium' in sel_difficulties %}on{% endif %}">
+                    <input type="checkbox" name="difficulty" value="Medium" class="hidden" onchange="this.form.submit()" {% if 'Medium' in sel_difficulties %}checked{% endif %}>
+                    🟡 {% if LANG == 'en' %}Medium{% else %}মাঝারি{% endif %}
+                </label>
+                <label class="diff-chip {% if 'Hard' in sel_difficulties %}on{% endif %}">
+                    <input type="checkbox" name="difficulty" value="Hard" class="hidden" onchange="this.form.submit()" {% if 'Hard' in sel_difficulties %}checked{% endif %}>
+                    🔴 {% if LANG == 'en' %}Hard{% else %}কঠিন{% endif %}
+                </label>
+            </div>
+
+            <!-- Result count + active filters + clear -->
+            <div class="flex items-center gap-3 ml-auto">
+                <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+                    {% if LANG == 'en' %}{{ total_matched }} results{% else %}{{ total_matched }}টি ফলাফল{% endif %}{% if active_filters %} · {{ active_filters }} {% if LANG == 'en' %}active{% else %}সক্রিয়{% endif %}{% endif %}
+                </span>
+                {% if active_filters %}
+                <a href="{% url 'question_bank' %}" class="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors duration-200">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    {% if LANG == 'en' %}Clear all{% else %}সব মুছুন{% endif %}
+                </a>
+                {% endif %}
+            </div>
         </form>
     </div>
 </div>
@@ -123,7 +164,7 @@
                     </div>
                     <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                         <div id="progress-bar" class="h-2 rounded-full transition-all duration-500"
-                             style="width:0%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                             style="width:0%; background: linear-gradient(90deg, #059669, #0d9488);"></div>
                     </div>
                 </div>
             </div>
@@ -141,7 +182,7 @@
                 <!-- Question number + tags -->
                 <div class="flex flex-wrap items-center gap-2 mb-4">
                     <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                          style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">{{ forloop.counter }}</span>
+                          style="background: linear-gradient(135deg, #059669, #0d9488);">{{ forloop.counter }}</span>
                     <span class="tag-board px-2.5 py-0.5 rounded-full text-xs font-semibold">{{ q.board }}</span>
                     <span class="tag-class px-2.5 py-0.5 rounded-full text-xs font-semibold">{{ q.class_obj }}</span>
                     <span class="tag-subject px-2.5 py-0.5 rounded-full text-xs font-semibold">{{ q.subject }}</span>
@@ -179,35 +220,35 @@
                 {% if is_teacher %}
                 <div class="flex items-center gap-2 mt-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm font-medium text-amber-700">
                     <span>✅</span>
-                    <span>{% if LANG == 'en' %}Correct Answer: Option {% if q.correct_option == 1 %}ক — {{ q.option1 }}{% elif q.correct_option == 2 %}খ — {{ q.option2 }}{% elif q.correct_option == 3 %}গ — {{ q.option3 }}{% else %}ঘ — {{ q.option4 }}{% endif %}{% else %}সঠিক উত্তর: {% if q.correct_option == 1 %}ক — {{ q.option1 }}{% elif q.correct_option == 2 %}খ — {{ q.option2 }}{% elif q.correct_option == 3 %}গ — {{ q.option3 }}{% else %}ঘ — {{ q.option4 }}{% endif %}{% endif %}</span>
+                    <span>{% if LANG == 'en' %}Correct Answer: Option {% if q.correct_option == 1 %}a — {{ q.option1 }}{% elif q.correct_option == 2 %}b — {{ q.option2 }}{% elif q.correct_option == 3 %}c — {{ q.option3 }}{% else %}d — {{ q.option4 }}{% endif %}{% else %}সঠিক উত্তর: {% if q.correct_option == 1 %}ক — {{ q.option1 }}{% elif q.correct_option == 2 %}খ — {{ q.option2 }}{% elif q.correct_option == 3 %}গ — {{ q.option3 }}{% else %}ঘ — {{ q.option4 }}{% endif %}{% endif %}</span>
                 </div>
                 {% else %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3" id="opts-{{ forloop.counter }}">
                     {% if q.option1 %}
                     <button onclick="selectOpt('{{ forloop.counter }}', this, 0, {{ q.correct_option|add:'-1' }})"
                         class="mcq-btn opt-default flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm text-left transition-all duration-200">
-                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">ক</span>
+                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">{% if LANG == 'en' %}a{% else %}ক{% endif %}</span>
                         <span>{{ q.option1 }}</span>
                     </button>
                     {% endif %}
                     {% if q.option2 %}
                     <button onclick="selectOpt('{{ forloop.counter }}', this, 1, {{ q.correct_option|add:'-1' }})"
                         class="mcq-btn opt-default flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm text-left transition-all duration-200">
-                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">খ</span>
+                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">{% if LANG == 'en' %}b{% else %}খ{% endif %}</span>
                         <span>{{ q.option2 }}</span>
                     </button>
                     {% endif %}
                     {% if q.option3 %}
                     <button onclick="selectOpt('{{ forloop.counter }}', this, 2, {{ q.correct_option|add:'-1' }})"
                         class="mcq-btn opt-default flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm text-left transition-all duration-200">
-                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">গ</span>
+                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">{% if LANG == 'en' %}c{% else %}গ{% endif %}</span>
                         <span>{{ q.option3 }}</span>
                     </button>
                     {% endif %}
                     {% if q.option4 %}
                     <button onclick="selectOpt('{{ forloop.counter }}', this, 3, {{ q.correct_option|add:'-1' }})"
                         class="mcq-btn opt-default flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm text-left transition-all duration-200">
-                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">ঘ</span>
+                        <span class="opt-letter w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-xs font-bold shrink-0 bg-gray-50 text-gray-500 transition-all duration-200">{% if LANG == 'en' %}d{% else %}ঘ{% endif %}</span>
                         <span>{{ q.option4 }}</span>
                     </button>
                     {% endif %}
@@ -220,7 +261,7 @@
                         onclick="checkAns('{{ forloop.counter }}')"
                         class="check-btn text-sm font-semibold px-5 py-2 rounded-xl text-white transition-all duration-200
                                disabled:opacity-30 disabled:cursor-not-allowed"
-                        style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                        style="background: linear-gradient(135deg, #059669, #0d9488);">
                         {% if LANG == 'en' %}Check Answer{% else %}উত্তর দেখো {% endif %}
                     </button>
                 </div>
@@ -253,14 +294,14 @@
                         </span>
                         <a href="{% url 'written_question_practice' q.pk %}"
                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                           style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                           style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
                             ✍️ {% if LANG == 'en' %}View Submission →{% else %}উত্তর দেখো →{% endif %}
                         </a>
                     </div>
                     {% else %}
                     <a href="{% url 'written_question_practice' q.pk %}"
                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                       style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                       style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
                         ✍️ {% if LANG == 'en' %}Practice this Question →{% else %}এই প্রশ্নে Practice করো →{% endif %}
                     </a>
                     {% endif %}
@@ -310,13 +351,13 @@
 .diff-hard    { background: #fee2e2; color: #dc2626; }
 
 /* Question card hover */
-.qcard:hover { box-shadow: 0 8px 32px rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.2); transform: translateY(-2px); }
+.qcard:hover { box-shadow: 0 8px 32px rgba(5,150,105,0.12); border-color: rgba(5,150,105,0.2); transform: translateY(-2px); }
 
 /* MCQ option states */
 .opt-default { background: white; color: #374151; }
 .opt-default:hover:not(:disabled) { background: #f8faff; border-color: #93c5fd; }
-.opt-selected { background: #eff6ff; border-color: #3b82f6 !important; color: #1d4ed8; }
-.opt-selected .opt-letter { background: #3b82f6; border-color: #3b82f6; color: white; }
+.opt-selected { background: #eff6ff; border-color: #059669 !important; color: #1d4ed8; }
+.opt-selected .opt-letter { background: #059669; border-color: #059669; color: white; }
 .opt-correct { background: #f0fdf4; border-color: #22c55e !important; color: #15803d; }
 .opt-correct .opt-letter { background: #22c55e; border-color: #22c55e; color: white; }
 .opt-wrong { background: #fef2f2; border-color: #ef4444 !important; color: #dc2626; }
@@ -326,7 +367,7 @@
 .filter-select { min-width: 130px; }
 
 /* Check button active hover */
-.check-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.35); }
+.check-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(5,150,105,0.35); }
 </style>
 
 <script>
@@ -373,7 +414,7 @@ function checkAns(qid) {
     rev.className = isCorrect
         ? 'text-sm rounded-xl px-4 py-2.5 mb-3 font-medium bg-green-50 text-green-700 border border-green-100'
         : 'text-sm rounded-xl px-4 py-2.5 mb-3 font-medium bg-red-50 text-red-700 border border-red-100';
-    rev.textContent = isCorrect ? '✓ সঠিক উত্তর দিয়েছ!' : '✗ ভুল হয়েছে। সবুজটি সঠিক উত্তর।';
+    rev.textContent = isCorrect ? '{% if LANG == "en" %}✓ Correct!{% else %}✓ সঠিক উত্তর দিয়েছ!{% endif %}' : '{% if LANG == "en" %}✗ Wrong. The green one is the correct answer.{% else %}✗ ভুল হয়েছে। সবুজটি সঠিক উত্তর।{% endif %}';
     rev.classList.remove('hidden');
 
     const dot = document.getElementById('nav-' + qid);

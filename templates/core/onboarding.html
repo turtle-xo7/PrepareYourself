@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}{% if LANG == 'en' %}Set Up Your Study Space{% else %}স্টাডি স্পেস সেটআপ{% endif %}{% endblock %}
+
+{% block content %}
+<section class="gradient-bg text-white relative" style="min-height: 100vh;">
+    <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-10 relative z-10">
+        <div class="text-center mb-8" data-aos="fade-down">
+            <div class="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+                <span class="live-dot"></span> {% if LANG == 'en' %}Quick setup — under a minute{% else %}দ্রুত সেটআপ — এক মিনিটেই{% endif %}
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-2">{% if LANG == 'en' %}Let's personalize your prep{% else %}চলো তোমার প্রস্তুতি সাজাই{% endif %}</h1>
+            <p class="text-blue-100">{% if LANG == 'en' %}Tell us about you — we'll filter everything to match.{% else %}তোমার তথ্য দাও — সব কিছু সেই অনুযায়ী সাজিয়ে দেবো।{% endif %}</p>
+        </div>
+
+        <form method="post" id="onboard-form" class="space-y-5">
+            {% csrf_token %}
+
+            <!-- Step indicator -->
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <span class="ob-dot active" data-dot="1"></span>
+                <span class="ob-line"></span>
+                <span class="ob-dot" data-dot="2"></span>
+                <span class="ob-line"></span>
+                <span class="ob-dot" data-dot="3"></span>
+            </div>
+
+            <!-- STEP 1: Board -->
+            <div class="ob-step" data-step="1">
+                <div class="bg-white text-gray-900 rounded-2xl p-6 shadow-2xl">
+                    <h2 class="text-lg font-bold mb-1">1. {% if LANG == 'en' %}Which board?{% else %}কোন বোর্ড?{% endif %}</h2>
+                    <p class="text-gray-500 text-sm mb-4">{% if LANG == 'en' %}Pick your education board.{% else %}তোমার শিক্ষা বোর্ড নির্বাচন করো।{% endif %}</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {% for b in boards %}
+                        <label class="ob-pick">
+                            <input type="radio" name="board" value="{{ b.pk }}" class="hidden" required>
+                            <span class="ob-pick-inner"><span class="text-2xl mb-1 block">🏫</span>{{ b.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="flex justify-end mt-5">
+                        <button type="button" class="ob-next cta-btn bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm" data-goto="2">{% if LANG == 'en' %}Next{% else %}পরবর্তী{% endif %} →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: Class -->
+            <div class="ob-step hidden" data-step="2">
+                <div class="bg-white text-gray-900 rounded-2xl p-6 shadow-2xl">
+                    <h2 class="text-lg font-bold mb-1">2. {% if LANG == 'en' %}Which class?{% else %}কোন শ্রেণি?{% endif %}</h2>
+                    <p class="text-gray-500 text-sm mb-4">{% if LANG == 'en' %}Your current class.{% else %}তোমার বর্তমান শ্রেণি।{% endif %}</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {% for c in classes %}
+                        <label class="ob-pick">
+                            <input type="radio" name="class" value="{{ c.pk }}" class="hidden" required>
+                            <span class="ob-pick-inner"><span class="text-2xl mb-1 block">🎓</span>{{ c.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="flex justify-between mt-5">
+                        <button type="button" class="ob-back text-gray-500 font-semibold px-4 py-2.5 text-sm" data-goto="1">← {% if LANG == 'en' %}Back{% else %}পেছনে{% endif %}</button>
+                        <button type="button" class="ob-next cta-btn bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm" data-goto="3">{% if LANG == 'en' %}Next{% else %}পরবর্তী{% endif %} →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: Subjects + Goal -->
+            <div class="ob-step hidden" data-step="3">
+                <div class="bg-white text-gray-900 rounded-2xl p-6 shadow-2xl">
+                    <h2 class="text-lg font-bold mb-1">3. {% if LANG == 'en' %}Your subjects{% else %}তোমার বিষয়{% endif %}</h2>
+                    <p class="text-gray-500 text-sm mb-4">{% if LANG == 'en' %}Select the subjects you're studying (optional).{% else %}যেসব বিষয় পড়ছো বেছে নাও (ঐচ্ছিক)।{% endif %}</p>
+                    <div class="flex flex-wrap gap-2 max-h-52 overflow-y-auto p-1">
+                        {% for s in subjects %}
+                        <label class="ob-subj">
+                            <input type="checkbox" name="subjects" value="{{ s.pk }}" class="hidden">
+                            <span class="ob-subj-inner">{% if s.icon %}{{ s.icon }}{% else %}📘{% endif %} {{ s.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANG == 'en' %}Your goal (optional){% else %}তোমার লক্ষ্য (ঐচ্ছিক){% endif %}</label>
+                        <input type="text" name="goal" maxlength="120" placeholder="{% if LANG == 'en' %}e.g. SSC 2027 · GPA 5.00{% else %}যেমন SSC 2027 · GPA 5.00{% endif %}"
+                               class="form-input w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    </div>
+                    <div class="flex justify-between mt-5">
+                        <button type="button" class="ob-back text-gray-500 font-semibold px-4 py-2.5 text-sm" data-goto="2">← {% if LANG == 'en' %}Back{% else %}পেছনে{% endif %}</button>
+                        <button type="submit" class="ripple cta-btn text-white font-bold px-7 py-2.5 rounded-xl text-sm" style="background:linear-gradient(135deg,#10b981,#059669);">
+                            {% if LANG == 'en' %}Finish & Start Studying{% else %}শেষ করো ও শুরু করো{% endif %} 🚀
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <a href="{% url 'home' %}" class="text-blue-100 text-sm hover:text-white underline-offset-2 hover:underline">{% if LANG == 'en' %}Skip for now{% else %}এখন বাদ দাও{% endif %}</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.ob-dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.35); transition:all 0.3s; }
+.ob-dot.active { background:#fff; transform:scale(1.3); box-shadow:0 0 0 4px rgba(255,255,255,0.2); }
+.ob-line { width:40px; height:2px; background:rgba(255,255,255,0.25); }
+.ob-pick-inner, .ob-subj-inner {
+  display:block; text-align:center; cursor:pointer;
+  border:2px solid #e2e8f0; border-radius:0.9rem; padding:0.85rem 0.5rem;
+  font-size:0.85rem; font-weight:600; color:#475569; transition:all 0.18s;
+}
+.ob-subj-inner { padding:0.5rem 0.9rem; border-radius:100px; font-weight:500; }
+.ob-pick-inner:hover, .ob-subj-inner:hover { border-color:#93c5fd; background:#f8fafc; }
+.ob-pick input:checked + .ob-pick-inner,
+.ob-subj input:checked + .ob-subj-inner {
+  border-color:#059669; background:linear-gradient(135deg,rgba(5,150,105,0.1),rgba(13,148,136,0.08)); color:#047857;
+}
+</style>
+<script>
+(function () {
+    var form  = document.getElementById('onboard-form');
+    var steps = form.querySelectorAll('.ob-step');
+    var dots  = form.querySelectorAll('.ob-dot');
+
+    function show(n) {
+        steps.forEach(function (s) { s.classList.toggle('hidden', s.dataset.step !== String(n)); });
+        dots.forEach(function (d) { d.classList.toggle('active', +d.dataset.dot <= n); });
+        if (window.lenis) window.lenis.scrollTo(0); else window.scrollTo(0, 0);
+    }
+
+    form.querySelectorAll('.ob-next').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var step = btn.closest('.ob-step');
+            var req  = step.querySelector('input[type=radio][required]');
+            if (req) {
+                var checked = step.querySelector('input[type=radio]:checked');
+                if (!checked) {
+                    step.querySelector('.grid').animate(
+                        [{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],
+                        {duration:250}
+                    );
+                    return;
+                }
+            }
+            show(+btn.dataset.goto);
+        });
+    });
+    form.querySelectorAll('.ob-back').forEach(function (btn) {
+        btn.addEventListener('click', function () { show(+btn.dataset.goto); });
+    });
+})();
+</script>
+{% endblock %}

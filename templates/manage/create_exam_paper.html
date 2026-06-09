@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}নতুন Exam Paper তৈরি{% endblock %}
+{% block title %}{% if LANG == 'en' %}New Exam Paper{% else %}নতুন Exam Paper তৈরি{% endif %}{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-10">
 
@@ -7,11 +7,11 @@
   <div class="flex items-center gap-2 text-sm text-gray-400 mb-6">
     <a href="{% url 'exam_paper_list' %}" class="hover:text-indigo-600">📋 Exam Papers</a>
     <span>/</span>
-    <span class="text-gray-600 font-medium">নতুন Paper তৈরি</span>
+    <span class="text-gray-600 font-medium">{% if LANG == 'en' %}New Paper{% else %}নতুন Paper তৈরি{% endif %}</span>
   </div>
 
-  <h1 class="text-2xl font-bold text-gray-900 mb-2">📝 নতুন Exam Paper তৈরি করুন</h1>
-  <p class="text-gray-500 text-sm mb-8">MCQ + CQ দুই পর্ব একসাথে সংরক্ষণ হবে।</p>
+  <h1 class="text-2xl font-bold text-gray-900 mb-2">📝 {% if LANG == 'en' %}Create a new exam paper{% else %}নতুন Exam Paper তৈরি করুন{% endif %}</h1>
+  <p class="text-gray-500 text-sm mb-8">{% if LANG == 'en' %}Both the MCQ and CQ phases are saved together.{% else %}MCQ + CQ দুই পর্ব একসাথে সংরক্ষণ হবে।{% endif %}</p>
 
   {% if messages %}
   {% for msg in messages %}
@@ -30,14 +30,14 @@
   <!-- ── SECTION 1: Paper Info ── -->
   <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
     <h2 class="font-bold text-gray-800 mb-5 flex items-center gap-2">
-      <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold">১</span>
-      Paper তথ্য
+      <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold"{% if LANG == 'en' %}>1</span>{% else %}>১</span>{% endif %}
+      {% if LANG == 'en' %}Paper Info{% else %}Paper তথ্য{% endif %}
     </h2>
     <div class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
         <input type="text" name="title" value="{{ post.title|default:'' }}" required
-               placeholder="যেমন: SSC 2024 Physics Board Exam"
+               placeholder="{% if LANG == 'en' %}e.g. {% else %}যেমন: {% endif %}SSC 2024 Physics Board Exam"
                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -45,7 +45,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Subject <span class="text-red-500">*</span></label>
           <select name="subject" required
                   class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
-            <option value="">-- বেছে নিন --</option>
+            <option value="">{% if LANG == 'en' %}-- Select --{% else %}-- বেছে নিন --{% endif %}</option>
             {% for s in subjects %}
             <option value="{{ s.id }}" {% if post.subject == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
             {% endfor %}
@@ -55,7 +55,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Class <span class="text-red-500">*</span></label>
           <select name="class_obj" required
                   class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
-            <option value="">-- বেছে নিন --</option>
+            <option value="">{% if LANG == 'en' %}-- Select --{% else %}-- বেছে নিন --{% endif %}</option>
             {% for c in classes %}
             <option value="{{ c.id }}" {% if post.class_obj == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
             {% endfor %}
@@ -65,7 +65,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Board <span class="text-xs text-gray-400">(optional)</span></label>
           <select name="board"
                   class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
-            <option value="">-- বেছে নিন --</option>
+            <option value="">{% if LANG == 'en' %}-- Select --{% else %}-- বেছে নিন --{% endif %}</option>
             {% for b in boards %}
             <option value="{{ b.id }}" {% if post.board == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
             {% endfor %}
@@ -80,15 +80,15 @@
     <div class="flex items-start justify-between gap-4 flex-wrap">
       <div>
         <h2 class="font-bold text-gray-800 flex items-center gap-2">
-          <span class="text-lg">📸</span> ছবি থেকে প্রশ্ন তুলুন
+          <span class="text-lg">📸</span> {% if LANG == 'en' %}Capture questions from an image{% else %}ছবি থেকে প্রশ্ন তুলুন{% endif %}
         </h2>
-        <p class="text-xs text-gray-500 mt-1">Exam paper এর ছবি দিন — browser-এ OCR হবে, তারপর form-এ ভরাট করুন।</p>
+        <p class="text-xs text-gray-500 mt-1">{% if LANG == 'en' %}Provide an image of the exam paper — OCR runs in the browser, then fill the form.{% else %}Exam paper এর ছবি দিন — browser-এ OCR হবে, তারপর form-এ ভরাট করুন।{% endif %}</p>
       </div>
       <div class="flex items-center gap-2">
         <input type="file" id="ocr-file-input" accept="image/*" class="hidden">
         <button type="button" onclick="document.getElementById('ocr-file-input').click()"
                 class="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
-          📤 ছবি আপলোড করুন
+          📤 {% if LANG == 'en' %}Upload image{% else %}ছবি আপলোড করুন{% endif %}
         </button>
       </div>
     </div>
@@ -96,7 +96,7 @@
     <div id="ocr-loading" class="hidden mt-3">
       <div class="flex items-center gap-2 text-sm text-sky-700 mb-1">
         <span class="inline-block animate-spin">⏳</span>
-        <span id="ocr-progress-msg">OCR শুরু হচ্ছে…</span>
+        <span id="ocr-progress-msg">{% if LANG == 'en' %}Starting OCR…{% else %}OCR শুরু হচ্ছে…{% endif %}</span>
       </div>
       <div class="w-full bg-sky-100 rounded-full h-1.5">
         <div id="ocr-progress-bar" class="bg-sky-500 h-1.5 rounded-full transition-all" style="width:0%"></div>
@@ -104,13 +104,13 @@
     </div>
 
     <div id="ocr-result-box" class="hidden mt-4">
-      <label class="block text-xs font-medium text-gray-600 mb-1">Extract হওয়া Text (প্রয়োজনে সম্পাদনা করুন):</label>
+      <label class="block text-xs font-medium text-gray-600 mb-1">{% if LANG == 'en' %}Extracted text (edit if needed):{% else %}Extract হওয়া Text (প্রয়োজনে সম্পাদনা করুন):{% endif %}</label>
       <textarea id="ocr-raw-text" rows="7"
                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 resize-y bg-white font-mono"></textarea>
       <div class="flex items-center gap-3 mt-2 flex-wrap">
         <button type="button" onclick="parseAndFill()"
                 class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-sm font-bold transition">
-          Form-এ ভরাট করুন →
+          {% if LANG == 'en' %}Fill the form →{% else %}Form-এ ভরাট করুন →{% endif %}
         </button>
         <span id="ocr-fill-status" class="text-sm text-gray-500"></span>
       </div>
@@ -199,20 +199,20 @@ Option D</pre>
   <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
     <div class="flex items-center justify-between mb-5">
       <h2 class="font-bold text-gray-800 flex items-center gap-2">
-        <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">২</span>
-        MCQ প্রশ্ন <span class="text-xs text-gray-400 font-normal">(ঐচ্ছিক)</span>
-        <span id="mcq-count-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">0টি</span>
+        <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold"{% if LANG == 'en' %}>2</span>{% else %}>২</span>{% endif %}
+        {% if LANG == 'en' %}MCQ Questions{% else %}MCQ প্রশ্ন{% endif %} <span class="text-xs text-gray-400 font-normal">{% if LANG == 'en' %}(optional){% else %}(ঐচ্ছিক){% endif %}</span>
+        <span id="mcq-count-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{% if LANG == "en" %}0{% else %}0টি{% endif %}</span>
       </h2>
       <button type="button" onclick="addMCQ()"
               class="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition">
-        + MCQ যোগ করুন
+        {% if LANG == 'en' %}+ Add MCQ{% else %}+ MCQ যোগ করুন{% endif %}
       </button>
     </div>
 
     <div id="mcq-list" class="space-y-4"></div>
 
     <p class="text-xs text-gray-400 mt-4 text-center" id="mcq-empty-hint">
-      উপরের বাটন চেপে MCQ প্রশ্ন যোগ করুন (কমপক্ষে ১টি)
+      {% if LANG == 'en' %}Use the button above to add MCQ questions (at least 1){% else %}উপরের বাটন চেপে MCQ প্রশ্ন যোগ করুন (কমপক্ষে ১টি){% endif %}
     </p>
   </div>
 
@@ -220,20 +220,20 @@ Option D</pre>
   <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
     <div class="flex items-center justify-between mb-5">
       <h2 class="font-bold text-gray-800 flex items-center gap-2">
-        <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center font-bold">৩</span>
-        CQ প্রশ্ন (সৃজনশীল) <span class="text-xs text-gray-400 font-normal">(ঐচ্ছিক)</span>
-        <span id="cq-count-badge" class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">0টি</span>
+        <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center font-bold"{% if LANG == 'en' %}>3</span>{% else %}>৩</span>{% endif %}
+        {% if LANG == 'en' %}CQ Questions (Creative){% else %}CQ প্রশ্ন (সৃজনশীল){% endif %} <span class="text-xs text-gray-400 font-normal">{% if LANG == 'en' %}(optional){% else %}(ঐচ্ছিক){% endif %}</span>
+        <span id="cq-count-badge" class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">{% if LANG == "en" %}0{% else %}0টি{% endif %}</span>
       </h2>
       <button type="button" onclick="addCQ()"
               class="flex items-center gap-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition">
-        + CQ যোগ করুন
+        {% if LANG == 'en' %}+ Add CQ{% else %}+ CQ যোগ করুন{% endif %}
       </button>
     </div>
 
     <div id="cq-list" class="space-y-4"></div>
 
     <p class="text-xs text-gray-400 mt-4 text-center" id="cq-empty-hint">
-      উপরের বাটন চেপে CQ প্রশ্ন যোগ করুন (কমপক্ষে ১টি)
+      {% if LANG == 'en' %}Use the button above to add CQ questions (at least 1){% else %}উপরের বাটন চেপে CQ প্রশ্ন যোগ করুন (কমপক্ষে ১টি){% endif %}
     </p>
   </div>
 
@@ -241,11 +241,11 @@ Option D</pre>
   <div class="flex items-center gap-4">
     <button type="submit"
             class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-base transition shadow-sm hover:shadow-md">
-      Paper সংরক্ষণ করুন →
+      {% if LANG == 'en' %}Save Paper →{% else %}Paper সংরক্ষণ করুন →{% endif %}
     </button>
     <a href="{% url 'exam_paper_list' %}"
        class="text-gray-500 hover:text-gray-700 text-sm font-medium transition">
-      বাতিল করুন
+      {% if LANG == 'en' %}Cancel{% else %}বাতিল করুন{% endif %}
     </a>
     <span class="ml-auto text-xs text-gray-400">
       MCQ: <span id="mcq-final-count" class="font-semibold text-blue-600">0</span> |
@@ -263,61 +263,61 @@ Option D</pre>
       <span class="text-sm font-bold text-blue-700">MCQ #<span class="mcq-num">__NUM__</span></span>
       <button type="button" onclick="removeMCQ(this)"
               class="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition">
-        ✕ সরান
+        {% if LANG == 'en' %}✕ Remove{% else %}✕ সরান{% endif %}
       </button>
     </div>
 
     <div class="mb-3">
-      <label class="block text-xs font-medium text-gray-600 mb-1">প্রশ্ন <span class="text-red-400">*</span></label>
+      <label class="block text-xs font-medium text-gray-600 mb-1">{% if LANG == 'en' %}Question{% else %}প্রশ্ন{% endif %} <span class="text-red-400">*</span></label>
       <textarea name="mcq_question_text" rows="2" required
-                placeholder="MCQ প্রশ্নটি লিখুন…"
+                placeholder="{% if LANG == 'en' %}Write the MCQ question…{% else %}MCQ প্রশ্নটি লিখুন…{% endif %}"
                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none bg-white"></textarea>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">ক</span>)</label>
-        <input type="text" name="mcq_option1" required placeholder="ক"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">{% if LANG == 'en' %}a{% else %}ক{% endif %}</span>)</label>
+        <input type="text" name="mcq_option1" required placeholder="{% if LANG == 'en' %}a{% else %}ক{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="0">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">খ</span>)</label>
-        <input type="text" name="mcq_option2" required placeholder="খ"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">{% if LANG == 'en' %}b{% else %}খ{% endif %}</span>)</label>
+        <input type="text" name="mcq_option2" required placeholder="{% if LANG == 'en' %}b{% else %}খ{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="1">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">গ</span>)</label>
-        <input type="text" name="mcq_option3" required placeholder="গ"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">{% if LANG == 'en' %}c{% else %}গ{% endif %}</span>)</label>
+        <input type="text" name="mcq_option3" required placeholder="{% if LANG == 'en' %}c{% else %}গ{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="2">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">ঘ</span>)</label>
-        <input type="text" name="mcq_option4" required placeholder="ঘ"
+        <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">{% if LANG == 'en' %}d{% else %}ঘ{% endif %}</span>)</label>
+        <input type="text" name="mcq_option4" required placeholder="{% if LANG == 'en' %}d{% else %}ঘ{% endif %}"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="3">
       </div>
     </div>
 
     <div class="flex items-center gap-6 flex-wrap">
       <div>
-        <p class="text-xs font-medium text-gray-600 mb-2">সঠিক উত্তর <span class="text-red-400">*</span></p>
+        <p class="text-xs font-medium text-gray-600 mb-2">{% if LANG == 'en' %}Correct answer{% else %}সঠিক উত্তর{% endif %} <span class="text-red-400">*</span></p>
         <input type="hidden" name="mcq_correct_option" value="1" class="hidden-correct-input">
         <div class="flex gap-3">
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="1"> <span class="mcq-lbl" data-i="0">ক</span>
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="1"> <span class="mcq-lbl" data-i="0">{% if LANG == 'en' %}a{% else %}ক{% endif %}</span>
           </label>
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="2"> <span class="mcq-lbl" data-i="1">খ</span>
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="2"> <span class="mcq-lbl" data-i="1">{% if LANG == 'en' %}b{% else %}খ{% endif %}</span>
           </label>
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="3"> <span class="mcq-lbl" data-i="2">গ</span>
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="3"> <span class="mcq-lbl" data-i="2">{% if LANG == 'en' %}c{% else %}গ{% endif %}</span>
           </label>
           <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="4"> <span class="mcq-lbl" data-i="3">ঘ</span>
+            <input type="radio" class="mcq-radio accent-blue-600" name="mcq_radio_group___IDX__" value="4"> <span class="mcq-lbl" data-i="3">{% if LANG == 'en' %}d{% else %}ঘ{% endif %}</span>
           </label>
         </div>
       </div>
       <div class="ml-auto">
-        <label class="block text-xs font-medium text-gray-600 mb-1">নম্বর</label>
+        <label class="block text-xs font-medium text-gray-600 mb-1"{% if LANG == 'en' %}>Marks</label>{% else %}>নম্বর</label>{% endif %}
         <input type="number" name="mcq_marks" value="1" min="1" max="10"
                class="w-16 border border-gray-300 rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
       </div>
@@ -332,62 +332,62 @@ Option D</pre>
       <span class="text-sm font-bold text-purple-700">CQ #<span class="cq-num">__NUM__</span></span>
       <button type="button" onclick="removeCQ(this)"
               class="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition">
-        ✕ সরান
+        {% if LANG == 'en' %}✕ Remove{% else %}✕ সরান{% endif %}
       </button>
     </div>
 
     <div class="mb-4">
-      <label class="block text-xs font-medium text-gray-600 mb-1">উদ্দীপক (Stimulus) <span class="text-red-400">*</span></label>
+      <label class="block text-xs font-medium text-gray-600 mb-1">{% if LANG == 'en' %}Stimulus{% else %}উদ্দীপক (Stimulus){% endif %} <span class="text-red-400">*</span></label>
       <textarea name="cq_question_text" rows="3" required
-                placeholder="উদ্দীপকের বিবরণ লিখুন…"
+                placeholder="{% if LANG == 'en' %}Write the stimulus description…{% else %}উদ্দীপকের বিবরণ লিখুন…{% endif %}"
                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none bg-white"></textarea>
     </div>
 
     <div class="space-y-3">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-start">
         <div class="md:col-span-3">
-          <label class="block text-xs font-medium text-gray-500 mb-1">(ক) অংশ</label>
-          <textarea name="cq_part_a" rows="2" placeholder="ক) প্রশ্নের বিবরণ…"
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% if LANG == 'en' %}Part (a){% else %}(ক) অংশ{% endif %}</label>
+          <textarea name="cq_part_a" rows="2" placeholder="{% if LANG == 'en' %}(a) description…{% else %}ক) প্রশ্নের বিবরণ…{% endif %}"
                     class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 resize-none bg-white"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">নম্বর</label>
+          <label class="block text-xs font-medium text-gray-500 mb-1"{% if LANG == 'en' %}>Marks</label>{% else %}>নম্বর</label>{% endif %}
           <input type="number" name="cq_marks_a" value="1" min="0" max="20"
                  class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white">
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-start">
         <div class="md:col-span-3">
-          <label class="block text-xs font-medium text-gray-500 mb-1">(খ) অংশ</label>
-          <textarea name="cq_part_b" rows="2" placeholder="খ) প্রশ্নের বিবরণ…"
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% if LANG == 'en' %}Part (b){% else %}(খ) অংশ{% endif %}</label>
+          <textarea name="cq_part_b" rows="2" placeholder="{% if LANG == 'en' %}(b) description…{% else %}খ) প্রশ্নের বিবরণ…{% endif %}"
                     class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 resize-none bg-white"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">নম্বর</label>
+          <label class="block text-xs font-medium text-gray-500 mb-1"{% if LANG == 'en' %}>Marks</label>{% else %}>নম্বর</label>{% endif %}
           <input type="number" name="cq_marks_b" value="2" min="0" max="20"
                  class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white">
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-start">
         <div class="md:col-span-3">
-          <label class="block text-xs font-medium text-gray-500 mb-1">(গ) অংশ</label>
-          <textarea name="cq_part_c" rows="2" placeholder="গ) প্রশ্নের বিবরণ…"
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% if LANG == 'en' %}Part (c){% else %}(গ) অংশ{% endif %}</label>
+          <textarea name="cq_part_c" rows="2" placeholder="{% if LANG == 'en' %}(c) description…{% else %}গ) প্রশ্নের বিবরণ…{% endif %}"
                     class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 resize-none bg-white"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">নম্বর</label>
+          <label class="block text-xs font-medium text-gray-500 mb-1"{% if LANG == 'en' %}>Marks</label>{% else %}>নম্বর</label>{% endif %}
           <input type="number" name="cq_marks_c" value="3" min="0" max="20"
                  class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white">
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-start">
         <div class="md:col-span-3">
-          <label class="block text-xs font-medium text-gray-500 mb-1">(ঘ) অংশ</label>
-          <textarea name="cq_part_d" rows="2" placeholder="ঘ) প্রশ্নের বিবরণ…"
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% if LANG == 'en' %}Part (d){% else %}(ঘ) অংশ{% endif %}</label>
+          <textarea name="cq_part_d" rows="2" placeholder="{% if LANG == 'en' %}(d) description…{% else %}ঘ) প্রশ্নের বিবরণ…{% endif %}"
                     class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 resize-none bg-white"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">নম্বর</label>
+          <label class="block text-xs font-medium text-gray-500 mb-1"{% if LANG == 'en' %}>Marks</label>{% else %}>নম্বর</label>{% endif %}
           <input type="number" name="cq_marks_d" value="4" min="0" max="20"
                  class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white">
         </div>
@@ -400,7 +400,7 @@ Option D</pre>
 let mcqCount = 0;
 let cqCount = 0;
 
-const BN_LABELS = ['ক', 'খ', 'গ', 'ঘ'];
+const BN_LABELS = [{% if LANG == 'en' %}'a', 'b', 'c', 'd'{% else %}'ক', 'খ', 'গ', 'ঘ'{% endif %}];
 const EN_LABELS = ['a', 'b', 'c', 'd'];
 
 function isBengali(text) {
@@ -510,8 +510,8 @@ function reNumberCQ() {
 function updateCounts() {
   const mc = document.querySelectorAll('.mcq-row').length;
   const cq = document.querySelectorAll('.cq-row').length;
-  document.getElementById('mcq-count-badge').textContent = mc + 'টি';
-  document.getElementById('cq-count-badge').textContent = cq + 'টি';
+  document.getElementById('mcq-count-badge').textContent = mc + '{% if LANG == "en" %}{% else %}টি{% endif %}';
+  document.getElementById('cq-count-badge').textContent = cq + '{% if LANG == "en" %}{% else %}টি{% endif %}';
   document.getElementById('mcq-final-count').textContent = mc;
   document.getElementById('cq-final-count').textContent = cq;
   document.getElementById('mcq-empty-hint').style.display = mc ? 'none' : '';
@@ -623,7 +623,7 @@ async function preprocessImageForOCR(file) {
       ctx.putImageData(id, 0, 0);
       resolve(canvas);
     };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('ছবি লোড ব্যর্থ')); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('{% if LANG == 'en' %}Image failed to load{% else %}ছবি লোড ব্যর্থ{% endif %}')); };
     img.src = url;
   });
 }
@@ -643,18 +643,18 @@ document.getElementById('ocr-file-input').addEventListener('change', async funct
   resultBox.classList.add('hidden');
   errEl.classList.add('hidden');
   bar.style.width = '0%';
-  msg.textContent = 'ছবি প্রক্রিয়া করা হচ্ছে…';
+  msg.textContent = '{% if LANG == 'en' %}Processing image…{% else %}ছবি প্রক্রিয়া করা হচ্ছে…{% endif %}';
 
   try {
     const canvas = await preprocessImageForOCR(file);
-    msg.textContent = 'OCR শুরু হচ্ছে…';
+    msg.textContent = '{% if LANG == 'en' %}Starting OCR…{% else %}OCR শুরু হচ্ছে…{% endif %}';
 
     const worker = await Tesseract.createWorker('ben', 1, {
       logger: m => {
         if (m.status === 'recognizing text') {
           const pct = Math.round(m.progress * 100);
           bar.style.width = pct + '%';
-          msg.textContent = 'OCR চলছে… ' + pct + '%';
+          msg.textContent = '{% if LANG == 'en' %}Running OCR… {% else %}OCR চলছে… {% endif %}' + pct + '%';
         }
       }
     });
@@ -665,10 +665,10 @@ document.getElementById('ocr-file-input').addEventListener('change', async funct
     document.getElementById('ocr-raw-text').value = text;
     resultBox.classList.remove('hidden');
     document.getElementById('ocr-fill-status').textContent =
-      'Text extract হয়েছে। ভুল থাকলে এখানে ঠিক করুন, তারপর ভরাট করুন।';
+      '{% if LANG == 'en' %}Text extracted. Fix any mistakes here, then fill the form.{% else %}Text extract হয়েছে। ভুল থাকলে এখানে ঠিক করুন, তারপর ভরাট করুন।{% endif %}';
   } catch (err) {
     loadingEl.classList.add('hidden');
-    errEl.textContent = '❌ OCR ব্যর্থ হয়েছে: ' + (err.message || err);
+    errEl.textContent = '❌ {% if LANG == 'en' %}OCR failed: {% else %}OCR ব্যর্থ হয়েছে: {% endif %}' + (err.message || err);
     errEl.classList.remove('hidden');
   }
 });
@@ -676,8 +676,8 @@ document.getElementById('ocr-file-input').addEventListener('change', async funct
 async function parseAndFill() {
   const text = document.getElementById('ocr-raw-text').value.trim();
   const statusEl = document.getElementById('ocr-fill-status');
-  if (!text) { statusEl.textContent = '⚠️ Text নেই।'; return; }
-  statusEl.textContent = 'পার্স করা হচ্ছে…';
+  if (!text) { statusEl.textContent = '⚠️ {% if LANG == "en" %}No text.{% else %}Text নেই।{% endif %}'; return; }
+  statusEl.textContent = '{% if LANG == 'en' %}Parsing…{% else %}পার্স করা হচ্ছে…{% endif %}';
 
   const fd = new FormData();
   fd.append('text', text);
@@ -687,13 +687,13 @@ async function parseAndFill() {
     const resp = await fetch('{% url "parse_exam_text" %}', { method: 'POST', body: fd });
     const data = await resp.json();
     if (!resp.ok || !data.success) {
-      statusEl.textContent = '❌ ' + (data.error || 'পার্স ব্যর্থ হয়েছে।');
+      statusEl.textContent = '❌ ' + (data.error || '{% if LANG == 'en' %}Parsing failed.{% else %}পার্স ব্যর্থ হয়েছে।{% endif %}');
       return;
     }
     const { mcqs = [], cqs = [] } = data.data;
     mcqs.forEach(m => addMCQ(m));
     cqs.forEach(c => addCQ(c));
-    statusEl.textContent = `✅ ${mcqs.length}টি MCQ ও ${cqs.length}টি CQ form-এ যোগ হয়েছে।`;
+    statusEl.textContent = `✅ ${mcqs.length}{% if LANG == "en" %} MCQ and {% else %}টি MCQ ও {% endif %}${cqs.length}{% if LANG == "en" %} CQ added to the form.{% else %}টি CQ form-এ যোগ হয়েছে।{% endif %}`;
   } catch (err) {
     statusEl.textContent = '❌ Error: ' + (err.message || err);
   }

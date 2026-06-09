@@ -19,7 +19,7 @@
       <div class="flex flex-wrap gap-2 mb-4">
         <span class="bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full">{{ paper.subject.name }}</span>
         <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">{{ paper.class_obj.name }}</span>
-        <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">{{ paper.year }} সন</span>
+        <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">{% if LANG == 'en' %}{{ paper.year }}{% else %}{{ paper.year }} সন{% endif %}</span>
         {% if paper.board %}<span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">{{ paper.board.name }}</span>{% endif %}
       </div>
 
@@ -29,19 +29,19 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-blue-50 rounded-xl p-4 text-center">
           <p class="text-2xl font-bold text-blue-700">{{ mcq_count }}</p>
-          <p class="text-xs text-blue-500 mt-1">MCQ প্রশ্ন</p>
+          <p class="text-xs text-blue-500 mt-1">{% if LANG == 'en' %}MCQ questions{% else %}MCQ প্রশ্ন{% endif %}</p>
         </div>
         <div class="bg-purple-50 rounded-xl p-4 text-center">
           <p class="text-2xl font-bold text-purple-700">{{ cq_count }}</p>
-          <p class="text-xs text-purple-500 mt-1">CQ প্রশ্ন</p>
+          <p class="text-xs text-purple-500 mt-1">{% if LANG == 'en' %}CQ questions{% else %}CQ প্রশ্ন{% endif %}</p>
         </div>
         <div class="bg-gray-50 rounded-xl p-4 text-center">
           <p class="text-2xl font-bold text-gray-700">100</p>
-          <p class="text-xs text-gray-500 mt-1">মোট নম্বর</p>
+          <p class="text-xs text-gray-500 mt-1">{% if LANG == 'en' %}Total marks{% else %}মোট নম্বর{% endif %}</p>
         </div>
         <div class="bg-amber-50 rounded-xl p-4 text-center">
           <p class="text-2xl font-bold text-amber-700">3h</p>
-          <p class="text-xs text-amber-500 mt-1">মোট সময়</p>
+          <p class="text-xs text-amber-500 mt-1">{% if LANG == 'en' %}Total time{% else %}মোট সময়{% endif %}</p>
         </div>
       </div>
 
@@ -49,26 +49,26 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div class="border border-blue-200 rounded-xl p-4">
           <div class="flex items-center gap-2 mb-3">
-            <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">১</span>
-            <h3 class="font-semibold text-gray-800">MCQ পর্ব</h3>
+            <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold"{% if LANG == 'en' %}>1<{% else %}>১<{% endif %}/span>
+            <h3 class="font-semibold text-gray-800">{% if LANG == 'en' %}MCQ Phase{% else %}MCQ পর্ব{% endif %}</h3>
           </div>
           <ul class="text-sm text-gray-600 space-y-1.5">
-            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> {{ mcq_count }}টি বহুনির্বাচনি প্রশ্ন</li>
-            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> প্রতিটি ১ নম্বর করে</li>
-            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> সময়: ৩০ মিনিট</li>
-            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> সময় শেষে auto-submit</li>
+            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> {{ mcq_count }}{% if LANG == 'en' %} multiple-choice questions{% else %}টি বহুনির্বাচনি প্রশ্ন{% endif %}</li>
+            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> {% if LANG == 'en' %}1 mark each{% else %}প্রতিটি ১ নম্বর করে{% endif %}</li>
+            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> {% if LANG == 'en' %}Time: 30 min{% else %}সময়: ৩০ মিনিট{% endif %}</li>
+            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> {% if LANG == 'en' %}Auto-submits when time ends{% else %}সময় শেষে auto-submit{% endif %}</li>
           </ul>
         </div>
         <div class="border border-purple-200 rounded-xl p-4">
           <div class="flex items-center gap-2 mb-3">
-            <span class="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">২</span>
-            <h3 class="font-semibold text-gray-800">CQ পর্ব</h3>
+            <span class="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold"{% if LANG == 'en' %}>2<{% else %}>২<{% endif %}/span>
+            <h3 class="font-semibold text-gray-800">{% if LANG == 'en' %}CQ Phase{% else %}CQ পর্ব{% endif %}</h3>
           </div>
           <ul class="text-sm text-gray-600 space-y-1.5">
-            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> {{ cq_count }}টি সৃজনশীল প্রশ্ন থেকে</li>
-            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> যেকোনো ৭টির উত্তর দিন</li>
-            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> উত্তর ছবি তুলে আপলোড করুন</li>
-            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> সময়: ২ ঘণ্টা ৩০ মিনিট</li>
+            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> {{ cq_count }}{% if LANG == 'en' %} creative questions{% else %}টি সৃজনশীল প্রশ্ন থেকে{% endif %}</li>
+            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> {% if LANG == 'en' %}Answer any 7{% else %}যেকোনো ৭টির উত্তর দিন{% endif %}</li>
+            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> {% if LANG == 'en' %}Photograph and upload your answers{% else %}উত্তর ছবি তুলে আপলোড করুন{% endif %}</li>
+            <li class="flex items-center gap-2"><span class="text-purple-500">●</span> {% if LANG == 'en' %}Time: 2 hours 30 min{% else %}সময়: ২ ঘণ্টা ৩০ মিনিট{% endif %}</li>
           </ul>
         </div>
       </div>
@@ -89,17 +89,17 @@
           </span>
           <div>
             {% if attempt.status == 'GRADED' %}
-            <p class="font-semibold text-green-800">পরীক্ষা সম্পন্ন হয়েছে</p>
-            <p class="text-sm text-green-600 mt-0.5">MCQ: {{ attempt.mcq_score }} নম্বর পেয়েছেন। Full result দেখুন।</p>
+            <p class="font-semibold text-green-800">{% if LANG == 'en' %}Exam completed{% else %}পরীক্ষা সম্পন্ন হয়েছে{% endif %}</p>
+            <p class="text-sm text-green-600 mt-0.5">{% if LANG == 'en' %}MCQ: scored {{ attempt.mcq_score }} marks. View full result.{% else %}MCQ: {{ attempt.mcq_score }} নম্বর পেয়েছেন। Full result দেখুন।{% endif %}</p>
             {% elif attempt.status == 'CQ_PENDING' %}
-            <p class="font-semibold text-yellow-800">CQ মূল্যায়ন চলছে</p>
-            <p class="text-sm text-yellow-600 mt-0.5">MCQ: {{ attempt.mcq_score }} নম্বর। Teacher CQ grade করলে ফলাফল পাবেন।</p>
+            <p class="font-semibold text-yellow-800">{% if LANG == 'en' %}CQ evaluation in progress{% else %}CQ মূল্যায়ন চলছে{% endif %}</p>
+            <p class="text-sm text-yellow-600 mt-0.5">{% if LANG == 'en' %}MCQ: {{ attempt.mcq_score }} marks. You will get the result once a teacher grades the CQ.{% else %}MCQ: {{ attempt.mcq_score }} নম্বর। Teacher CQ grade করলে ফলাফল পাবেন।{% endif %}</p>
             {% elif attempt.status == 'CQ_PHASE' or attempt.status == 'MCQ_DONE' %}
-            <p class="font-semibold text-purple-800">CQ পর্ব শুরু হয়নি</p>
-            <p class="text-sm text-purple-600 mt-0.5">MCQ: {{ attempt.mcq_score }} নম্বর পেয়েছেন। এখন CQ পর্ব শুরু করুন।</p>
+            <p class="font-semibold text-purple-800">{% if LANG == 'en' %}CQ phase not started{% else %}CQ পর্ব শুরু হয়নি{% endif %}</p>
+            <p class="text-sm text-purple-600 mt-0.5">{% if LANG == 'en' %}MCQ: scored {{ attempt.mcq_score }} marks. Now start the CQ phase.{% else %}MCQ: {{ attempt.mcq_score }} নম্বর পেয়েছেন। এখন CQ পর্ব শুরু করুন।{% endif %}</p>
             {% elif attempt.status == 'MCQ_PHASE' %}
-            <p class="font-semibold text-blue-800">MCQ পর্ব শুরু হয়েছে কিন্তু শেষ হয়নি</p>
-            <p class="text-sm text-blue-600 mt-0.5">যেখানে ছেড়ে গিয়েছিলেন সেখান থেকে শুরু করুন।</p>
+            <p class="font-semibold text-blue-800">{% if LANG == 'en' %}MCQ phase started but not finished{% else %}MCQ পর্ব শুরু হয়েছে কিন্তু শেষ হয়নি{% endif %}</p>
+            <p class="text-sm text-blue-600 mt-0.5">{% if LANG == 'en' %}Resume from where you left off.{% else %}যেখানে ছেড়ে গিয়েছিলেন সেখান থেকে শুরু করুন।{% endif %}</p>
             {% endif %}
           </div>
         </div>
@@ -111,15 +111,15 @@
         {% if is_admin or is_superadmin %}
         <a href="{% url 'preview_exam' paper.pk %}"
            class="inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 px-6 py-3 rounded-xl font-bold text-sm transition">
-          🔍 Preview করুন (সব প্রশ্ন দেখুন)
+          {% if LANG == 'en' %}🔍 Preview (see all questions){% else %}🔍 Preview করুন (সব প্রশ্ন দেখুন){% endif %}
         </a>
 
         {% elif not attempt %}
         <a href="{% url 'start_exam' paper.pk %}"
            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-base transition shadow-sm hover:shadow-md">
-          পরীক্ষা শুরু করুন →
+          {% if LANG == 'en' %}Start Exam →{% else %}পরীক্ষা শুরু করুন →{% endif %}
         </a>
-        <span class="flex items-center text-sm text-gray-400">প্রথমে MCQ, তারপর CQ</span>
+        <span class="flex items-center text-sm text-gray-400">{% if LANG == 'en' %}MCQ first, then CQ{% else %}প্রথমে MCQ, তারপর CQ{% endif %}</span>
 
         {% elif attempt.status == 'MCQ_PHASE' %}
         <a href="{% url 'start_exam' paper.pk %}"
@@ -130,39 +130,39 @@
         {% elif attempt.status == 'MCQ_DONE' or attempt.status == 'CQ_PHASE' %}
         <a href="{% url 'exam_cq_phase' attempt.id %}"
            class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-bold text-base transition">
-          CQ পর্ব শুরু করুন →
+          {% if LANG == 'en' %}Start CQ Phase →{% else %}CQ পর্ব শুরু করুন →{% endif %}
         </a>
 
         {% elif attempt.status == 'CQ_PENDING' %}
         <a href="{% url 'exam_results' attempt.id %}"
            class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-xl font-bold text-base transition">
-          Results দেখুন (Grading চলছে) ⏳
+          {% if LANG == 'en' %}View Results (grading in progress) ⏳{% else %}Results দেখুন (Grading চলছে) ⏳{% endif %}
         </a>
 
         {% elif attempt.status == 'GRADED' %}
         <a href="{% url 'exam_results' attempt.id %}"
            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold text-base transition">
-          Full Results দেখুন ✅
+          {% if LANG == 'en' %}View Full Results ✅{% else %}Full Results দেখুন ✅{% endif %}
         </a>
         {% endif %}
 
         <a href="{% url 'exam_paper_list' %}"
            class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-xl font-medium text-base transition">
-          ← ফিরে যান
+          {% if LANG == 'en' %}← Back{% else %}← ফিরে যান{% endif %}
         </a>
 
         {% if is_admin or is_superadmin or request.user.is_staff %}
         <div class="flex gap-2 ml-auto">
           <a href="{% url 'edit_exam_paper' paper.pk %}"
              class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 px-4 py-2.5 rounded-xl font-medium text-sm transition">
-            ✏️ সম্পাদনা
+            {% if LANG == 'en' %}✏️ Edit{% else %}✏️ সম্পাদনা{% endif %}
           </a>
           <form method="post" action="{% url 'delete_exam_paper' paper.pk %}"
-                onsubmit="return confirm('এই Exam Paper মুছে ফেলতে চান? এটি undo করা যাবে না।')">
+                onsubmit="return confirm('{% if LANG == 'en' %}Delete this exam paper? This cannot be undone.{% else %}এই Exam Paper মুছে ফেলতে চান? এটি undo করা যাবে না।{% endif %}')">
             {% csrf_token %}
             <button type="submit"
                     class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 px-4 py-2.5 rounded-xl font-medium text-sm transition">
-              🗑️ মুছুন
+              {% if LANG == 'en' %}🗑️ Delete{% else %}🗑️ মুছুন{% endif %}
             </button>
           </form>
         </div>
@@ -178,13 +178,13 @@
   <div class="bg-white rounded-2xl border border-gray-200 p-6">
     <h2 class="font-bold text-gray-800 mb-4">📊 Bangladesh Grading Scale</h2>
     <div class="grid grid-cols-4 md:grid-cols-7 gap-2 text-center text-sm">
-      <div class="bg-green-50 border border-green-200 rounded-xl py-2"><div class="font-extrabold text-green-700">A+</div><div class="text-xs text-green-600">৮০+</div></div>
-      <div class="bg-blue-50 border border-blue-200 rounded-xl py-2"><div class="font-extrabold text-blue-700">A</div><div class="text-xs text-blue-600">৭০–৭৯</div></div>
-      <div class="bg-sky-50 border border-sky-200 rounded-xl py-2"><div class="font-extrabold text-sky-700">A-</div><div class="text-xs text-sky-600">৬০–৬৯</div></div>
-      <div class="bg-yellow-50 border border-yellow-200 rounded-xl py-2"><div class="font-extrabold text-yellow-700">B</div><div class="text-xs text-yellow-600">৫০–৫৯</div></div>
-      <div class="bg-orange-50 border border-orange-200 rounded-xl py-2"><div class="font-extrabold text-orange-700">C</div><div class="text-xs text-orange-600">৪০–৪৯</div></div>
-      <div class="bg-red-50 border border-red-200 rounded-xl py-2"><div class="font-extrabold text-red-700">D</div><div class="text-xs text-red-600">৩৩–৩৯</div></div>
-      <div class="bg-gray-50 border border-gray-200 rounded-xl py-2"><div class="font-extrabold text-gray-600">F</div><div class="text-xs text-gray-500">০–৩২</div></div>
+      <div class="bg-green-50 border border-green-200 rounded-xl py-2"><div class="font-extrabold text-green-700">A+</div><div class="text-xs text-green-600">{% if LANG == 'en' %}80+{% else %}৮০+{% endif %}</div></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl py-2"><div class="font-extrabold text-blue-700">A</div><div class="text-xs text-blue-600">{% if LANG == 'en' %}70–79{% else %}৭০–৭৯{% endif %}</div></div>
+      <div class="bg-sky-50 border border-sky-200 rounded-xl py-2"><div class="font-extrabold text-sky-700">A-</div><div class="text-xs text-sky-600">{% if LANG == 'en' %}60–69{% else %}৬০–৬৯{% endif %}</div></div>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl py-2"><div class="font-extrabold text-yellow-700">B</div><div class="text-xs text-yellow-600">{% if LANG == 'en' %}50–59{% else %}৫০–৫৯{% endif %}</div></div>
+      <div class="bg-orange-50 border border-orange-200 rounded-xl py-2"><div class="font-extrabold text-orange-700">C</div><div class="text-xs text-orange-600">{% if LANG == 'en' %}40–49{% else %}৪০–৪৯{% endif %}</div></div>
+      <div class="bg-red-50 border border-red-200 rounded-xl py-2"><div class="font-extrabold text-red-700">D</div><div class="text-xs text-red-600">{% if LANG == 'en' %}33–39{% else %}৩৩–৩৯{% endif %}</div></div>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl py-2"><div class="font-extrabold text-gray-600">F</div><div class="text-xs text-gray-500">{% if LANG == 'en' %}0–32{% else %}০–৩২{% endif %}</div></div>
     </div>
   </div>
 

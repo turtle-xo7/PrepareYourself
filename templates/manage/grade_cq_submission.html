@@ -18,7 +18,7 @@
     <span class="text-xl">✏️</span>
     <div class="flex-1">
       <p class="text-sm font-semibold text-amber-800">Re-grading mode</p>
-      <p class="text-xs text-amber-700">এই attempt আগে grade করা হয়েছিল। পরিবর্তন save করলে student notification পাবে।</p>
+      <p class="text-xs text-amber-700">{% if LANG == 'en' %}This attempt was graded before. Saving changes will notify the student.{% else %}এই attempt আগে grade করা হয়েছিল। পরিবর্তন save করলে student notification পাবে।{% endif %}</p>
     </div>
     <span class="text-xs font-bold bg-white border border-amber-300 text-amber-700 px-2.5 py-1 rounded-full">
       Current: {{ attempt.grade }} ({{ attempt.total_score }})
@@ -29,12 +29,12 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">{% if is_regrade %}CQ পুনঃমূল্যায়ন{% else %}CQ মূল্যায়ন{% endif %}</h1>
+      <h1 class="text-2xl font-bold text-gray-800">{% if is_regrade %}{% if LANG == 'en' %}CQ Re-evaluation{% else %}CQ পুনঃমূল্যায়ন{% endif %}{% else %}{% if LANG == 'en' %}CQ Evaluation{% else %}CQ মূল্যায়ন{% endif %}{% endif %}</h1>
       <p class="text-gray-500 text-sm">{{ attempt.student.get_full_name|default:attempt.student.username }} • {{ attempt.exam_paper.title }}</p>
     </div>
     <div class="flex items-center gap-3">
       <div class="bg-blue-50 rounded-xl px-4 py-2 text-center">
-        <div class="text-xs text-gray-400">MCQ স্কোর</div>
+        <div class="text-xs text-gray-400"{% if LANG == 'en' %}>MCQ Score<{% else %}>MCQ স্কোর<{% endif %}/div>
         <div class="text-2xl font-bold text-blue-700">{{ attempt.mcq_score }}<span class="text-sm text-gray-400 font-normal">/30</span></div>
       </div>
       <a href="{% url 'manage_grade_list' %}" class="text-sm text-gray-500 hover:text-gray-700">← Grade Queue</a>
@@ -48,7 +48,7 @@
 
     <!-- LEFT PANEL: Student Photos -->
     <div class="flex-1 space-y-6">
-      <h2 class="font-semibold text-gray-700 text-lg border-b pb-2">📷 শিক্ষার্থীর উত্তরের ছবি</h2>
+      <h2 class="font-semibold text-gray-700 text-lg border-b pb-2">{% if LANG == 'en' %}📷 Student's answer images{% else %}📷 শিক্ষার্থীর উত্তরের ছবি{% endif %}</h2>
 
       {% if cq_submissions %}
       {% for sub in cq_submissions %}
@@ -56,67 +56,68 @@
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-semibold text-gray-700">CQ {{ forloop.counter }}</h3>
           <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-            মোট: {{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }} নম্বর
-          </span>
+            {% if LANG == 'en' %}Total: {% else %}মোট: {% endif %}{{ sub.cq_question.marks_a|add:sub.cq_question.marks_b|add:sub.cq_question.marks_c|add:sub.cq_question.marks_d }}{% if LANG == 'en' %} Marks
+{% else %} নম্বর
+{% endif %}          </span>
         </div>
 
         <!-- Question text -->
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-gray-700">
-          <p class="font-medium text-amber-700 text-xs mb-1">উদ্দীপক</p>
+          <p class="font-medium text-amber-700 text-xs mb-1"{% if LANG == 'en' %}>Stimulus<{% else %}>উদ্দীপক<{% endif %}/p>
           {{ sub.cq_question.question_text }}
         </div>
         <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
-          {% if sub.cq_question.part_a %}<div class="bg-gray-50 p-2 rounded">(ক) {{ sub.cq_question.part_a }} [{{ sub.cq_question.marks_a }}]</div>{% endif %}
-          {% if sub.cq_question.part_b %}<div class="bg-gray-50 p-2 rounded">(খ) {{ sub.cq_question.part_b }} [{{ sub.cq_question.marks_b }}]</div>{% endif %}
-          {% if sub.cq_question.part_c %}<div class="bg-gray-50 p-2 rounded">(গ) {{ sub.cq_question.part_c }} [{{ sub.cq_question.marks_c }}]</div>{% endif %}
-          {% if sub.cq_question.part_d %}<div class="bg-gray-50 p-2 rounded">(ঘ) {{ sub.cq_question.part_d }} [{{ sub.cq_question.marks_d }}]</div>{% endif %}
+          {% if sub.cq_question.part_a %}<div class="bg-gray-50 p-2 rounded"{% if LANG == 'en' %}>(a) {% else %}>(ক) {% endif %}{{ sub.cq_question.part_a }} [{{ sub.cq_question.marks_a }}]</div>{% endif %}
+          {% if sub.cq_question.part_b %}<div class="bg-gray-50 p-2 rounded"{% if LANG == 'en' %}>(b) {% else %}>(খ) {% endif %}{{ sub.cq_question.part_b }} [{{ sub.cq_question.marks_b }}]</div>{% endif %}
+          {% if sub.cq_question.part_c %}<div class="bg-gray-50 p-2 rounded"{% if LANG == 'en' %}>(c) {% else %}>(গ) {% endif %}{{ sub.cq_question.part_c }} [{{ sub.cq_question.marks_c }}]</div>{% endif %}
+          {% if sub.cq_question.part_d %}<div class="bg-gray-50 p-2 rounded"{% if LANG == 'en' %}>(d) {% else %}>(ঘ) {% endif %}{{ sub.cq_question.part_d }} [{{ sub.cq_question.marks_d }}]</div>{% endif %}
         </div>
 
         <!-- Photos -->
         <div class="space-y-3">
           {% if sub.photo %}
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-1.5">সম্পূর্ণ উত্তর</p>
+            <p class="text-xs font-medium text-gray-500 mb-1.5">{% if LANG == 'en' %}Full answer{% else %}সম্পূর্ণ উত্তর{% endif %}</p>
             <a href="{{ sub.photo.url }}" target="_blank">
-              <img src="{{ sub.photo.url }}" alt="উত্তর" class="max-h-96 w-full object-contain rounded-xl border border-gray-200 hover:opacity-90 transition cursor-zoom-in">
+              <img src="{{ sub.photo.url }}" {% if LANG == 'en' %}alt="answer"{% else %}alt="উত্তর"{% endif %} class="max-h-96 w-full object-contain rounded-xl border border-gray-200 hover:opacity-90 transition cursor-zoom-in">
             </a>
           </div>
           {% endif %}
           <div class="grid grid-cols-2 gap-2">
             {% if sub.photo_a %}
             <div>
-              <p class="text-xs font-medium text-gray-400 mb-1">(ক) অংশ</p>
+              <p class="text-xs font-medium text-gray-400 mb-1">{% if LANG == 'en' %}Part (a){% else %}(ক) অংশ{% endif %}</p>
               <a href="{{ sub.photo_a.url }}" target="_blank"><img src="{{ sub.photo_a.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
             </div>
             {% endif %}
             {% if sub.photo_b %}
             <div>
-              <p class="text-xs font-medium text-gray-400 mb-1">(খ) অংশ</p>
+              <p class="text-xs font-medium text-gray-400 mb-1">{% if LANG == 'en' %}Part (b){% else %}(খ) অংশ{% endif %}</p>
               <a href="{{ sub.photo_b.url }}" target="_blank"><img src="{{ sub.photo_b.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
             </div>
             {% endif %}
             {% if sub.photo_c %}
             <div>
-              <p class="text-xs font-medium text-gray-400 mb-1">(গ) অংশ</p>
+              <p class="text-xs font-medium text-gray-400 mb-1">{% if LANG == 'en' %}Part (c){% else %}(গ) অংশ{% endif %}</p>
               <a href="{{ sub.photo_c.url }}" target="_blank"><img src="{{ sub.photo_c.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
             </div>
             {% endif %}
             {% if sub.photo_d %}
             <div>
-              <p class="text-xs font-medium text-gray-400 mb-1">(ঘ) অংশ</p>
+              <p class="text-xs font-medium text-gray-400 mb-1">{% if LANG == 'en' %}Part (d){% else %}(ঘ) অংশ{% endif %}</p>
               <a href="{{ sub.photo_d.url }}" target="_blank"><img src="{{ sub.photo_d.url }}" class="max-h-48 w-full object-contain rounded-lg border cursor-zoom-in hover:opacity-90"></a>
             </div>
             {% endif %}
           </div>
           {% if not sub.photo and not sub.photo_a and not sub.photo_b and not sub.photo_c and not sub.photo_d %}
-          <p class="text-gray-400 text-sm italic text-center py-4">কোনো ছবি আপলোড করা হয়নি</p>
+          <p class="text-gray-400 text-sm italic text-center py-4">{% if LANG == 'en' %}No image uploaded{% else %}কোনো ছবি আপলোড করা হয়নি{% endif %}</p>
           {% endif %}
         </div>
       </div>
       {% endfor %}
       {% else %}
       <div class="bg-white rounded-2xl shadow p-10 text-center text-gray-400">
-        <p>কোনো CQ submission পাওয়া যায়নি।</p>
+        <p>{% if LANG == 'en' %}No CQ submission found.{% else %}কোনো CQ submission পাওয়া যায়নি।{% endif %}</p>
       </div>
       {% endif %}
     </div>
@@ -124,7 +125,7 @@
     <!-- RIGHT PANEL: Scoring Form -->
     <div class="w-96 shrink-0">
       <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
-        <h2 class="font-semibold text-gray-700 text-lg border-b pb-2 mb-4">✏️ নম্বর দিন (অংশভিত্তিক)</h2>
+        <h2 class="font-semibold text-gray-700 text-lg border-b pb-2 mb-4">{% if LANG == 'en' %}✏️ Give marks (per part){% else %}✏️ নম্বর দিন (অংশভিত্তিক){% endif %}</h2>
 
         <div class="space-y-4">
           {% for sub in cq_submissions %}
@@ -133,14 +134,14 @@
             <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
               <label class="text-sm font-bold text-gray-700">CQ {{ forloop.counter }}</label>
               <span class="text-xs text-gray-400">
-                সর্বোচ্চ <span class="font-bold text-gray-600">{{ q.marks_a|add:q.marks_b|add:q.marks_c|add:q.marks_d }}</span>
+                {% if LANG == 'en' %}Max {% else %}সর্বোচ্চ {% endif %}<span class="font-bold text-gray-600">{{ q.marks_a|add:q.marks_b|add:q.marks_c|add:q.marks_d }}</span>
               </span>
             </div>
 
             {% if q.marks_a %}
             <div class="part-row mb-3">
               <div class="flex items-center gap-2 mb-1.5">
-                <span class="text-sm font-semibold text-purple-700 w-8">(ক)</span>
+                <span class="text-sm font-semibold text-purple-700 w-8"{% if LANG == 'en' %}>(a)<{% else %}>(ক)<{% endif %}/span>
                 <input type="number" name="marks_{{ sub.id }}_a" min="0" max="{{ q.marks_a }}"
                        value="{{ sub.marks_a|default_if_none:'' }}" placeholder="0"
                        data-max="{{ q.marks_a }}" data-sub="{{ sub.id }}"
@@ -149,7 +150,7 @@
                 <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_a }}</span>
               </div>
               <div class="part-comment-wrap pl-10">
-                <textarea name="comment_{{ sub.id }}_a" placeholder="কেন full marks দেওয়া হয়নি? (ক অংশ)" rows="2"
+                <textarea name="comment_{{ sub.id }}_a" placeholder="{% if LANG == 'en' %}Why not full marks? (part a){% else %}কেন full marks দেওয়া হয়নি? (ক অংশ){% endif %}" rows="2"
                           class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_a }}</textarea>
               </div>
             </div>
@@ -158,7 +159,7 @@
             {% if q.marks_b %}
             <div class="part-row mb-3">
               <div class="flex items-center gap-2 mb-1.5">
-                <span class="text-sm font-semibold text-purple-700 w-8">(খ)</span>
+                <span class="text-sm font-semibold text-purple-700 w-8"{% if LANG == 'en' %}>(b)<{% else %}>(খ)<{% endif %}/span>
                 <input type="number" name="marks_{{ sub.id }}_b" min="0" max="{{ q.marks_b }}"
                        value="{{ sub.marks_b|default_if_none:'' }}" placeholder="0"
                        data-max="{{ q.marks_b }}" data-sub="{{ sub.id }}"
@@ -167,7 +168,7 @@
                 <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_b }}</span>
               </div>
               <div class="part-comment-wrap pl-10">
-                <textarea name="comment_{{ sub.id }}_b" placeholder="কেন full marks দেওয়া হয়নি? (খ অংশ)" rows="2"
+                <textarea name="comment_{{ sub.id }}_b" placeholder="{% if LANG == 'en' %}Why not full marks? (part b){% else %}কেন full marks দেওয়া হয়নি? (খ অংশ){% endif %}" rows="2"
                           class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_b }}</textarea>
               </div>
             </div>
@@ -176,7 +177,7 @@
             {% if q.marks_c %}
             <div class="part-row mb-3">
               <div class="flex items-center gap-2 mb-1.5">
-                <span class="text-sm font-semibold text-purple-700 w-8">(গ)</span>
+                <span class="text-sm font-semibold text-purple-700 w-8"{% if LANG == 'en' %}>(c)<{% else %}>(গ)<{% endif %}/span>
                 <input type="number" name="marks_{{ sub.id }}_c" min="0" max="{{ q.marks_c }}"
                        value="{{ sub.marks_c|default_if_none:'' }}" placeholder="0"
                        data-max="{{ q.marks_c }}" data-sub="{{ sub.id }}"
@@ -185,7 +186,7 @@
                 <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_c }}</span>
               </div>
               <div class="part-comment-wrap pl-10">
-                <textarea name="comment_{{ sub.id }}_c" placeholder="কেন full marks দেওয়া হয়নি? (গ অংশ)" rows="2"
+                <textarea name="comment_{{ sub.id }}_c" placeholder="{% if LANG == 'en' %}Why not full marks? (part c){% else %}কেন full marks দেওয়া হয়নি? (গ অংশ){% endif %}" rows="2"
                           class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_c }}</textarea>
               </div>
             </div>
@@ -194,7 +195,7 @@
             {% if q.marks_d %}
             <div class="part-row mb-3">
               <div class="flex items-center gap-2 mb-1.5">
-                <span class="text-sm font-semibold text-purple-700 w-8">(ঘ)</span>
+                <span class="text-sm font-semibold text-purple-700 w-8"{% if LANG == 'en' %}>(d)<{% else %}>(ঘ)<{% endif %}/span>
                 <input type="number" name="marks_{{ sub.id }}_d" min="0" max="{{ q.marks_d }}"
                        value="{{ sub.marks_d|default_if_none:'' }}" placeholder="0"
                        data-max="{{ q.marks_d }}" data-sub="{{ sub.id }}"
@@ -203,14 +204,14 @@
                 <span class="text-xs text-gray-400 shrink-0">/ {{ q.marks_d }}</span>
               </div>
               <div class="part-comment-wrap pl-10">
-                <textarea name="comment_{{ sub.id }}_d" placeholder="কেন full marks দেওয়া হয়নি? (ঘ অংশ)" rows="2"
+                <textarea name="comment_{{ sub.id }}_d" placeholder="{% if LANG == 'en' %}Why not full marks? (part d){% else %}কেন full marks দেওয়া হয়নি? (ঘ অংশ){% endif %}" rows="2"
                           class="w-full border border-amber-200 bg-amber-50/50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none">{{ sub.comment_d }}</textarea>
               </div>
             </div>
             {% endif %}
 
             <div class="flex items-center justify-between bg-purple-50 rounded-lg px-3 py-2 mt-3">
-              <span class="text-xs font-medium text-purple-700">CQ মোট</span>
+              <span class="text-xs font-medium text-purple-700">{% if LANG == 'en' %}CQ total{% else %}CQ মোট{% endif %}</span>
               <span class="text-sm font-bold text-purple-700" id="cq-sum-{{ sub.id }}">0</span>
             </div>
           </div>
@@ -221,13 +222,13 @@
         <!-- Total Preview -->
         <div class="mt-4 bg-gray-50 rounded-xl p-4 border border-gray-200">
           <div class="flex justify-between text-sm text-gray-600 mb-1">
-            <span>MCQ স্কোর</span><span class="font-bold">{{ attempt.mcq_score }}</span>
+            <span{% if LANG == 'en' %}>MCQ Score<{% else %}>MCQ স্কোর<{% endif %}/span><span class="font-bold">{{ attempt.mcq_score }}</span>
           </div>
           <div class="flex justify-between text-sm text-gray-600 mb-1">
-            <span>CQ স্কোর</span><span class="font-bold" id="cq-total">0</span>
+            <span{% if LANG == 'en' %}>CQ Score<{% else %}>CQ স্কোর<{% endif %}/span><span class="font-bold" id="cq-total">0</span>
           </div>
           <div class="flex justify-between text-base font-bold text-gray-800 border-t pt-2 mt-2">
-            <span>মোট</span><span id="grand-total">{{ attempt.mcq_score }}</span>
+            <span{% if LANG == 'en' %}>Total<{% else %}>মোট<{% endif %}/span><span id="grand-total">{{ attempt.mcq_score }}</span>
           </div>
           <div class="mt-1 text-center">
             <span class="text-lg font-extrabold" id="grade-preview">—</span>
@@ -236,10 +237,10 @@
 
         <button type="submit"
                 class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-sm transition">
-          {% if is_regrade %}পুনঃমূল্যায়ন save করুন ✓{% else %}মূল্যায়ন সম্পন্ন করুন ✓{% endif %}
+          {% if is_regrade %}{% if LANG == 'en' %}Save re-evaluation ✓{% else %}পুনঃমূল্যায়ন save করুন ✓{% endif %}{% else %}{% if LANG == 'en' %}Complete evaluation ✓{% else %}মূল্যায়ন সম্পন্ন করুন ✓{% endif %}{% endif %}
         </button>
         <a href="{% url 'manage_grade_list' %}"
-           class="mt-2 block text-center text-sm text-gray-400 hover:text-gray-600">বাতিল করুন</a>
+           class="mt-2 block text-center text-sm text-gray-400 hover:text-gray-600">{% if LANG == 'en' %}Cancel{% else %}বাতিল করুন{% endif %}</a>
       </div>
     </div>
 

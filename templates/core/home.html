@@ -1,13 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}{% if LANG == 'en' %}Home{% else %}হোম{% endif %}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.min.js"></script>
+{% endblock %}
+
 {% block content %}
 
 <!-- ═══════════════════════════════════════════
      HERO SECTION
 ══════════════════════════════════════════════ -->
 <section class="gradient-bg text-white relative" style="min-height: 600px; display: flex; align-items: center;">
+    <!-- Three.js particle canvas -->
+    <canvas id="hero-canvas" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index:1;"></canvas>
+    <!-- Mesh gradient blobs -->
+    <div class="mesh-blob mesh-blob-1" style="z-index:2;"></div>
+    <div class="mesh-blob mesh-blob-2" style="z-index:2;"></div>
+    <div class="mesh-blob mesh-blob-3" style="z-index:2;"></div>
     <!-- Dot-grid overlay -->
-    <div class="hero-dot-grid absolute inset-0 pointer-events-none"></div>
+    <div class="hero-dot-grid absolute inset-0 pointer-events-none" style="z-index:3;"></div>
 
     <!-- Floating ambient shapes -->
     <div class="float-shape float-shape-1"></div>
@@ -15,7 +26,7 @@
     <div class="float-shape float-shape-3"></div>
     <div class="float-shape float-shape-4"></div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10 w-full">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative w-full" style="z-index:10;">
         <div class="flex flex-col md:flex-row md:items-center gap-12">
 
             <!-- Left: text -->
@@ -106,9 +117,9 @@
 ══════════════════════════════════════════════ -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10" data-aos="fade-up">
     <a href="{% url 'practical_lab' %}" class="block group rounded-2xl p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden"
-       style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); border: 1px solid rgba(139,92,246,0.15);">
+       style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); border: 1px solid rgba(13,148,136,0.15);">
         <!-- Subtle animated bg -->
-        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400" style="background:linear-gradient(135deg,rgba(139,92,246,0.05),rgba(59,130,246,0.05));"></div>
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400" style="background:linear-gradient(135deg,rgba(13,148,136,0.05),rgba(5,150,105,0.05));"></div>
         <div class="flex items-center justify-between relative z-10">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
@@ -252,7 +263,7 @@
             </div>
             <p class="text-gray-700 leading-relaxed italic mb-5">{% if LANG == 'en' %}"The interactive molecular lab is amazing! I finally understood how H₂O and CO₂ bonding works."{% else %}"ইন্টারেক্টিভ মলিকিউলার ল্যাব অসাধারণ! অবশেষে H₂O ও CO₂ বন্ধন কীভাবে কাজ করে তা বুঝলাম।"{% endif %}</p>
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);">RA</div>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#059669,#0d9488);">RA</div>
                 <div>
                     <div class="font-semibold text-gray-900 text-sm">Rahim Ahmed</div>
                     <div class="text-xs text-gray-400">{% if LANG == 'en' %}Class 10, Chittagong Board{% else %}শ্রেণি ১০, চট্টগ্রাম বোর্ড{% endif %}</div>
@@ -266,7 +277,7 @@
             </div>
             <p class="text-gray-700 leading-relaxed italic mb-5">{% if LANG == 'en' %}"I cleared my half-yearly with A+ after practising school papers from Prepare Yourself."{% else %}"Prepare Yourself-এর স্কুল পেপার অনুশীলন করে অর্ধ-বার্ষিকীতে A+ পেয়েছি।"{% endif %}</p>
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#8b5cf6,#ec4899);">TI</div>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#0d9488,#ec4899);">TI</div>
                 <div>
                     <div class="font-semibold text-gray-900 text-sm">Tasfia Islam</div>
                     <div class="text-xs text-gray-400">{% if LANG == 'en' %}Class 11, Rajshahi Board{% else %}শ্রেণি ১১, রাজশাহী বোর্ড{% endif %}</div>
@@ -280,7 +291,7 @@
             </div>
             <p class="text-gray-700 leading-relaxed italic mb-5">{% if LANG == 'en' %}"Prepare Yourself helped me score GPA 5.00 in HSC! Best ৳199 I ever spent."{% else %}"Prepare Yourself-এর সাহায্যে HSC-তে GPA ৫.০০ পেয়েছি! সেরা ৳১৯৯ খরচ।"{% endif %}</p>
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);">FR</div>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background:linear-gradient(135deg,#06b6d4,#059669);">FR</div>
                 <div>
                     <div class="font-semibold text-gray-900 text-sm">Fatima Rahman</div>
                     <div class="text-xs text-gray-400">{% if LANG == 'en' %}Class 12, Dhaka Board{% else %}শ্রেণি ১২, ঢাকা বোর্ড{% endif %}</div>
@@ -319,6 +330,128 @@
 
 {% endblock %}
 {% block scripts %}
+<script>
+/* ─── Three.js hero particle field ─────────────── */
+(function () {
+    var canvas = document.getElementById('hero-canvas');
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    var W = canvas.offsetWidth, H = canvas.offsetHeight;
+    var scene    = new THREE.Scene();
+    var camera   = new THREE.PerspectiveCamera(70, W / H, 0.1, 100);
+    camera.position.z = 4;
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: false });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.setClearColor(0x000000, 0);
+
+    /* Particle cloud */
+    var COUNT = 1400;
+    var pos   = new Float32Array(COUNT * 3);
+    for (var i = 0; i < COUNT; i++) {
+        pos[i*3]   = (Math.random() - 0.5) * 14;
+        pos[i*3+1] = (Math.random() - 0.5) * 9;
+        pos[i*3+2] = (Math.random() - 0.5) * 6;
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    var mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.04, transparent: true, opacity: 0.5, sizeAttenuation: true });
+    var points = new THREE.Points(geo, mat);
+    scene.add(points);
+
+    /* Wireframe icosahedron */
+    var icoGeo = new THREE.IcosahedronGeometry(1.8, 2);
+    var icoMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.07 });
+    var ico    = new THREE.Mesh(icoGeo, icoMat);
+    scene.add(ico);
+
+    var mx = 0, my = 0, tRX = 0, tRY = 0;
+    var clock = new THREE.Clock();
+
+    document.addEventListener('mousemove', function (e) {
+        mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+        my = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    (function tick() {
+        requestAnimationFrame(tick);
+        var t  = clock.getElapsedTime();
+        tRY += (mx * 0.45 - tRY) * 0.04;
+        tRX += (-my * 0.28 - tRX) * 0.04;
+        points.rotation.y = tRY + t * 0.045;
+        points.rotation.x = tRX + t * 0.01;
+        ico.rotation.y    = t * 0.09;
+        ico.rotation.x    = t * 0.055;
+        renderer.render(scene, camera);
+    })();
+
+    window.addEventListener('resize', function () {
+        W = canvas.offsetWidth; H = canvas.offsetHeight;
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+        renderer.setSize(W, H);
+    });
+})();
+
+/* ─── Hero heading clip-path reveal ─────────────── */
+(function () {
+    if (typeof gsap === 'undefined') return;
+    var h1 = document.querySelector('.gradient-bg h1');
+    if (!h1) return;
+    /* Override the data-aos fade-up — do clip-path wipe instead */
+    gsap.killTweensOf(h1);
+    gsap.set(h1, { opacity: 1, y: 0 });
+    gsap.fromTo(h1,
+        { clipPath: 'inset(0 0 100% 0)', opacity: 1 },
+        { clipPath: 'inset(0 0 0% 0)',   opacity: 1, duration: 0.9, ease: 'expo.out', delay: 0.25 }
+    );
+    /* Sub-heading */
+    var sub = document.querySelector('.gradient-bg p.text-lg');
+    if (sub) {
+        gsap.killTweensOf(sub);
+        gsap.set(sub, { opacity: 1, y: 0 });
+        gsap.fromTo(sub,
+            { clipPath: 'inset(0 0 100% 0)', opacity: 1 },
+            { clipPath: 'inset(0 0 0% 0)',   opacity: 1, duration: 0.85, ease: 'expo.out', delay: 0.5 }
+        );
+    }
+})();
+
+/* ─── Hero parallax scrub ───────────────────────── */
+(function () {
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+    var hero = document.querySelector('.gradient-bg');
+    if (!hero) return;
+    var base = { trigger: hero, start: 'top top', end: 'bottom top' };
+
+    gsap.to('.float-shape-1', Object.assign({ y: -90, scrub: 1.8 }, { scrollTrigger: Object.assign({}, base) }));
+    gsap.to('.float-shape-2', Object.assign({ y: 60,  scrub: 2.4 }, { scrollTrigger: Object.assign({}, base) }));
+    gsap.to('.float-shape-3', Object.assign({ y: -45, x: 25, scrub: 1.2 }, { scrollTrigger: Object.assign({}, base) }));
+    gsap.to('.float-shape-4', Object.assign({ y: 30,  rotate: 90, scrub: 1.6 }, { scrollTrigger: Object.assign({}, base) }));
+    gsap.to('#hero-canvas',   Object.assign({ opacity: 0, scrub: 1 }, { scrollTrigger: Object.assign({}, base) }));
+})();
+
+/* ─── Feature cards stagger ─────────────────────── */
+(function () {
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+    var cards = document.querySelectorAll('.feature-card[data-aos]');
+    if (!cards.length) return;
+    /* Kill any individual ScrollTriggers already set on these cards */
+    cards.forEach(function (c) {
+        var st = ScrollTrigger.getById(c._gsapST);
+        if (st) st.kill();
+        gsap.set(c, { opacity: 0, y: 40 });
+    });
+    gsap.to(cards, {
+        opacity: 1, y: 0,
+        duration: 0.7, ease: 'expo.out',
+        stagger: 0.13,
+        scrollTrigger: { trigger: cards[0].closest('section'), start: 'top 78%', once: true },
+    });
+})();
+</script>
+
 <script>
 (function () {
   var counters = document.querySelectorAll('.count-up');

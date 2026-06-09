@@ -1,6 +1,7 @@
 def user_role(request):
     is_admin = False
     is_superadmin = False
+    is_premium_user = False
     unread_count = 0
     grade_queue_count = 0
     coin_balance = 0
@@ -10,6 +11,7 @@ def user_role(request):
         try:
             is_admin = request.user.profile.role == 'ADMIN'
             is_superadmin = request.user.profile.is_superadmin
+            is_premium_user = request.user.profile.is_premium
             from core.models import TeacherFeedback, Notification, UserRating
             if not is_admin and not is_superadmin:
                 unread_count = TeacherFeedback.objects.filter(
@@ -32,6 +34,7 @@ def user_role(request):
     return {
         'is_admin': is_admin,
         'is_superadmin': is_superadmin,
+        'is_premium_user': is_premium_user,
         'unread_count': unread_count,
         'grade_queue_count': grade_queue_count,
         'coin_balance': coin_balance,

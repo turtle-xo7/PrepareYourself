@@ -20,7 +20,7 @@
         {% elif percentage >= 60 %}bg-gradient-to-br from-blue-500 to-blue-700
         {% elif percentage >= 40 %}bg-gradient-to-br from-yellow-400 to-orange-500
         {% else %}bg-gradient-to-br from-red-500 to-rose-600{% endif %}">
-        <p class="text-sm opacity-80 mb-2">তোমার ফলাফল</p>
+        <p class="text-sm opacity-80 mb-2">{% if LANG == 'en' %}Your result{% else %}তোমার ফলাফল{% endif %}</p>
         <div class="text-6xl font-extrabold mb-2 drop-shadow">{{ submission.total_marks }}<span class="text-3xl opacity-80">/{{ max_marks }}</span></div>
         <div class="text-xl font-semibold opacity-90">{{ percentage }}%</div>
         {% if rank %}
@@ -48,7 +48,7 @@
 
     <!-- Question Breakdown -->
     <div class="bg-white rounded-2xl shadow p-6">
-        <h3 class="font-bold text-gray-800 mb-4 text-lg">প্রশ্নভিত্তিক বিভাজন</h3>
+        <h3 class="font-bold text-gray-800 mb-4 text-lg">{% if LANG == 'en' %}Question-wise breakdown{% else %}প্রশ্নভিত্তিক বিভাজন{% endif %}</h3>
         <div class="space-y-3">
             {% for ans in answers %}
             <div class="rounded-xl border
@@ -89,12 +89,12 @@
                     {% endfor %}
                 </div>
                 {% if not ans.mcq_answer %}
-                <p class="text-xs text-gray-500 italic mt-2">তুমি কোনো option select করোনি।</p>
+                <p class="text-xs text-gray-500 italic mt-2">{% if LANG == 'en' %}You did not select any option.{% else %}তুমি কোনো option select করোনি।{% endif %}</p>
                 {% endif %}
                 {% else %}
                 <div class="mt-2">
-                    <p class="text-xs text-gray-500 mb-1">তোমার উত্তর:</p>
-                    <div class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-800 whitespace-pre-wrap">{{ ans.creative_answer|default:"(কোনো উত্তর দাওনি)" }}</div>
+                    <p class="text-xs text-gray-500 mb-1">{% if LANG == 'en' %}Your answer:{% else %}তোমার উত্তর:{% endif %}</p>
+                    <div class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-800 whitespace-pre-wrap">{{ ans.creative_answer|default:"(no answer given)" }}</div>
                 </div>
                 {% endif %}
             </div>
@@ -105,11 +105,11 @@
     <div class="flex flex-wrap gap-3 mt-6">
         <a href="{% url 'contest_leaderboard' contest.pk %}"
            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition">
-            🏆 Leaderboard দেখো
+            {% if LANG == 'en' %}🏆 View Leaderboard{% else %}🏆 Leaderboard দেখো{% endif %}
         </a>
         <a href="{% url 'contest_list' %}"
            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-medium transition">
-            অন্য Contest
+            {% if LANG == 'en' %}Other Contests{% else %}অন্য Contest{% endif %}
         </a>
     </div>
 

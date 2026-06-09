@@ -18,7 +18,7 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Questions</h1>
-        <p class="text-sm text-gray-500 mt-1">মোট {{ questions.count }} টি question</p>
+        <p class="text-sm text-gray-500 mt-1">{% if LANG == 'en' %}Total {% else %}মোট {% endif %}{{ questions.count }} {% if LANG == 'en' %} questions{% else %}টি question{% endif %}</p>
       </div>
     </div>
 
@@ -63,7 +63,7 @@
             <td class="px-4 py-3">
               <div class="flex items-center gap-3">
                 <a href="{% url 'question_edit' q.pk %}" class="text-blue-600 hover:underline text-xs">Edit</a>
-                <form method="post" action="{% url 'question_delete' q.pk %}" onsubmit="return confirm('Delete করবে?')">
+                <form method="post" action="{% url 'question_delete' q.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete?{% else %}Delete করবে?{% endif %}')">
                   {% csrf_token %}
                   <button type="submit" class="text-red-500 hover:underline text-xs">Delete</button>
                 </form>
@@ -73,8 +73,8 @@
           {% empty %}
           <tr>
             <td colspan="7" class="px-4 py-10 text-center text-gray-400">
-              কোনো question নেই।
-              <a href="{% url 'question_add' %}" class="text-blue-600 hover:underline">নতুন যোগ করো।</a>
+              {% if LANG == 'en' %}No questions.{% else %}কোনো question নেই।{% endif %}
+              <a href="{% url 'question_add' %}" class="text-blue-600 hover:underline">{% if LANG == 'en' %}Add a new one.{% else %}নতুন যোগ করো।{% endif %}</a>
             </td>
           </tr>
           {% endfor %}

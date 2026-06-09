@@ -22,8 +22,8 @@
     color: #111827;
 }
 .form-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5,150,105,0.1);
 }
 .form-label {
     display: block;
@@ -54,7 +54,7 @@
 </style>
 
 <!-- Page Header -->
-<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%); min-height: 160px;">
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #059669 50%, #0d9488 100%); min-height: 160px;">
     <div class="hero-dot-grid absolute inset-0"></div>
     <div class="float-shape float-shape-1"></div>
     <div class="float-shape float-shape-2"></div>
@@ -72,7 +72,7 @@
         </div>
         <div data-aos="fade-up" data-aos-delay="80">
             <h1 class="text-3xl font-bold text-white">Add Study Note</h1>
-            <p class="text-blue-100 mt-1 text-sm">নতুন note যোগ করো</p>
+            <p class="text-blue-100 mt-1 text-sm">{% if LANG == 'en' %}Add a new note{% else %}নতুন note যোগ করো{% endif %}</p>
         </div>
     </div>
 </div>
@@ -109,14 +109,14 @@
                 <label class="form-label">Title</label>
                 <input type="text" name="title" required
                     class="form-input"
-                    placeholder="Note-এর শিরোনাম লিখো...">
+                    placeholder="{% if LANG == 'en' %}Enter the note title...{% else %}Note-এর শিরোনাম লিখো...{% endif %}">
             </div>
 
             <!-- Subject & Class -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="form-label">
-                        বিষয়
+                        {% if LANG == 'bn' %}বিষয়{% endif %}
                         <span class="inline-block bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full ml-1 font-semibold border border-blue-100 dark:border-blue-700">Subject</span>
                     </label>
                     <select name="subject" required class="form-input">
@@ -127,7 +127,7 @@
                 </div>
                 <div>
                     <label class="form-label">
-                        ক্লাস
+                        {% if LANG == 'bn' %}ক্লাস{% endif %}
                         <span class="inline-block bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs px-2 py-0.5 rounded-full ml-1 font-semibold border border-purple-100 dark:border-purple-700">Class</span>
                     </label>
                     <select name="class_obj" required class="form-input">
@@ -143,7 +143,7 @@
                 <label class="form-label">Chapter</label>
                 <input type="text" name="chapter" required
                     class="form-input"
-                    placeholder="Chapter নাম বা নম্বর...">
+                    placeholder="{% if LANG == 'en' %}Chapter name or number...{% else %}Chapter নাম বা নম্বর...{% endif %}">
             </div>
 
             <!-- Content (TinyMCE) -->
@@ -163,7 +163,7 @@
                 <div class="border border-dashed border-gray-300 dark:border-slate-600 rounded-xl px-4 py-4 text-sm text-gray-400 dark:text-slate-400 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition">
                     <input type="file" name="pdf_file" accept=".pdf"
                         class="w-full text-sm text-gray-600 dark:text-slate-300">
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">PDF ফাইল আপলোড করো (সর্বোচ্চ 20MB)</p>
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">{% if LANG == 'en' %}Upload a PDF file (max 20MB){% else %}PDF ফাইল আপলোড করো (সর্বোচ্চ 20MB){% endif %}</p>
                 </div>
             </div>
 
@@ -171,12 +171,12 @@
             <div class="flex gap-3 pt-2">
                 <button type="submit"
                     class="inline-flex items-center gap-2 text-white font-semibold px-6 py-2.5 rounded-xl transition"
-                    style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                    style="background: linear-gradient(135deg, #059669, #0d9488);">
                     💾 Save Note
                 </button>
                 <a href="{% url 'study_notes' %}"
                     class="inline-flex items-center gap-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 font-semibold px-6 py-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition">
-                    বাতিল
+                    {% if LANG == 'en' %}Cancel{% else %}বাতিল{% endif %}
                 </a>
             </div>
         </form>

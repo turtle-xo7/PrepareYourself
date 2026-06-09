@@ -9,7 +9,7 @@
     /* Thin blue gradient top-bar */
     .notif-top-bar {
         height: 3px;
-        background: linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, #a5b4fc 100%);
+        background: linear-gradient(90deg, #047857 0%, #60a5fa 50%, #a5b4fc 100%);
         width: 100%;
     }
 
@@ -57,7 +57,7 @@
 
     /* Unread: blue left border + faint blue-50 tint */
     .notif-card.unread {
-        border-left: 4px solid #3b82f6;
+        border-left: 4px solid #059669;
         background: #eff6ff;
     }
 
@@ -104,20 +104,20 @@
 {% for n in notifications %}{% if not n.is_read %}
 {% if forloop.first %}
 <div class="notif-section-header" data-aos="fade-up">
-    <span class="section-dot" style="background:#6366f1;"></span>
+    <span class="section-dot" style="background:#0d9488;"></span>
     {% if LANG == 'en' %}New{% else %}নতুন{% endif %}
     <span class="section-line"></span>
 </div>
 <div class="space-y-4 mb-6">
 {% endif %}
 
-    {% if n.notif_type == 'exam' %}{% with icon="📄" accent="#6366f1" bg="#eef2ff" border="#a5b4fc" %}
+    {% if n.notif_type == 'exam' %}{% with icon="📄" accent="#0d9488" bg="#eef2ff" border="#a5b4fc" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=True %}
     {% endwith %}
     {% elif n.notif_type == 'contest' %}{% with icon="🏆" accent="#d97706" bg="#fffbeb" border="#fcd34d" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=True %}
     {% endwith %}
-    {% elif n.notif_type == 'request' %}{% with icon="📩" accent="#7c3aed" bg="#f5f3ff" border="#c4b5fd" %}
+    {% elif n.notif_type == 'request' %}{% with icon="📩" accent="#0f766e" bg="#f5f3ff" border="#c4b5fd" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=True %}
     {% endwith %}
     {% elif n.notif_type == 'question' %}{% with icon="❓" accent="#0284c7" bg="#f0f9ff" border="#7dd3fc" %}
@@ -135,7 +135,7 @@
 {% for fb in feedbacks %}{% if not fb.is_read %}
 {% if forloop.first %}
 <div class="notif-section-header" data-aos="fade-up">
-    <span class="section-dot" style="background:#3b82f6;"></span>
+    <span class="section-dot" style="background:#059669;"></span>
     Teacher Feedback ({% if LANG == 'en' %}New{% else %}নতুন{% endif %})
     <span class="section-line"></span>
 </div>
@@ -146,7 +146,7 @@
         <div class="flex items-start justify-between gap-3 mb-4">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                     style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
+                     style="background: linear-gradient(135deg, #047857, #059669);">
                     {{ fb.teacher.username|slice:":1"|upper }}
                 </div>
                 <div>
@@ -167,7 +167,7 @@
                 {% endif %}
             </div>
         </div>
-        <div class="rounded-xl p-3.5 border border-blue-100" style="background: rgba(59,130,246,0.04);">
+        <div class="rounded-xl p-3.5 border border-blue-100" style="background: rgba(5,150,105,0.04);">
             <p class="text-[10px] uppercase tracking-wider text-blue-500 font-semibold mb-1.5">{% if LANG == 'en' %}Teacher's Feedback{% else %}Teacher এর Feedback{% endif %}</p>
             <p class="text-sm text-gray-800 leading-relaxed">{{ fb.comment }}</p>
         </div>
@@ -176,24 +176,24 @@
 {% if forloop.last %}</div>{% endif %}
 {% endif %}{% endfor %}
 
-<!-- ══ System notifications — read (পুরনো) ══ -->
+<!-- ══ System notifications — read ({% if LANG == 'en' %}old{% else %}পুরনো{% endif %}) ══ -->
 {% for n in notifications %}{% if n.is_read %}
 {% if forloop.first %}
 <div class="notif-section-header" data-aos="fade-up">
     <span class="section-dot" style="background:#d1d5db;"></span>
-    {% if LANG == 'en' %}Old{% else %}পুরনো{% endif %}
+    {% if LANG == 'en' %}Old{% else %}{% if LANG == 'en' %}old{% else %}পুরনো{% endif %}{% endif %}
     <span class="section-line"></span>
 </div>
 <div class="space-y-3 mb-6">
 {% endif %}
 
-    {% if n.notif_type == 'exam' %}{% with icon="📄" accent="#6366f1" bg="#f5f3ff" border="#e5e7eb" %}
+    {% if n.notif_type == 'exam' %}{% with icon="📄" accent="#0d9488" bg="#f5f3ff" border="#e5e7eb" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=False %}
     {% endwith %}
     {% elif n.notif_type == 'contest' %}{% with icon="🏆" accent="#d97706" bg="#fffdf5" border="#e5e7eb" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=False %}
     {% endwith %}
-    {% elif n.notif_type == 'request' %}{% with icon="📩" accent="#7c3aed" bg="#faf5ff" border="#e5e7eb" %}
+    {% elif n.notif_type == 'request' %}{% with icon="📩" accent="#0f766e" bg="#faf5ff" border="#e5e7eb" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=False %}
     {% endwith %}
     {% elif n.notif_type == 'question' %}{% with icon="❓" accent="#0284c7" bg="#f0f9ff" border="#e5e7eb" %}
@@ -212,7 +212,7 @@
 {% if forloop.first %}
 <div class="notif-section-header" data-aos="fade-up">
     <span class="section-dot" style="background:#d1d5db;"></span>
-    Teacher Feedback ({% if LANG == 'en' %}Old{% else %}পুরনো{% endif %})
+    Teacher Feedback ({% if LANG == 'en' %}Old{% else %}{% if LANG == 'en' %}old{% else %}পুরনো{% endif %}{% endif %})
     <span class="section-line"></span>
 </div>
 <div class="space-y-3">
@@ -256,14 +256,14 @@
 <div class="bg-white rounded-2xl border border-gray-100 p-16 text-center"
      style="box-shadow: 0 2px 12px rgba(0,0,0,0.05);" data-aos="fade-up">
     <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-         style="background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(147,197,253,0.15));">
+         style="background: linear-gradient(135deg, rgba(5,150,105,0.08), rgba(147,197,253,0.15));">
         <span class="text-3xl">🔔</span>
     </div>
     <h3 class="text-lg font-bold text-gray-900 mb-2">{% if LANG == 'en' %}No notifications yet{% else %}কোনো notification নেই{% endif %}</h3>
     <p class="text-sm text-gray-500 mb-6">{% if LANG == 'en' %}When your teacher adds a new exam paper, contest or study note, you'll see it here.{% else %}Teacher যখন নতুন exam paper, contest বা study note দেবেন, এখানে দেখা যাবে।{% endif %}</p>
     <a href="{% url 'question_bank' %}"
        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
-       style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
+       style="background: linear-gradient(135deg, #047857, #059669);">
         📚 Start Practicing →
     </a>
 </div>

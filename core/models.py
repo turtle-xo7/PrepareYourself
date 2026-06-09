@@ -111,6 +111,13 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='STUDENT')
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='FREE')
+    plan_expires_at = models.DateTimeField(null=True, blank=True)
+    # Onboarding / personalization
+    board = models.ForeignKey('Board', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+    class_obj = models.ForeignKey('Class', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+    study_subjects = models.ManyToManyField('Subject', blank=True, related_name='enrolled_students')
+    exam_goal = models.CharField(max_length=120, blank=True)
+    onboarded = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
     preferred_language = models.CharField(max_length=5, choices=LANG_CHOICES, default='bn')
@@ -126,7 +133,36 @@ class UserProfile(models.Model):
         return self.user.username
     @property
     def is_premium(self):
-        return self.plan in ['BASIC', 'PREMIUM']
+        if self.plan not in ['BASIC', 'PREMIUM']:
+            return False
+        # No expiry set = lifetime/admin-granted; otherwise must be in the future
+        if self.plan_expires_at is None:
+            return True
+        from django.utils import timezone
+        return self.plan_expires_at > timezone.now()
+
+
+class Payment(models.Model):
+    """Audit record for every subscription payment attempt.
+    Gateway-agnostic: gateway='simulation' for now; swap in 'sslcommerz' etc. later."""
+    STATUS_CHOICES = [('PENDING', 'Pending'), ('COMPLETED', 'Completed'), ('FAILED', 'Failed')]
+    PLAN_CHOICES = [('BASIC', 'Basic'), ('PREMIUM', 'Premium')]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES)
+    amount = models.PositiveIntegerField()                      # in BDT (৳)
+    method = models.CharField(max_length=20, blank=True)        # bkash / nagad / rocket / card
+    tran_id = models.CharField(max_length=64, unique=True)      # our transaction id
+    gateway = models.CharField(max_length=30, default='simulation')
+    val_id = models.CharField(max_length=120, blank=True)       # gateway validation id (real gateway)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} · {self.plan} · ৳{self.amount} · {self.status}"
 
 
 class PracticalVideo(models.Model):

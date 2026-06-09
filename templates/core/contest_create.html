@@ -124,7 +124,7 @@ function addQuestion() {
         </div>
         <div class="grid grid-cols-3 gap-3">
             <div class="col-span-2">
-                <textarea name="question_text" rows="2" required placeholder="Question লিখো..."
+                <textarea name="question_text" rows="2" required placeholder="{% if LANG == 'en' %}Type the question...{% else %}Question লিখো...{% endif %}"
                     class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
             <div>

@@ -6,7 +6,7 @@
             <!-- Logo -->
             <a href="{% url 'home' %}" class="flex items-center gap-2.5 group">
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0"
-                     style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); box-shadow: 0 4px 14px rgba(59,130,246,0.35);">
+                     style="background: linear-gradient(135deg, #059669, #0d9488); box-shadow: 0 4px 14px rgba(5,150,105,0.35);">
                     PY
                 </div>
                 <div class="flex flex-col leading-none">
@@ -16,17 +16,55 @@
             </a>
 
             <!-- Desktop Nav Links -->
+            {% with study_pages='question_bank exam_paper_list study_notes practical_videos practical_lab syllabus_list' contest_pages='contest_list badge_gallery profile_contests' %}
             <div class="hidden md:flex items-center gap-1">
-                <a href="{% url 'home' %}" class="nav-link {% if url_name == 'home' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Home{% else %}হোম{% endif %}</a>
-                <a href="{% url 'question_bank' %}" class="nav-link {% if url_name == 'question_bank' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Question Bank{% else %}প্রশ্ন ব্যাংক{% endif %}</a>
-                <a href="{% url 'practical_videos' %}" class="nav-link {% if url_name == 'practical_videos' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Practical Videos{% else %}ভিডিও ক্লাস{% endif %}</a>
-                <a href="{% url 'study_notes' %}" class="nav-link {% if url_name == 'study_notes' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Study Notes{% else %}স্টাডি নোটস{% endif %}</a>
-                <a href="{% url 'contest_list' %}" class="nav-link {% if url_name == 'contest_list' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">
-                    <span class="text-yellow-500">🏆</span> {% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}
-                </a>
-                {% if not is_superadmin %}<a href="{% url 'pricing' %}" class="nav-link {% if url_name == 'pricing' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Subscription{% else %}সাবস্ক্রিপশন{% endif %}</a>{% endif %}
-                <a href="{% url 'dashboard' %}" class="nav-link {% if url_name == 'dashboard' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Dashboard{% else %}ড্যাশবোর্ড{% endif %}</a>
+                <a href="{% url 'dashboard' %}" class="nav-link {% if url_name == 'dashboard' or url_name == 'home' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Dashboard{% else %}ড্যাশবোর্ড{% endif %}</a>
+
+                <!-- Study dropdown -->
+                <div class="nav-dd" data-dd>
+                    <button type="button" class="nav-dd-trigger nav-link {% if url_name in study_pages.split %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200" aria-haspopup="true" aria-expanded="false">
+                        {% if LANG == 'en' %}Study{% else %}পড়াশোনা{% endif %}
+                        <svg class="chev w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="nav-dd-panel">
+                        <div class="nav-dd-grid">
+                            <a href="{% url 'question_bank' %}" class="nav-dd-item {% if url_name == 'question_bank' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">📚</span>{% if LANG == 'en' %}Question Bank{% else %}প্রশ্ন ব্যাংক{% endif %}</a>
+                            <a href="{% url 'exam_paper_list' %}" class="nav-dd-item {% if url_name == 'exam_paper_list' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">📝</span>{% if LANG == 'en' %}Exam Papers{% else %}পরীক্ষার প্রশ্ন{% endif %}</a>
+                            <a href="{% url 'study_notes' %}" class="nav-dd-item {% if url_name == 'study_notes' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">📖</span>{% if LANG == 'en' %}Study Notes{% else %}স্টাডি নোটস{% endif %}</a>
+                            <a href="{% url 'practical_videos' %}" class="nav-dd-item {% if url_name == 'practical_videos' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">🎬</span>{% if LANG == 'en' %}Practical Videos{% else %}ভিডিও ক্লাস{% endif %}</a>
+                            <a href="{% url 'practical_lab' %}" class="nav-dd-item {% if url_name == 'practical_lab' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#ccfbf1,#99f6e4);">🧬</span>{% if LANG == 'en' %}Practical Lab{% else %}ব্যবহারিক ল্যাব{% endif %}</a>
+                            <a href="{% url 'syllabus_list' %}" class="nav-dd-item {% if url_name == 'syllabus_list' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);">🗂️</span>{% if LANG == 'en' %}Syllabus{% else %}সিলেবাস{% endif %}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contests dropdown -->
+                <div class="nav-dd" data-dd>
+                    <button type="button" class="nav-dd-trigger nav-link {% if url_name in contest_pages.split %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200" aria-haspopup="true" aria-expanded="false">
+                        <span class="text-yellow-500">🏆</span> {% if LANG == 'en' %}Contests{% else %}কনটেস্ট{% endif %}
+                        <svg class="chev w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="nav-dd-panel">
+                        <a href="{% url 'contest_list' %}" class="nav-dd-item {% if url_name == 'contest_list' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">🏆</span>{% if LANG == 'en' %}Live & Upcoming{% else %}লাইভ ও আসন্ন{% endif %}</a>
+                        <a href="{% url 'badge_gallery' %}" class="nav-dd-item {% if url_name == 'badge_gallery' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">🎖️</span>{% if LANG == 'en' %}Badges{% else %}ব্যাজ{% endif %}</a>
+                        {% if request.user.is_authenticated and not is_admin and not is_superadmin %}
+                        <a href="{% url 'profile_contests' %}" class="nav-dd-item {% if url_name == 'profile_contests' %}is-active{% endif %}"><span class="ic" style="background:linear-gradient(135deg,#fef9c3,#fef08a);">🪙</span>{% if LANG == 'en' %}My Rating & Coins{% else %}রেটিং ও কয়েন{% endif %}</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if request.user.is_authenticated and not is_admin and not is_superadmin %}
+                <a href="{% url 'progress_history' %}" class="nav-link {% if url_name == 'progress_history' %}nav-active{% endif %} text-sm px-3 py-2 rounded-lg transition-colors duration-200">{% if LANG == 'en' %}Progress{% else %}অগ্রগতি{% endif %}</a>
+                {% endif %}
             </div>
+            {% endwith %}
+
+            <!-- Global search trigger -->
+            <button type="button" id="open-search" class="nav-search-btn hidden md:inline-flex" aria-label="Search">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg>
+                <span class="hidden lg:inline">{% if LANG == 'en' %}Search{% else %}খুঁজুন{% endif %}</span>
+                <kbd class="hidden lg:inline">Ctrl K</kbd>
+            </button>
 
             <!-- Auth area + hamburger -->
             <div class="flex items-center gap-2">
@@ -50,7 +88,7 @@
                     <a href="{% url 'toggle_language' %}"
                        title="{% if LANG == 'en' %}Switch to বাংলা{% else %}Switch to English{% endif %}"
                        class="w-9 h-9 flex items-center justify-center rounded-xl border transition-all duration-200 hover:scale-110 hover:shadow-md font-bold text-xs select-none"
-                       style="{% if LANG == 'en' %}background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;{% else %}background:#fdf4ff;border-color:#e9d5ff;color:#7c3aed;{% endif %}">
+                       style="{% if LANG == 'en' %}background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;{% else %}background:#fdf4ff;border-color:#e9d5ff;color:#0f766e;{% endif %}">
                         {% if LANG == 'en' %}EN{% else %}বা{% endif %}
                     </a>
 
@@ -99,11 +137,19 @@
                             <span>🪙</span>
                             <span class="coin-balance">{{ coin_balance|default:0 }}</span>
                         </a>
+                        {% if not is_premium_user %}
+                        <a href="{% url 'pricing' %}"
+                           title="{% if LANG == 'en' %}Upgrade your plan{% else %}প্ল্যান আপগ্রেড করুন{% endif %}"
+                           class="ripple btn-glow hidden sm:inline-flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-sm font-semibold text-white transition-all duration-200"
+                           style="background: linear-gradient(135deg, #f59e0b, #f97316);">
+                            <span>✨</span>{% if LANG == 'en' %}Upgrade{% else %}আপগ্রেড{% endif %}
+                        </a>
+                        {% endif %}
                         {% endif %}
                         <a href="{% url 'profile' %}"
                            title="{% if LANG == 'en' %}My Profile{% else %}আমার প্রোফাইল{% endif %}"
                            class="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center font-bold text-sm text-white transition-all duration-200 hover:scale-110 hover:shadow-md flex-shrink-0"
-                           style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                           style="background: linear-gradient(135deg, #059669, #0d9488);">
                             {% if request.user.profile.profile_picture %}
                             <img src="{{ request.user.profile.profile_picture.url }}" alt="profile" class="w-full h-full object-cover">
                             {% else %}
@@ -114,7 +160,7 @@
                     {% else %}
                         <a href="{% url 'login' %}" class="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg transition-all duration-200">{% if LANG == 'en' %}Log In{% else %}লগ ইন{% endif %}</a>
                         <a href="{% url 'signup' %}" class="ripple btn-glow text-sm font-semibold text-white px-4 py-2 rounded-xl"
-                           style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                           style="background: linear-gradient(135deg, #059669, #0d9488);">
                             {% if LANG == 'en' %}Sign Up{% else %}সাইন আপ{% endif %}
                         </a>
                     {% endif %}
@@ -157,7 +203,7 @@
 
                 <!-- Language toggle (mobile) -->
                 <a href="{% url 'toggle_language' %}" class="mobile-nav-link font-semibold"
-                   style="{% if LANG == 'en' %}color:#1d4ed8;{% else %}color:#7c3aed;{% endif %}">
+                   style="{% if LANG == 'en' %}color:#1d4ed8;{% else %}color:#0f766e;{% endif %}">
                     🌐 {% if LANG == 'en' %}Switch to বাংলা{% else %}Switch to English{% endif %}
                 </a>
 
@@ -190,7 +236,7 @@
                     <a href="{% url 'logout' %}" class="mobile-nav-link text-red-400 hover:text-red-600">{% if LANG == 'en' %}Log Out{% else %}লগ আউট{% endif %}</a>
                 {% else %}
                     <a href="{% url 'login' %}" class="mobile-nav-link">{% if LANG == 'en' %}Log In{% else %}লগ ইন{% endif %}</a>
-                    <a href="{% url 'signup' %}" class="block text-center py-2.5 px-4 rounded-xl text-white font-semibold text-sm" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);">{% if LANG == 'en' %}Sign Up{% else %}সাইন আপ{% endif %}</a>
+                    <a href="{% url 'signup' %}" class="block text-center py-2.5 px-4 rounded-xl text-white font-semibold text-sm" style="background:linear-gradient(135deg,#059669,#0d9488);">{% if LANG == 'en' %}Sign Up{% else %}সাইন আপ{% endif %}</a>
                 {% endif %}
             </div>
         </div>

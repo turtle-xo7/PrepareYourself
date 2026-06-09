@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}AI দিয়ে Note Generate করো{% endblock %}
+{% block title %}{% if LANG == 'en' %}Generate Note with AI{% else %}AI দিয়ে Note Generate করো{% endif %}{% endblock %}
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 py-8">
 
     <div class="flex items-center gap-4 mb-8">
         <a href="{% url 'study_notes' %}" class="text-gray-400 hover:text-gray-600">← Back</a>
-        <h1 class="text-2xl font-bold text-gray-900">🤖 AI দিয়ে Note Generate করো</h1>
+        <h1 class="text-2xl font-bold text-gray-900">🤖 {% if LANG == 'en' %}Generate Note with AI{% else %}AI দিয়ে Note Generate করো{% endif %}</h1>
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-200 p-6">
@@ -13,12 +13,12 @@
             {% csrf_token %}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
-                <input type="text" name="topic" required placeholder="যেমন: পদার্থের অবস্থা"
+                <input type="text" name="topic" required placeholder="{% if LANG == 'en' %}e.g. States of Matter{% else %}যেমন: পদার্থের অবস্থা{% endif %}"
                     class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Chapter</label>
-                <input type="text" name="chapter" required placeholder="যেমন: অধ্যায় ২"
+                <input type="text" name="chapter" required placeholder="{% if LANG == 'en' %}e.g. Chapter 2{% else %}যেমন: অধ্যায় ২{% endif %}"
                     class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -43,7 +43,7 @@
             </div>
             <button type="submit"
                 class="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition">
-                🤖 AI দিয়ে Note Generate করো
+                🤖 {% if LANG == 'en' %}Generate Note with AI{% else %}AI দিয়ে Note Generate করো{% endif %}
             </button>
         </form>
     </div>

@@ -1,51 +1,176 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Checkout - Prepare Yourself</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
-  <div class="w-full max-w-md">
-    <div class="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-      <h1 class="text-2xl font-bold text-gray-900 mb-1">Checkout</h1>
-      <p class="text-sm text-gray-500 mb-6">7-day free trial, তারপর auto-billing</p>
+{% extends 'base.html' %}
+{% block title %}{% if LANG == 'en' %}Checkout{% else %}চেকআউট{% endif %}{% endblock %}
 
-      <form method="post" class="space-y-4">
-        {% csrf_token %}
-        <input type="hidden" name="plan" value="{{ request.user.profile.plan }}">
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-          <input type="text" placeholder="1234 5678 9012 3456" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-            <input type="text" placeholder="MM/YY" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-            <input type="text" placeholder="123" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-
-        <div class="bg-gray-50 rounded-xl p-4 mt-4">
-          <div class="flex justify-between text-sm mb-1">
-            <span class="text-gray-600">Plan</span>
-            <span class="font-medium">{{ request.user.profile.plan }}</span>
-          </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-600">Free trial</span>
-            <span class="font-medium text-green-600">7 days</span>
-          </div>
-        </div>
-
-        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-90 transition text-sm">
-          Confirm & Start Trial
-        </button>
-      </form>
+    <div class="mb-6" data-aos="fade-down">
+        <a href="{% url 'pricing' %}" class="text-sm text-gray-500 hover:text-blue-600 inline-flex items-center gap-1">
+            ← {% if LANG == 'en' %}Back to plans{% else %}প্ল্যানে ফিরে যাও{% endif %}
+        </a>
+        <h1 class="text-3xl font-extrabold text-gray-900 mt-2">{% if LANG == 'en' %}Complete your subscription{% else %}সাবস্ক্রিপশন সম্পন্ন করো{% endif %}</h1>
     </div>
-  </div>
-</body>
-</html>
+
+    <form method="post" id="checkout-form" class="grid lg:grid-cols-3 gap-6 items-start">
+        {% csrf_token %}
+        <input type="hidden" name="plan" value="{{ plan }}">
+
+        <!-- LEFT: payment -->
+        <div class="lg:col-span-2 space-y-5">
+
+            <!-- Payment method -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:var(--shadow-sm);" data-aos="fade-up">
+                <h2 class="font-bold text-gray-900 mb-1">{% if LANG == 'en' %}Payment method{% else %}পেমেন্ট মাধ্যম{% endif %}</h2>
+                <p class="text-sm text-gray-500 mb-4">{% if LANG == 'en' %}Pay with your favourite mobile wallet.{% else %}তোমার পছন্দের মোবাইল ওয়ালেট দিয়ে পেমেন্ট করো।{% endif %}</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <label class="pay-method">
+                        <input type="radio" name="method" value="bkash" class="hidden" checked>
+                        <span class="pay-method-inner"><span class="font-extrabold text-base" style="color:#e2136e;">bKash</span></span>
+                    </label>
+                    <label class="pay-method">
+                        <input type="radio" name="method" value="nagad" class="hidden">
+                        <span class="pay-method-inner"><span class="font-extrabold text-base" style="color:#ed1c24;">Nagad</span></span>
+                    </label>
+                    <label class="pay-method">
+                        <input type="radio" name="method" value="rocket" class="hidden">
+                        <span class="pay-method-inner"><span class="font-extrabold text-base" style="color:#8a2be2;">Rocket</span></span>
+                    </label>
+                    <label class="pay-method">
+                        <input type="radio" name="method" value="card" class="hidden">
+                        <span class="pay-method-inner"><span class="font-bold text-sm text-gray-700">💳 {% if LANG == 'en' %}Card{% else %}কার্ড{% endif %}</span></span>
+                    </label>
+                </div>
+
+                <!-- Mobile wallet fields -->
+                <div id="wallet-fields" class="mt-5 space-y-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANG == 'en' %}Wallet number{% else %}ওয়ালেট নম্বর{% endif %}</label>
+                        <input type="tel" inputmode="numeric" placeholder="01XXXXXXXXX" maxlength="11"
+                               class="form-input w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANG == 'en' %}Transaction PIN / OTP{% else %}ট্রানজেকশন পিন / OTP{% endif %}</label>
+                        <input type="password" inputmode="numeric" placeholder="••••"
+                               class="form-input w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    </div>
+                </div>
+
+                <!-- Card fields (hidden by default) -->
+                <div id="card-fields" class="mt-5 space-y-3 hidden">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANG == 'en' %}Card number{% else %}কার্ড নম্বর{% endif %}</label>
+                        <input type="text" inputmode="numeric" placeholder="1234 5678 9012 3456"
+                               class="form-input w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANG == 'en' %}Expiry{% else %}মেয়াদ{% endif %}</label>
+                            <input type="text" placeholder="MM/YY" class="form-input w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">CVV</label>
+                            <input type="text" inputmode="numeric" placeholder="123" maxlength="4" class="form-input w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Promo (collapsed) -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:var(--shadow-sm);" data-aos="fade-up" data-aos-delay="60">
+                <button type="button" id="promo-toggle" class="flex items-center justify-between w-full text-sm font-semibold text-gray-700">
+                    <span>🎟️ {% if LANG == 'en' %}Have a promo code?{% else %}প্রোমো কোড আছে?{% endif %}</span>
+                    <svg class="w-4 h-4 transition-transform" id="promo-chev" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="promo-body" class="hidden mt-3 flex gap-2">
+                    <input type="text" placeholder="{% if LANG == 'en' %}Enter code{% else %}কোড লিখো{% endif %}" class="form-input flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <button type="button" class="bg-gray-100 text-gray-700 font-semibold px-4 rounded-xl text-sm hover:bg-gray-200 transition">{% if LANG == 'en' %}Apply{% else %}প্রয়োগ{% endif %}</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: order summary (pinned) -->
+        <div class="lg:sticky lg:top-24" data-aos="fade-left">
+            <div class="bg-white rounded-2xl border border-gray-100 p-6" style="box-shadow:var(--shadow-md);">
+                <h2 class="font-bold text-gray-900 mb-4">{% if LANG == 'en' %}Order summary{% else %}অর্ডার সারাংশ{% endif %}</h2>
+
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style="background:linear-gradient(135deg,#059669,#0d9488);">PY</span>
+                        <div>
+                            <div class="font-semibold text-gray-900 text-sm">{{ plan_label }} {% if LANG == 'en' %}Plan{% else %}প্ল্যান{% endif %}</div>
+                            <div class="text-xs text-gray-400">{% if LANG == 'en' %}Monthly{% else %}মাসিক{% endif %}</div>
+                        </div>
+                    </div>
+                    <a href="{% url 'pricing' %}" class="text-xs text-blue-600 hover:underline">{% if LANG == 'en' %}Change{% else %}পরিবর্তন{% endif %}</a>
+                </div>
+
+                <div class="border-t border-gray-100 my-3"></div>
+
+                <div class="flex justify-between text-sm mb-1.5">
+                    <span class="text-gray-500">{% if LANG == 'en' %}Subtotal{% else %}সাবটোটাল{% endif %}</span>
+                    <span class="font-medium text-gray-900">৳{{ price }}</span>
+                </div>
+                <div class="flex justify-between text-sm mb-1.5">
+                    <span class="text-gray-500">{% if LANG == 'en' %}7-day free trial{% else %}৭ দিনের ফ্রি ট্রায়াল{% endif %}</span>
+                    <span class="font-medium text-green-600">−৳{{ price }}</span>
+                </div>
+                <div class="border-t border-gray-100 my-3"></div>
+                <div class="flex justify-between items-baseline mb-5">
+                    <span class="font-bold text-gray-900">{% if LANG == 'en' %}Due today{% else %}আজ প্রদেয়{% endif %}</span>
+                    <span class="text-2xl font-extrabold text-gray-900">৳0</span>
+                </div>
+
+                <button type="submit" class="ripple cta-btn w-full text-white font-bold py-3.5 rounded-xl text-sm" style="background:linear-gradient(135deg,#10b981,#059669);">
+                    {% if LANG == 'en' %}Start free trial · then ৳{{ price }}/mo{% else %}ফ্রি ট্রায়াল শুরু · এরপর ৳{{ price }}/মাস{% endif %}
+                </button>
+
+                <div class="flex items-center justify-center gap-1.5 mt-3 text-xs text-gray-400">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    {% if LANG == 'en' %}Secure · Cancel anytime{% else %}নিরাপদ · যেকোনো সময় বাতিল{% endif %}
+                </div>
+            </div>
+
+            <p class="text-center text-xs text-gray-400 mt-4">{% if LANG == 'en' %}Joined by 2.5 lakh+ students{% else %}২.৫ লক্ষ+ শিক্ষার্থী যুক্ত{% endif %}</p>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.pay-method-inner {
+  display:flex; align-items:center; justify-content:center;
+  height:54px; cursor:pointer;
+  border:2px solid #e2e8f0; border-radius:0.9rem; transition:all 0.18s; background:#fff;
+}
+.pay-method-inner:hover { border-color:#cbd5e1; }
+.pay-method input:checked + .pay-method-inner {
+  border-color:#059669; background:linear-gradient(135deg,rgba(5,150,105,0.07),rgba(13,148,136,0.05));
+  box-shadow:0 0 0 3px rgba(5,150,105,0.12);
+}
+html.dark .pay-method-inner { background:#1e293b; border-color:#334155; }
+</style>
+<script>
+(function () {
+    // Toggle card vs wallet fields
+    var walletF = document.getElementById('wallet-fields');
+    var cardF   = document.getElementById('card-fields');
+    document.querySelectorAll('input[name=method]').forEach(function (r) {
+        r.addEventListener('change', function () {
+            var isCard = this.value === 'card';
+            cardF.classList.toggle('hidden', !isCard);
+            walletF.classList.toggle('hidden', isCard);
+        });
+    });
+    // Promo collapse
+    var pt = document.getElementById('promo-toggle');
+    var pb = document.getElementById('promo-body');
+    var pc = document.getElementById('promo-chev');
+    pt.addEventListener('click', function () {
+        pb.classList.toggle('hidden');
+        pc.style.transform = pb.classList.contains('hidden') ? '' : 'rotate(180deg)';
+    });
+})();
+</script>
+{% endblock %}
