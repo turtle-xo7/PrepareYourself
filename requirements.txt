@@ -5,6 +5,7 @@ tzdata==2026.2
 typing_extensions==4.15.0
 packaging==26.2
 django-jazzmin==3.0.4
+python-dotenv==1.2.2
 
 pillow==12.2.0
 

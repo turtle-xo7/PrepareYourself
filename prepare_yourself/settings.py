@@ -2,12 +2,18 @@ from pathlib import Path
 import os
 import sys
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-c!s1zjij8*lyj2g#6+r+u_r3$%o@ddp)%(gv4y!z(a$a(q*$=r'
-DEBUG = True
+load_dotenv(BASE_DIR / '.env')
 
-GEMINI_API_KEY = 'AIzaSyDKAsFaaqQI887lfMbKnuQJLT5_Ny1WpjY'
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise RuntimeError('SECRET_KEY is not set. Copy .env.example to .env and fill it in.')
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
+
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 INSTALLED_APPS = [
@@ -115,6 +121,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'prepareyourselfsupport20226@gmail.com'
-EMAIL_HOST_PASSWORD = 'rtwf qmrd lacl vbeu'
-DEFAULT_FROM_EMAIL = 'Prepare Yourself <prepareyourselfsupport20226@gmail.com>'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = f'Prepare Yourself <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'Prepare Yourself <noreply@localhost>'
