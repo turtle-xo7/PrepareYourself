@@ -5,10 +5,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.conf import settings
+from django.db import transaction
 from .models import Board, Subject, Class, Question, UserProfile, UserProgress
 from datetime import datetime
 import json
+import logging
 import uuid
+
+logger = logging.getLogger('core')
 
 CURRENT_YEAR = datetime.now().year
 YEARS = list(range(CURRENT_YEAR, CURRENT_YEAR - 6, -1))
@@ -111,8 +115,6 @@ def signup_view(request):
             messages.error(request, 'Username already taken!')
             return redirect('login')
 
-        user = User.objects.create_user(username=username, email=email, password=password)
-
         is_superadmin = False
         if admin_code == 'PY2026ADMIN':
             role = 'ADMIN'
@@ -122,23 +124,28 @@ def signup_view(request):
         if role == 'ADMIN' and not is_superadmin:
             is_approved = False
 
-        profile = UserProfile.objects.create(
-            user=user,
-            role=role,
-            plan=plan,
-            is_superadmin=is_superadmin,
-            is_approved=is_approved,
-        )
+        # User + profile must be created together — an orphan User without a
+        # UserProfile breaks every profile-dependent view after login.
+        with transaction.atomic():
+            user = User.objects.create_user(username=username, email=email, password=password)
+            profile = UserProfile.objects.create(
+                user=user,
+                role=role,
+                plan=plan,
+                is_superadmin=is_superadmin,
+                is_approved=is_approved,
+            )
 
-        if role == 'ADMIN' and not is_superadmin:
-            profile.teacher_bio = request.POST.get('teacher_bio', '')
-            profile.subject_expertise = request.POST.get('subject_expertise', '')
-            if request.FILES.get('nid_document'):
-                profile.nid_document = request.FILES['nid_document']
-            if request.FILES.get('qualification_document'):
-                profile.qualification_document = request.FILES['qualification_document']
-            profile.save()
+            if role == 'ADMIN' and not is_superadmin:
+                profile.teacher_bio = request.POST.get('teacher_bio', '')
+                profile.subject_expertise = request.POST.get('subject_expertise', '')
+                if request.FILES.get('nid_document'):
+                    profile.nid_document = request.FILES['nid_document']
+                if request.FILES.get('qualification_document'):
+                    profile.qualification_document = request.FILES['qualification_document']
+                profile.save()
 
+        logger.info('New signup: %s (role=%s, plan=%s)', username, role, plan)
         login(request, user)
 
         if role == 'ADMIN' and not is_superadmin:
@@ -285,13 +292,21 @@ def payment_process(request, tran_id):
     if payment.status != 'PENDING':
         return redirect('payment_success', tran_id=tran_id)
     if request.POST.get('result') == 'success':
-        payment.status = 'COMPLETED'
-        payment.val_id = 'SIM-' + payment.tran_id[:12]
-        payment.save(update_fields=['status', 'val_id', 'updated_at'])
-        _activate_plan(request.user.profile, payment.plan)
+        # Marking the payment COMPLETED and granting the plan must succeed or
+        # fail together — a COMPLETED payment without an active plan (or vice
+        # versa) cannot be reconciled later.
+        with transaction.atomic():
+            payment.status = 'COMPLETED'
+            payment.val_id = 'SIM-' + payment.tran_id[:12]
+            payment.save(update_fields=['status', 'val_id', 'updated_at'])
+            _activate_plan(request.user.profile, payment.plan)
+        logger.info('Payment completed: tran_id=%s user=%s plan=%s amount=%s',
+                    payment.tran_id, request.user.username, payment.plan, payment.amount)
         return redirect('payment_success', tran_id=tran_id)
     payment.status = 'FAILED'
     payment.save(update_fields=['status', 'updated_at'])
+    logger.warning('Payment failed: tran_id=%s user=%s plan=%s',
+                   payment.tran_id, request.user.username, payment.plan)
     return redirect('payment_failed')
 
 
@@ -2623,6 +2638,7 @@ def generate_note_ai(request):
                 messages.success(request, _L(request, 'Note generated with AI!', 'AI দিয়ে note তৈরি হয়েছে!'))
                 return redirect('study_note_detail', pk=note.pk)
         except Exception as e:
+            logger.exception('AI note generation failed (topic=%s, user=%s)', topic, request.user.username)
             messages.error(request, f'AI error: {str(e)}')
 
     subjects = Subject.objects.filter(is_active=True)
@@ -2673,6 +2689,7 @@ def generate_mcq(request, pk):
                     return JsonResponse({'mcqs': mcq_data.get('mcqs', [])})
                 return JsonResponse({'mcqs': [], 'error': 'Could not parse MCQs'})
         except Exception as e:
+            logger.exception('AI MCQ generation failed (note=%s)', pk)
             return JsonResponse({'error': str(e)})
 
     return JsonResponse({'error': 'Invalid request'})
@@ -2713,6 +2730,7 @@ def summarize_note(request, pk):
                 summary = result['content'][0]['text']
                 return JsonResponse({'summary': summary})
         except Exception as e:
+            logger.exception('AI note summarization failed (note=%s)', pk)
             return JsonResponse({'error': str(e)})
 
     return JsonResponse({'error': 'Invalid request'})
@@ -2756,8 +2774,10 @@ def ask_ai(request):
                 return JsonResponse({'answer': answer})
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
+            logger.error('AI ask failed: HTTP %s — %.300s', e.code, error_body)
             return JsonResponse({'answer': f'Error: {error_body}'})
         except Exception as e:
+            logger.exception('AI ask failed')
             return JsonResponse({'answer': f'Error: {str(e)}'})
 
     return JsonResponse({'error': 'Invalid request'})
@@ -3039,51 +3059,57 @@ def contest_submit(request, pk):
     if submission.is_submitted:
         return redirect('contest_leaderboard', pk=pk)
 
-    total_marks = 0
-    questions = contest.questions.all()
+    # Answer rows and the final submission state must land together — a partial
+    # set of ContestAnswers with is_submitted=False would block resubmission
+    # while scoring only half the paper.
+    with transaction.atomic():
+        total_marks = 0
+        questions = contest.questions.all()
 
-    for q in questions:
-        if q.question_type == 'MCQ':
-            answer_val = request.POST.get(f'q_{q.pk}')
-            mcq_answer = int(answer_val) if answer_val else None
-            is_correct = mcq_answer == q.correct_option if mcq_answer else False
-            marks_obtained = q.marks if is_correct else 0
-            total_marks += marks_obtained
-            ContestAnswer.objects.create(
-                submission=submission,
-                question=q,
-                mcq_answer=mcq_answer,
-                is_correct=is_correct,
-                marks_obtained=marks_obtained
-            )
+        for q in questions:
+            if q.question_type == 'MCQ':
+                answer_val = request.POST.get(f'q_{q.pk}')
+                mcq_answer = int(answer_val) if answer_val else None
+                is_correct = mcq_answer == q.correct_option if mcq_answer else False
+                marks_obtained = q.marks if is_correct else 0
+                total_marks += marks_obtained
+                ContestAnswer.objects.create(
+                    submission=submission,
+                    question=q,
+                    mcq_answer=mcq_answer,
+                    is_correct=is_correct,
+                    marks_obtained=marks_obtained
+                )
+            else:
+                creative_answer = request.POST.get(f'q_{q.pk}', '')
+                ContestAnswer.objects.create(
+                    submission=submission,
+                    question=q,
+                    creative_answer=creative_answer,
+                    is_correct=None,
+                    marks_obtained=0
+                )
+
+        now = timezone.now()
+        duration = int((now - submission.started_at).total_seconds())
+        submission.submitted_at = now
+        submission.total_marks = total_marks
+        submission.duration_taken = duration
+        submission.time_taken_seconds = duration
+        submission.is_submitted = True
+
+        from .models import ContestRegistration
+        reg = ContestRegistration.objects.filter(
+            contest=contest, user=request.user,
+        ).first()
+        if reg is not None:
+            submission.is_rated_participant = reg.is_rated and contest.is_rated
         else:
-            creative_answer = request.POST.get(f'q_{q.pk}', '')
-            ContestAnswer.objects.create(
-                submission=submission,
-                question=q,
-                creative_answer=creative_answer,
-                is_correct=None,
-                marks_obtained=0
-            )
+            submission.is_rated_participant = contest.is_rated
+        submission.save()
 
-    now = timezone.now()
-    duration = int((now - submission.started_at).total_seconds())
-    submission.submitted_at = now
-    submission.total_marks = total_marks
-    submission.duration_taken = duration
-    submission.time_taken_seconds = duration
-    submission.is_submitted = True
-
-    from .models import ContestRegistration
-    reg = ContestRegistration.objects.filter(
-        contest=contest, user=request.user,
-    ).first()
-    if reg is not None:
-        submission.is_rated_participant = reg.is_rated and contest.is_rated
-    else:
-        submission.is_rated_participant = contest.is_rated
-    submission.save()
-
+    logger.info('Contest submission: contest=%s user=%s marks=%s',
+                contest.pk, request.user.username, total_marks)
     messages.success(request, f'Submitted! Your marks: {total_marks}')
     return redirect('contest_result', pk=pk)
 
@@ -3905,24 +3931,31 @@ def submit_cq(request, attempt_id):
             pass
     selected_cq_ids = selected_cq_ids[:7]
 
-    for cq_id in selected_cq_ids:
-        try:
-            cq = CQQuestion.objects.get(id=cq_id, exam_paper=attempt.exam_paper)
-        except CQQuestion.DoesNotExist:
-            continue
-        sub, _ = CQSubmission.objects.get_or_create(attempt=attempt, cq_question=cq)
-        if f'photo_{cq_id}' in request.FILES:
-            sub.photo = request.FILES[f'photo_{cq_id}']
-        for part in ('a', 'b', 'c', 'd'):
-            key = f'photo_{cq_id}_{part}'
-            if key in request.FILES:
-                setattr(sub, f'photo_{part}', request.FILES[key])
-        sub.save()
+    # CQ answer rows and the attempt's CQ_PENDING status must commit together,
+    # otherwise a mid-request failure leaves answers saved but the attempt
+    # still in CQ_PHASE (or vice versa).
+    with transaction.atomic():
+        for cq_id in selected_cq_ids:
+            try:
+                cq = CQQuestion.objects.get(id=cq_id, exam_paper=attempt.exam_paper)
+            except CQQuestion.DoesNotExist:
+                continue
+            sub, _ = CQSubmission.objects.get_or_create(attempt=attempt, cq_question=cq)
+            if f'photo_{cq_id}' in request.FILES:
+                sub.photo = request.FILES[f'photo_{cq_id}']
+            for part in ('a', 'b', 'c', 'd'):
+                key = f'photo_{cq_id}_{part}'
+                if key in request.FILES:
+                    setattr(sub, f'photo_{part}', request.FILES[key])
+            sub.save()
 
-    attempt.selected_cqs = selected_cq_ids
-    attempt.status = 'CQ_PENDING'
-    attempt.cq_submitted_at = timezone.now()
-    attempt.save()
+        attempt.selected_cqs = selected_cq_ids
+        attempt.status = 'CQ_PENDING'
+        attempt.cq_submitted_at = timezone.now()
+        attempt.save()
+
+    logger.info('CQ submitted: attempt=%s user=%s paper=%s',
+                attempt.id, request.user.username, attempt.exam_paper.title)
 
     # In-app notification — one per (teacher, exam paper) while unread, subject-filtered
     from .models import Notification, UserProfile, ExamAttempt as _EA
@@ -4501,7 +4534,7 @@ def extract_text_from_image(request):
 
     api_key = settings.GEMINI_API_KEY
     if not api_key:
-        return JsonResponse({'error': _L(request, 'Gemini API key is not configured. Set GEMINI_API_KEY in settings.py.', 'Gemini API key কনফিগার করা নেই। settings.py-তে GEMINI_API_KEY সেট করুন।')}, status=500)
+        return JsonResponse({'error': _L(request, 'Gemini API key is not configured. Set GEMINI_API_KEY in your .env file.', 'Gemini API key কনফিগার করা নেই। .env ফাইলে GEMINI_API_KEY সেট করুন।')}, status=500)
 
     image_data = base64.b64encode(image_file.read()).decode('utf-8')
     mime_type = image_file.content_type or 'image/jpeg'
@@ -4526,8 +4559,10 @@ def extract_text_from_image(request):
         return JsonResponse({'success': True, 'text': text})
     except HTTPError as e:
         err_body = e.read().decode('utf-8', errors='replace')
+        logger.error('Gemini OCR failed: HTTP %s — %.300s', e.code, err_body)
         return JsonResponse({'error': f'Gemini error {e.code}: {err_body[:300]}'}, status=500)
     except Exception as e:
+        logger.exception('Gemini OCR failed')
         return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -4553,34 +4588,42 @@ def grade_cq_submission(request, attempt_id):
 
     if request.method == 'POST':
         from django.utils import timezone
-        total_cq = 0
-        for sub in cq_submissions:
-            q = sub.cq_question
-            cq_total = 0
-            for part, max_marks in (('a', q.marks_a), ('b', q.marks_b),
-                                    ('c', q.marks_c), ('d', q.marks_d)):
-                raw = request.POST.get(f'marks_{sub.id}_{part}', '').strip()
-                try:
-                    m = int(raw) if raw else 0
-                except ValueError:
-                    m = 0
-                m = max(0, min(m, max_marks))
-                setattr(sub, f'marks_{part}', m)
-                comment = request.POST.get(f'comment_{sub.id}_{part}', '').strip()
-                # Clear comment if student got full marks for this part
-                setattr(sub, f'comment_{part}', '' if m >= max_marks else comment)
-                cq_total += m
-            sub.marks_given = cq_total
-            sub.save()
-            total_cq += cq_total
+        # Per-question marks and the attempt's final score/grade must commit
+        # together — partially saved marks with an unGRADED attempt would let
+        # the script be re-claimed and double-graded.
+        with transaction.atomic():
+            total_cq = 0
+            for sub in cq_submissions:
+                q = sub.cq_question
+                cq_total = 0
+                for part, max_marks in (('a', q.marks_a), ('b', q.marks_b),
+                                        ('c', q.marks_c), ('d', q.marks_d)):
+                    raw = request.POST.get(f'marks_{sub.id}_{part}', '').strip()
+                    try:
+                        m = int(raw) if raw else 0
+                    except ValueError:
+                        m = 0
+                    m = max(0, min(m, max_marks))
+                    setattr(sub, f'marks_{part}', m)
+                    comment = request.POST.get(f'comment_{sub.id}_{part}', '').strip()
+                    # Clear comment if student got full marks for this part
+                    setattr(sub, f'comment_{part}', '' if m >= max_marks else comment)
+                    cq_total += m
+                sub.marks_given = cq_total
+                sub.save()
+                total_cq += cq_total
 
-        attempt.cq_score = total_cq
-        attempt.total_score = attempt.mcq_score + total_cq
-        attempt.grade = _calculate_grade(attempt.total_score, _exam_max_marks(attempt))
-        attempt.status = 'GRADED'
-        attempt.graded_by = request.user
-        attempt.graded_at = timezone.now()
-        attempt.save()
+            attempt.cq_score = total_cq
+            attempt.total_score = attempt.mcq_score + total_cq
+            attempt.grade = _calculate_grade(attempt.total_score, _exam_max_marks(attempt))
+            attempt.status = 'GRADED'
+            attempt.graded_by = request.user
+            attempt.graded_at = timezone.now()
+            attempt.save()
+
+        logger.info('CQ graded: attempt=%s student=%s grader=%s score=%s grade=%s%s',
+                    attempt.id, attempt.student.username, request.user.username,
+                    attempt.total_score, attempt.grade, ' (regrade)' if is_regrade else '')
 
         from .models import Notification
         from django.urls import reverse
@@ -4760,17 +4803,23 @@ def contest_register(request, pk):
     is_first = not contest.registrations.filter(user=request.user).exists()
     is_early = (now - contest.created_at).total_seconds() <= 3600
 
-    reg, created = ContestRegistration.objects.update_or_create(
-        contest=contest, user=request.user,
-        defaults={'is_rated': want_rated, 'is_early_bird': is_early and is_first},
-    )
+    # Registration and its one-time rewards (first-contest coins, early-bird
+    # badge) must commit together so a failure can't leave a registration
+    # whose rewards were already paid out, or vice versa.
+    with transaction.atomic():
+        reg, created = ContestRegistration.objects.update_or_create(
+            contest=contest, user=request.user,
+            defaults={'is_rated': want_rated, 'is_early_bird': is_early and is_first},
+        )
+
+        if created:
+            if is_first and ContestRegistration.objects.filter(user=request.user).count() == 1:
+                coin_svc.award_coins(request.user, 'first_contest', contest=contest,
+                                     note='Your very first contest!')
+            if is_early:
+                badge_svc.award_early_bird(request.user, contest)
 
     if created:
-        if is_first and ContestRegistration.objects.filter(user=request.user).count() == 1:
-            coin_svc.award_coins(request.user, 'first_contest', contest=contest,
-                                 note='Your very first contest!')
-        if is_early:
-            badge_svc.award_early_bird(request.user, contest)
         messages.success(request, f'Registered for {contest.title} '
                                   f'({"rated" if want_rated else "unrated"}).')
     else:
