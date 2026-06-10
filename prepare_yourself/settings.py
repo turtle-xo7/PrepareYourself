@@ -98,6 +98,10 @@ STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
 }
+# In dev, re-read static files from source dirs on every request so CSS/JS edits
+# show up without restarting the server or running collectstatic.
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_USE_FINDERS = DEBUG
 
 _STATIC_DIR = BASE_DIR / 'static'
 STATICFILES_DIRS = [_STATIC_DIR] if _STATIC_DIR.exists() else []

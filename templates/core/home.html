@@ -39,11 +39,11 @@
 
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-5" data-aos="fade-up" data-aos-delay="80">
                     {% if LANG == 'en' %}Ace Your Board Exams<br>
-                    <span style="background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0.75));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                    <span class="hero-shine-text">
                         with Smart Preparation
                     </span>
                     {% else %}বোর্ড পরীক্ষায় সেরা ফলাফল করো<br>
-                    <span style="background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0.75));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                    <span class="hero-shine-text">
                         স্মার্ট প্রস্তুতির মাধ্যমে
                     </span>
                     {% endif %}
@@ -111,6 +111,47 @@
         </div>
     </div>
 </section>
+
+<!-- ═══════════════════════════════════════════
+     SUBJECT MARQUEE TICKER
+══════════════════════════════════════════════ -->
+<div class="subject-marquee" aria-hidden="true">
+    <div class="subject-marquee-track">
+        {% for i in '12' %}
+        {% if LANG == 'en' %}
+        <span class="marquee-chip">⚛️ Physics</span>
+        <span class="marquee-chip">🧪 Chemistry</span>
+        <span class="marquee-chip">🧬 Biology</span>
+        <span class="marquee-chip">📐 Higher Math</span>
+        <span class="marquee-chip">📖 Bangla</span>
+        <span class="marquee-chip">🌍 English</span>
+        <span class="marquee-chip">💻 ICT</span>
+        <span class="marquee-chip">📊 Accounting</span>
+        <span class="marquee-chip">💼 Business Studies</span>
+        <span class="marquee-chip">📈 Economics</span>
+        <span class="marquee-chip">🏛️ Civics</span>
+        <span class="marquee-chip">🗺️ Geography</span>
+        <span class="marquee-chip">🕌 Islamic Studies</span>
+        <span class="marquee-chip">⚖️ General Science</span>
+        {% else %}
+        <span class="marquee-chip">⚛️ পদার্থবিজ্ঞান</span>
+        <span class="marquee-chip">🧪 রসায়ন</span>
+        <span class="marquee-chip">🧬 জীববিজ্ঞান</span>
+        <span class="marquee-chip">📐 উচ্চতর গণিত</span>
+        <span class="marquee-chip">📖 বাংলা</span>
+        <span class="marquee-chip">🌍 ইংরেজি</span>
+        <span class="marquee-chip">💻 আইসিটি</span>
+        <span class="marquee-chip">📊 হিসাববিজ্ঞান</span>
+        <span class="marquee-chip">💼 ব্যবসায় শিক্ষা</span>
+        <span class="marquee-chip">📈 অর্থনীতি</span>
+        <span class="marquee-chip">🏛️ পৌরনীতি</span>
+        <span class="marquee-chip">🗺️ ভূগোল</span>
+        <span class="marquee-chip">🕌 ইসলাম শিক্ষা</span>
+        <span class="marquee-chip">⚖️ সাধারণ বিজ্ঞান</span>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
 
 <!-- ═══════════════════════════════════════════
      MOLECULAR LAB BANNER
@@ -423,13 +464,32 @@
     if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
     var hero = document.querySelector('.gradient-bg');
     if (!hero) return;
-    var base = { trigger: hero, start: 'top top', end: 'bottom top' };
+    function st(scrub) {
+        return { trigger: hero, start: 'top top', end: 'bottom top', scrub: scrub };
+    }
+    gsap.to('.float-shape-1', { y: -90, ease: 'none', scrollTrigger: st(1.8) });
+    gsap.to('.float-shape-2', { y: 60,  ease: 'none', scrollTrigger: st(2.4) });
+    gsap.to('.float-shape-3', { y: -45, x: 25, ease: 'none', scrollTrigger: st(1.2) });
+    gsap.to('.float-shape-4', { y: 30,  rotate: 90, ease: 'none', scrollTrigger: st(1.6) });
+    gsap.to('#hero-canvas',   { opacity: 0, ease: 'none', scrollTrigger: st(1) });
+})();
 
-    gsap.to('.float-shape-1', Object.assign({ y: -90, scrub: 1.8 }, { scrollTrigger: Object.assign({}, base) }));
-    gsap.to('.float-shape-2', Object.assign({ y: 60,  scrub: 2.4 }, { scrollTrigger: Object.assign({}, base) }));
-    gsap.to('.float-shape-3', Object.assign({ y: -45, x: 25, scrub: 1.2 }, { scrollTrigger: Object.assign({}, base) }));
-    gsap.to('.float-shape-4', Object.assign({ y: 30,  rotate: 90, scrub: 1.6 }, { scrollTrigger: Object.assign({}, base) }));
-    gsap.to('#hero-canvas',   Object.assign({ opacity: 0, scrub: 1 }, { scrollTrigger: Object.assign({}, base) }));
+/* ─── Magnetic hero CTAs ────────────────────────── */
+(function () {
+    if (typeof gsap === 'undefined') return;
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+    document.querySelectorAll('.gradient-bg .cta-btn, .gradient-bg a[href*="question"]').forEach(function (btn) {
+        var strength = 22;
+        btn.addEventListener('mousemove', function (e) {
+            var r = btn.getBoundingClientRect();
+            var x = (e.clientX - r.left - r.width  / 2) / (r.width  / 2);
+            var y = (e.clientY - r.top  - r.height / 2) / (r.height / 2);
+            gsap.to(btn, { x: x * strength, y: y * strength * 0.6, duration: 0.4, ease: 'power3.out', overwrite: 'auto' });
+        });
+        btn.addEventListener('mouseleave', function () {
+            gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1,0.4)', overwrite: 'auto' });
+        });
+    });
 })();
 
 /* ─── Feature cards stagger ─────────────────────── */
