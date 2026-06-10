@@ -110,20 +110,33 @@ def teacher_dashboard(request):
         teacher=request.user, created_at__date__gte=week_ago).count()
     questions_set = Contest.objects.filter(created_by=request.user).count()
 
+    # One aggregated scan covers both the 7-day chart and the 30-day heatmap
+    # (previously 37 separate per-day queries).
+    from django.db.models.functions import TruncDate
+    month_ago = today - timedelta(days=29)
+    day_counts = {
+        row['d']: row for row in all_progress.filter(
+            answered_at__date__gte=month_ago
+        ).annotate(d=TruncDate('answered_at')).values('d').annotate(
+            count=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+        )
+    }
+
     daily_data = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
+        row = day_counts.get(day, {})
         daily_data.append({
             'day': day.strftime('%a'),
-            'count': all_progress.filter(answered_at__date=day).count(),
-            'correct': all_progress.filter(answered_at__date=day, is_correct=True).count(),
+            'count': row.get('count', 0),
+            'correct': row.get('correct', 0),
         })
 
     heatmap_days = []
     max_count = 1
     for i in range(29, -1, -1):
         day = today - timedelta(days=i)
-        cnt = all_progress.filter(answered_at__date=day).count()
+        cnt = day_counts.get(day, {}).get('count', 0)
         heatmap_days.append({'date': day.strftime('%d %b'), 'count': cnt})
         if cnt > max_count:
             max_count = cnt
@@ -146,19 +159,22 @@ def teacher_dashboard(request):
     # ---- Exam Mode data ----
     exam_papers = ExamPaper.objects.filter(is_active=True).select_related(
         'subject', 'class_obj'
+    ).annotate(
+        attempt_total=Count('attempts', distinct=True),
+        attempt_pending=Count('attempts', filter=Q(attempts__status='CQ_PENDING'), distinct=True),
+        attempt_graded=Count('attempts', filter=Q(attempts__status='GRADED'), distinct=True),
+        n_mcqs=Count('mcqs', distinct=True),
+        n_cqs=Count('cqs', distinct=True),
     ).order_by('-created_at')
 
-    exam_paper_data = []
-    for paper in exam_papers:
-        attempts = paper.attempts.all()
-        exam_paper_data.append({
-            'paper': paper,
-            'total': attempts.count(),
-            'pending': attempts.filter(status='CQ_PENDING').count(),
-            'graded': attempts.filter(status='GRADED').count(),
-            'mcq_count': paper.mcqs.count(),
-            'cq_count': paper.cqs.count(),
-        })
+    exam_paper_data = [{
+        'paper': paper,
+        'total': paper.attempt_total,
+        'pending': paper.attempt_pending,
+        'graded': paper.attempt_graded,
+        'mcq_count': paper.n_mcqs,
+        'cq_count': paper.n_cqs,
+    } for paper in exam_papers]
 
     pending_cq_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
 
@@ -235,41 +251,61 @@ def student_detail(request, pk):
     for sp in subject_progress:
         sp['accuracy'] = round(sp['correct'] / sp['total'] * 100, 1) if sp['total'] > 0 else 0
 
+    diff_rows = {
+        r['question__difficulty']: r
+        for r in progress.values('question__difficulty').annotate(
+            total=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+        )
+    }
     difficulty_data = {}
     for diff in ['Easy', 'Medium', 'Hard']:
-        dq = progress.filter(question__difficulty=diff)
-        d_total = dq.count()
-        d_correct = dq.filter(is_correct=True).count()
+        r = diff_rows.get(diff, {'total': 0, 'correct': 0})
         difficulty_data[diff] = {
-            'total': d_total,
-            'correct': d_correct,
-            'accuracy': round(d_correct / d_total * 100, 1) if d_total > 0 else 0,
+            'total': r['total'],
+            'correct': r['correct'],
+            'accuracy': round(r['correct'] / r['total'] * 100, 1) if r['total'] > 0 else 0,
         }
 
     today = timezone.now().date()
     week_ago = today - timedelta(days=7)
 
+    # One aggregated scan for the 14-day chart and 30-day heatmap
+    # (previously 58 per-day queries), plus distinct dates for the streak.
+    from django.db.models.functions import TruncDate
+    month_ago = today - timedelta(days=29)
+    day_counts = {
+        row['d']: row for row in progress.filter(
+            answered_at__date__gte=month_ago
+        ).annotate(d=TruncDate('answered_at')).values('d').annotate(
+            count=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+        )
+    }
+
     daily_data = []
     for i in range(13, -1, -1):
         day = today - timedelta(days=i)
+        row = day_counts.get(day, {})
         daily_data.append({
             'day': day.strftime('%d %b'),
-            'count': progress.filter(answered_at__date=day).count(),
-            'correct': progress.filter(answered_at__date=day, is_correct=True).count(),
+            'count': row.get('count', 0),
+            'correct': row.get('correct', 0),
         })
 
     heatmap_days = []
     max_count = 1
     for i in range(29, -1, -1):
         day = today - timedelta(days=i)
-        cnt = progress.filter(answered_at__date=day).count()
+        cnt = day_counts.get(day, {}).get('count', 0)
         heatmap_days.append({'date': day.strftime('%d %b'), 'count': cnt})
         if cnt > max_count:
             max_count = cnt
 
+    answered_dates = set(
+        progress.annotate(d=TruncDate('answered_at')).values_list('d', flat=True)
+    )
     streak = 0
     check_day = today
-    while progress.filter(answered_at__date=check_day).exists():
+    while check_day in answered_dates:
         streak += 1
         check_day -= timedelta(days=1)
 

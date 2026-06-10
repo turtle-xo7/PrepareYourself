@@ -155,6 +155,107 @@ class RBACTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+# -------- MANAGE (TEACHER ADMIN) TESTS --------
+
+class ManageAdminTests(TestCase):
+
+    def setUp(self):
+        self.teacher = create_teacher()
+        self.board = create_board()
+        self.subject = create_subject()
+        self.class_obj = create_class()
+        self.client.login(username='teacher1', password='testpass123')
+
+    def test_board_add_duplicate_rejected(self):
+        response = self.client.post(reverse('board_add'), {'name': 'dhaka board'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Board.objects.count(), 1)
+
+    def test_board_add_empty_name_rejected(self):
+        response = self.client.post(reverse('board_add'), {'name': '   '})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Board.objects.count(), 1)
+
+    def test_subject_add_duplicate_rejected(self):
+        self.client.post(reverse('subject_add'), {'name': 'Physics'})
+        self.assertEqual(Subject.objects.count(), 1)
+
+    def test_class_add_non_numeric_sort_rejected(self):
+        response = self.client.post(reverse('class_add'), {'name': 'Class 10', 'numeric_value': 'abc'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Class.objects.count(), 1)
+
+    def test_class_add_duplicate_sort_rejected(self):
+        self.client.post(reverse('class_add'), {'name': 'Class Nine', 'numeric_value': '9'})
+        self.assertEqual(Class.objects.count(), 1)
+
+    def test_video_delete_requires_post(self):
+        from .models import PracticalVideo
+        video = PracticalVideo.objects.create(
+            title='Demo', youtube_url='https://youtu.be/dQw4w9WgXcQ',
+            subject=self.subject, class_obj=self.class_obj,
+        )
+        self.client.get(reverse('video_delete', kwargs={'pk': video.pk}))
+        self.assertTrue(PracticalVideo.objects.filter(pk=video.pk).exists())
+        self.client.post(reverse('video_delete', kwargs={'pk': video.pk}))
+        self.assertFalse(PracticalVideo.objects.filter(pk=video.pk).exists())
+
+    def test_claim_cq_is_exclusive(self):
+        from .models import ExamPaper, ExamAttempt
+        student = create_student()
+        paper = ExamPaper.objects.create(
+            title='Model Test', subject=self.subject,
+            class_obj=self.class_obj, created_by=self.teacher,
+        )
+        attempt = ExamAttempt.objects.create(
+            exam_paper=paper, student=student, status='CQ_PENDING',
+        )
+        self.client.post(reverse('claim_cq_attempt', kwargs={'attempt_id': attempt.pk}))
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.assigned_teacher, self.teacher)
+
+        teacher2 = create_teacher(username='teacher2', email='t2@test.com')
+        self.client.logout()
+        self.client.login(username='teacher2', password='testpass123')
+        self.client.post(reverse('claim_cq_attempt', kwargs={'attempt_id': attempt.pk}))
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.assigned_teacher, self.teacher)  # still teacher1
+
+    def test_teacher_dashboard_renders_with_activity(self):
+        student = create_student()
+        q = create_question(self.board, self.subject, self.class_obj)
+        UserProgress.objects.create(user=student, question=q, is_correct=True)
+        response = self.client.get(reverse('teacher_dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['daily_data']), 7)
+        self.assertEqual(len(response.context['heatmap_days']), 30)
+        self.assertEqual(response.context['daily_data'][-1]['count'], 1)
+
+    def test_student_detail_renders_with_activity(self):
+        student = create_student()
+        q = create_question(self.board, self.subject, self.class_obj)
+        UserProgress.objects.create(user=student, question=q, is_correct=True)
+        response = self.client.get(reverse('student_detail', kwargs={'pk': student.profile.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total_answered'], 1)
+        self.assertEqual(response.context['streak'], 1)
+        self.assertEqual(response.context['difficulty_data']['Easy']['correct'], 1)
+
+    def test_manage_questions_filter_and_pagination(self):
+        create_question(self.board, self.subject, self.class_obj)
+        for year in range(1990, 2024):
+            create_question(self.board, self.subject, self.class_obj, year=year)
+        page1 = self.client.get(reverse('manage_questions'))
+        self.assertEqual(len(page1.context['questions']), 30)
+        self.assertEqual(page1.context['total_matched'], 35)
+        page2 = self.client.get(reverse('manage_questions') + '?page=2')
+        self.assertEqual(len(page2.context['questions']), 5)
+        filtered = self.client.get(reverse('manage_questions') + '?type=WRITTEN')
+        self.assertEqual(filtered.context['total_matched'], 0)
+        searched = self.client.get(reverse('manage_questions') + '?q=force')
+        self.assertEqual(searched.context['total_matched'], 35)
+
+
 # -------- QUESTION BANK TESTS --------
 
 class QuestionBankTests(TestCase):

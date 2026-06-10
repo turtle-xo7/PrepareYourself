@@ -44,6 +44,7 @@
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Name</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Icon</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Color</th>
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Questions</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Action</th>
           </tr>
@@ -54,20 +55,21 @@
             <td class="px-4 py-3 font-medium text-gray-800">{{ s.name }}</td>
             <td class="px-4 py-3 text-xl">{{ s.icon }}</td>
             <td class="px-4 py-3 text-gray-500">{{ s.color }}</td>
+            <td class="px-4 py-3 text-gray-500">{{ s.question_count }}</td>
             <td class="px-4 py-3">
               <span class="px-2 py-0.5 rounded text-xs {% if s.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
                 {% if s.is_active %}Active{% else %}Inactive{% endif %}
               </span>
             </td>
             <td class="px-4 py-3">
-              <form method="post" action="{% url 'subject_delete' s.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete?{% else %}Delete করবে?{% endif %}')">
+              <form method="post" action="{% url 'subject_delete' s.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete subject {{ s.name|escapejs }}?{% if s.question_count %} WARNING: its {{ s.question_count }} question(s) will also be deleted permanently!{% endif %}{% else %}{{ s.name|escapejs }} subject delete করবে?{% if s.question_count %} সাবধান: এর {{ s.question_count }}টি question-ও স্থায়ীভাবে মুছে যাবে!{% endif %}{% endif %}')">
                 {% csrf_token %}
                 <button type="submit" class="text-red-500 hover:underline text-sm">Delete</button>
               </form>
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">{% if LANG == 'en' %}No subjects.{% else %}কোনো subject নেই।{% endif %}</td></tr>
+          <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">{% if LANG == 'en' %}No subjects.{% else %}কোনো subject নেই।{% endif %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

@@ -53,7 +53,52 @@ def manage_dashboard(request):
 @admin_required
 def manage_questions(request):
     questions = Question.objects.select_related('board', 'subject', 'class_obj').order_by('-created_at')
-    return render(request, 'manage/questions.html', {'questions': questions})
+
+    def _pk(name):
+        val = request.GET.get(name, '')
+        return val if val.isdigit() else ''
+
+    sel_board = _pk('board')
+    sel_subject = _pk('subject')
+    sel_class = _pk('class_obj')
+    sel_year = _pk('year')
+    sel_type = request.GET.get('type', '')
+    search = (request.GET.get('q') or '').strip()
+
+    if sel_board:
+        questions = questions.filter(board_id=sel_board)
+    if sel_subject:
+        questions = questions.filter(subject_id=sel_subject)
+    if sel_class:
+        questions = questions.filter(class_obj_id=sel_class)
+    if sel_year:
+        questions = questions.filter(year=sel_year)
+    if sel_type in ('MCQ', 'WRITTEN'):
+        questions = questions.filter(question_type=sel_type)
+    if search:
+        questions = questions.filter(question_text__icontains=search)
+
+    total_matched = questions.count()
+
+    from django.core.paginator import Paginator
+    params = request.GET.copy()
+    params.pop('page', None)
+    base_qs = params.urlencode()
+    page_obj = Paginator(questions, 30).get_page(request.GET.get('page'))
+
+    return render(request, 'manage/questions.html', {
+        'questions': page_obj.object_list,
+        'page_obj': page_obj,
+        'base_qs': base_qs,
+        'total_matched': total_matched,
+        'boards': Board.objects.filter(is_active=True),
+        'subjects': Subject.objects.filter(is_active=True),
+        'classes': Class.objects.all(),
+        'years': YEARS,
+        'sel_board': sel_board, 'sel_subject': sel_subject,
+        'sel_class': sel_class, 'sel_year': sel_year,
+        'sel_type': sel_type, 'search': search,
+    })
 
 
 @admin_required
@@ -505,7 +550,10 @@ def question_edit(request, pk):
         question.board = get_object_or_404(Board, pk=request.POST.get('board'))
         question.subject = get_object_or_404(Subject, pk=request.POST.get('subject'))
         question.class_obj = get_object_or_404(Class, pk=request.POST.get('class_obj'))
-        question.year = request.POST.get('year')
+        try:
+            question.year = int(request.POST.get('year'))
+        except (TypeError, ValueError):
+            pass  # keep the existing year
         question.question_type = request.POST.get('question_type')
 
         if question.question_type == 'MCQ':
@@ -526,6 +574,13 @@ def question_edit(request, pk):
                     question.correct_option = int(mcq_correct[0]) if mcq_correct else 1
                 except (ValueError, IndexError):
                     question.correct_option = 1
+            uploaded = request.FILES.get('mcq_question_file')
+            if uploaded:
+                err = _upload_error(uploaded, kind='doc', max_mb=20)
+                if err:
+                    messages.error(request, _L(request, *err))
+                else:
+                    question.mcq_question_file = uploaded
         else:
             question.question_text = (request.POST.get('question_text') or '').strip()
             question.answer_hint = request.POST.get('answer_hint', '')
@@ -570,19 +625,26 @@ def question_delete(request, pk):
 
 @admin_required
 def manage_boards(request):
-    boards = Board.objects.all()
+    from django.db.models import Count
+    boards = Board.objects.annotate(question_count=Count('questions'))
     return render(request, 'manage/boards.html', {'boards': boards})
 
 
 @admin_required
 def board_add(request):
     if request.method == 'POST':
-        Board.objects.create(
-            name=request.POST.get('name'),
-            student_count=request.POST.get('student_count', ''),
-            is_active=True
-        )
-        messages.success(request, 'Board added!')
+        name = (request.POST.get('name') or '').strip()
+        if not name:
+            messages.error(request, _L(request, 'Board name is required.', 'Board-এর নাম দিতে হবে।'))
+        elif Board.objects.filter(name__iexact=name).exists():
+            messages.error(request, _L(request, f'Board "{name}" already exists.', f'"{name}" board ইতিমধ্যে আছে।'))
+        else:
+            Board.objects.create(
+                name=name,
+                student_count=(request.POST.get('student_count') or '').strip(),
+                is_active=True
+            )
+            messages.success(request, 'Board added!')
     return redirect('manage_boards')
 
 
@@ -596,20 +658,27 @@ def board_delete(request, pk):
 
 @admin_required
 def manage_subjects(request):
-    subjects = Subject.objects.all()
+    from django.db.models import Count
+    subjects = Subject.objects.annotate(question_count=Count('questions'))
     return render(request, 'manage/subjects.html', {'subjects': subjects})
 
 
 @admin_required
 def subject_add(request):
     if request.method == 'POST':
-        Subject.objects.create(
-            name=request.POST.get('name'),
-            icon=request.POST.get('icon', ''),
-            color=request.POST.get('color', 'blue'),
-            is_active=True
-        )
-        messages.success(request, 'Subject added!')
+        name = (request.POST.get('name') or '').strip()
+        if not name:
+            messages.error(request, _L(request, 'Subject name is required.', 'Subject-এর নাম দিতে হবে।'))
+        elif Subject.objects.filter(name__iexact=name).exists():
+            messages.error(request, _L(request, f'Subject "{name}" already exists.', f'"{name}" subject ইতিমধ্যে আছে।'))
+        else:
+            Subject.objects.create(
+                name=name,
+                icon=(request.POST.get('icon') or '').strip(),
+                color=request.POST.get('color', 'blue') or 'blue',
+                is_active=True
+            )
+            messages.success(request, 'Subject added!')
     return redirect('manage_subjects')
 
 
@@ -623,18 +692,30 @@ def subject_delete(request, pk):
 
 @admin_required
 def manage_classes(request):
-    classes = Class.objects.all()
+    from django.db.models import Count
+    classes = Class.objects.annotate(question_count=Count('questions'))
     return render(request, 'manage/classes.html', {'classes': classes})
 
 
 @admin_required
 def class_add(request):
     if request.method == 'POST':
-        Class.objects.create(
-            name=request.POST.get('name'),
-            numeric_value=request.POST.get('numeric_value'),
-        )
-        messages.success(request, 'Class added!')
+        name = (request.POST.get('name') or '').strip()
+        try:
+            numeric_value = int(request.POST.get('numeric_value'))
+        except (TypeError, ValueError):
+            numeric_value = None
+        if not name:
+            messages.error(request, _L(request, 'Class name is required.', 'Class-এর নাম দিতে হবে।'))
+        elif numeric_value is None:
+            messages.error(request, _L(request, 'Sort order must be a number.', 'Sort order একটি সংখ্যা হতে হবে।'))
+        elif Class.objects.filter(name__iexact=name).exists():
+            messages.error(request, _L(request, f'Class "{name}" already exists.', f'"{name}" class ইতিমধ্যে আছে।'))
+        elif Class.objects.filter(numeric_value=numeric_value).exists():
+            messages.error(request, _L(request, f'Sort order {numeric_value} is already used.', f'Sort order {numeric_value} ইতিমধ্যে ব্যবহৃত।'))
+        else:
+            Class.objects.create(name=name, numeric_value=numeric_value)
+            messages.success(request, 'Class added!')
     return redirect('manage_classes')
 
 
@@ -699,8 +780,9 @@ def video_add(request):
 def video_delete(request, pk):
     from ..models import PracticalVideo
     video = get_object_or_404(PracticalVideo, pk=pk)
-    video.delete()
-    messages.success(request, 'Video deleted!')
+    if request.method == 'POST':
+        video.delete()
+        messages.success(request, 'Video deleted!')
     return redirect('practical_videos')
 
 

@@ -18,9 +18,45 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Questions</h1>
-        <p class="text-sm text-gray-500 mt-1">{% if LANG == 'en' %}Total {% else %}মোট {% endif %}{{ questions.count }} {% if LANG == 'en' %} questions{% else %}টি question{% endif %}</p>
+        <p class="text-sm text-gray-500 mt-1">{% if LANG == 'en' %}Total {% else %}মোট {% endif %}{{ total_matched }} {% if LANG == 'en' %} questions{% else %}টি question{% endif %}</p>
       </div>
     </div>
+
+    <form method="get" class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+      <div class="flex flex-wrap gap-3 items-center">
+        <input type="text" name="q" value="{{ search }}" placeholder="{% if LANG == 'en' %}Search question text...{% else %}প্রশ্ন খুঁজুন...{% endif %}"
+               class="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select name="board" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
+          <option value="">{% if LANG == 'en' %}All Boards{% else %}সব Board{% endif %}</option>
+          {% for b in boards %}<option value="{{ b.pk }}" {% if sel_board == b.pk|stringformat:'s' %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+        </select>
+        <select name="subject" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
+          <option value="">{% if LANG == 'en' %}All Subjects{% else %}সব Subject{% endif %}</option>
+          {% for s in subjects %}<option value="{{ s.pk }}" {% if sel_subject == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+        </select>
+        <select name="class_obj" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
+          <option value="">{% if LANG == 'en' %}All Classes{% else %}সব Class{% endif %}</option>
+          {% for c in classes %}<option value="{{ c.pk }}" {% if sel_class == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+        <select name="year" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
+          <option value="">{% if LANG == 'en' %}All Years{% else %}সব Year{% endif %}</option>
+          {% for y in years %}<option value="{{ y }}" {% if sel_year == y|stringformat:'s' %}selected{% endif %}>{{ y }}</option>{% endfor %}
+        </select>
+        <select name="type" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
+          <option value="">{% if LANG == 'en' %}All Types{% else %}সব Type{% endif %}</option>
+          <option value="MCQ" {% if sel_type == 'MCQ' %}selected{% endif %}>MCQ</option>
+          <option value="WRITTEN" {% if sel_type == 'WRITTEN' %}selected{% endif %}>CQ (Written)</option>
+        </select>
+        <button type="submit" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700">
+          {% if LANG == 'en' %}Filter{% else %}Filter করুন{% endif %}
+        </button>
+        {% if search or sel_board or sel_subject or sel_class or sel_year or sel_type %}
+        <a href="{% url 'manage_questions' %}" class="text-sm text-gray-500 hover:text-gray-700 underline">
+          {% if LANG == 'en' %}Clear{% else %}Clear করুন{% endif %}
+        </a>
+        {% endif %}
+      </div>
+    </form>
 
     {% if messages %}
     {% for msg in messages %}
@@ -38,6 +74,7 @@
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">#</th>
+            <th class="text-left px-4 py-3 text-gray-500 font-medium">Question</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Subject</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Board</th>
             <th class="text-left px-4 py-3 text-gray-500 font-medium">Class</th>
@@ -49,7 +86,8 @@
         <tbody class="divide-y divide-gray-100">
           {% for q in questions %}
           <tr class="hover:bg-gray-50">
-            <td class="px-4 py-3 text-gray-400">{{ forloop.counter }}</td>
+            <td class="px-4 py-3 text-gray-400">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+            <td class="px-4 py-3 text-gray-700 max-w-xs truncate" title="{{ q.question_text }}">{{ q.question_text|truncatechars:70|default:'—' }}</td>
             <td class="px-4 py-3 text-gray-600">{{ q.subject }}</td>
             <td class="px-4 py-3 text-gray-600">{{ q.board }}</td>
             <td class="px-4 py-3 text-gray-600">{{ q.class_obj }}</td>
@@ -72,7 +110,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="px-4 py-10 text-center text-gray-400">
+            <td colspan="8" class="px-4 py-10 text-center text-gray-400">
               {% if LANG == 'en' %}No questions.{% else %}কোনো question নেই।{% endif %}
               <a href="{% url 'question_add' %}" class="text-blue-600 hover:underline">{% if LANG == 'en' %}Add a new one.{% else %}নতুন যোগ করো।{% endif %}</a>
             </td>
@@ -81,6 +119,26 @@
         </tbody>
       </table>
     </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-center gap-3 pt-6">
+      {% if page_obj.has_previous %}
+      <a href="?{{ base_qs }}&amp;page={{ page_obj.previous_page_number }}"
+         class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-400 transition">
+        ← {% if LANG == 'en' %}Previous{% else %}আগের{% endif %}
+      </a>
+      {% endif %}
+      <span class="text-sm text-gray-500 font-medium">
+        {% if LANG == 'en' %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% else %}পৃষ্ঠা {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}{% endif %}
+      </span>
+      {% if page_obj.has_next %}
+      <a href="?{{ base_qs }}&amp;page={{ page_obj.next_page_number }}"
+         class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-400 transition">
+        {% if LANG == 'en' %}Next{% else %}পরের{% endif %} →
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
 </div>
 

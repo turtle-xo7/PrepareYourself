@@ -33,6 +33,7 @@
                 <tr>
                     <th class="text-left px-4 py-3 text-gray-600 font-medium">Name</th>
                     <th class="text-left px-4 py-3 text-gray-600 font-medium">Sort Order</th>
+                    <th class="text-left px-4 py-3 text-gray-600 font-medium">Questions</th>
                     <th class="text-left px-4 py-3 text-gray-600 font-medium">Action</th>
                 </tr>
             </thead>
@@ -41,8 +42,9 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-medium">{{ c.name }}</td>
                     <td class="px-4 py-3 text-gray-500">{{ c.numeric_value }}</td>
+                    <td class="px-4 py-3 text-gray-500">{{ c.question_count }}</td>
                     <td class="px-4 py-3">
-                        <form method="post" action="{% url 'class_delete' c.pk %}" onsubmit="return confirm('Delete?')">
+                        <form method="post" action="{% url 'class_delete' c.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete class {{ c.name|escapejs }}?{% if c.question_count %} WARNING: its {{ c.question_count }} question(s) will also be deleted permanently!{% endif %}{% else %}{{ c.name|escapejs }} class delete করবে?{% if c.question_count %} সাবধান: এর {{ c.question_count }}টি question-ও স্থায়ীভাবে মুছে যাবে!{% endif %}{% endif %}')">
                             {% csrf_token %}
                             <button type="submit" class="text-red-500 hover:underline text-sm">Delete</button>
                         </form>

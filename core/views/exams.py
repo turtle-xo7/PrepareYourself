@@ -1057,12 +1057,17 @@ def claim_cq_attempt(request, attempt_id):
     if not _is_exam_staff(request.user):
         return redirect('home')
     if request.method == 'POST':
-        attempt = get_object_or_404(ExamAttempt, id=attempt_id, status='CQ_PENDING')
-        if attempt.assigned_teacher is None:
-            from django.utils import timezone
-            attempt.assigned_teacher = request.user
-            attempt.claimed_at = timezone.now()
-            attempt.save()
+        from django.utils import timezone
+        # Conditional UPDATE so two teachers clicking simultaneously can't both claim.
+        claimed = ExamAttempt.objects.filter(
+            id=attempt_id, status='CQ_PENDING', assigned_teacher=None,
+        ).update(assigned_teacher=request.user, claimed_at=timezone.now())
+        if not claimed:
+            messages.warning(request, _L(
+                request,
+                'This script was already claimed by another teacher.',
+                'এই খাতা ইতিমধ্যে অন্য teacher claim করেছেন।',
+            ))
     return redirect('manage_grade_list')
 
 
