@@ -790,10 +790,22 @@ def video_delete(request, pk):
 def update_user(request, pk):
     profile = get_object_or_404(UserProfile, pk=pk)
     if request.method == 'POST':
-        profile.role = request.POST.get('role', profile.role)
-        profile.plan = request.POST.get('plan', profile.plan)
-        profile.save()
-        messages.success(request, f'{profile.user.username} updated!')
+        if profile.is_superadmin:
+            messages.error(request, 'Superadmin accounts cannot be modified here.')
+            return redirect('superadmin_dashboard')
+        role = request.POST.get('role', profile.role)
+        plan = request.POST.get('plan', profile.plan)
+        valid_roles = {c[0] for c in UserProfile.ROLE_CHOICES}
+        valid_plans = {c[0] for c in UserProfile.PLAN_CHOICES}
+        if role not in valid_roles or plan not in valid_plans:
+            messages.error(request, 'Invalid role or plan.')
+        else:
+            profile.role = role
+            profile.plan = plan
+            profile.save()
+            logger.info('superadmin %s updated user %s: role=%s plan=%s',
+                        request.user.username, profile.user.username, role, plan)
+            messages.success(request, f'{profile.user.username} updated!')
     return redirect('superadmin_dashboard')
 
 
@@ -801,8 +813,13 @@ def update_user(request, pk):
 def delete_user(request, pk):
     profile = get_object_or_404(UserProfile, pk=pk)
     if request.method == 'POST':
+        if profile.is_superadmin:
+            messages.error(request, 'Superadmin accounts cannot be deleted.')
+            return redirect('superadmin_dashboard')
         user = profile.user
+        username = user.username
         user.delete()
+        logger.info('superadmin %s deleted user %s', request.user.username, username)
         messages.success(request, 'User deleted!')
     return redirect('superadmin_dashboard')
 
@@ -811,8 +828,14 @@ def delete_user(request, pk):
 def cancel_subscription(request, pk):
     profile = get_object_or_404(UserProfile, pk=pk)
     if request.method == 'POST':
+        if profile.is_superadmin:
+            messages.error(request, 'Superadmin accounts cannot be modified here.')
+            return redirect('superadmin_dashboard')
         profile.plan = 'FREE'
+        profile.plan_expires_at = None
         profile.save()
+        logger.info('superadmin %s cancelled subscription for %s',
+                    request.user.username, profile.user.username)
         messages.success(request, f'{profile.user.username} subscription cancelled!')
     return redirect('superadmin_dashboard')
 

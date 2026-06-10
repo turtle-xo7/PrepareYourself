@@ -689,6 +689,75 @@ class SuperAdminTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(User.objects.filter(username='student1').exists())
 
+    def test_update_user_rejects_invalid_role(self):
+        profile = self.student.profile
+        profile.plan = 'FREE'
+        profile.save()
+        # An invalid role must reject the whole update — plan stays FREE too.
+        self.client.post(reverse('update_user', kwargs={'pk': profile.pk}),
+                         {'role': 'HACKER', 'plan': 'PREMIUM'})
+        profile.refresh_from_db()
+        self.assertEqual(profile.role, 'STUDENT')
+        self.assertEqual(profile.plan, 'FREE')
+
+    def test_superadmin_account_protected_from_update_and_delete(self):
+        sa_profile = self.superadmin.profile
+        self.client.post(reverse('update_user', kwargs={'pk': sa_profile.pk}),
+                         {'role': 'STUDENT', 'plan': 'FREE'})
+        sa_profile.refresh_from_db()
+        self.assertEqual(sa_profile.role, 'ADMIN')
+        self.client.post(reverse('delete_user', kwargs={'pk': sa_profile.pk}))
+        self.assertTrue(User.objects.filter(username='superadmin1').exists())
+
+    def test_cancel_subscription_clears_expiry(self):
+        profile = self.student.profile
+        profile.plan = 'PREMIUM'
+        profile.plan_expires_at = timezone.now() + datetime.timedelta(days=30)
+        profile.save()
+        self.client.post(reverse('cancel_subscription', kwargs={'pk': profile.pk}))
+        profile.refresh_from_db()
+        self.assertEqual(profile.plan, 'FREE')
+        self.assertIsNone(profile.plan_expires_at)
+
+    def test_approve_teacher_requires_post(self):
+        teacher = create_teacher(username='applicant', email='app@test.com')
+        teacher.profile.is_approved = False
+        teacher.profile.save()
+        self.client.get(reverse('approve_teacher', kwargs={'pk': teacher.profile.pk}))
+        teacher.profile.refresh_from_db()
+        self.assertFalse(teacher.profile.is_approved)
+        self.client.post(reverse('approve_teacher', kwargs={'pk': teacher.profile.pk}))
+        teacher.profile.refresh_from_db()
+        self.assertTrue(teacher.profile.is_approved)
+
+    def test_dashboard_user_search_and_filters(self):
+        create_student(username='findme', email='findme@test.com', plan='FREE')
+        response = self.client.get(reverse('superadmin_dashboard') + '?q=findme')
+        self.assertEqual(response.context['total_matched'], 1)
+        self.assertEqual(response.context['recent_users'][0].user.username, 'findme')
+        response = self.client.get(reverse('superadmin_dashboard') + '?plan=PREMIUM')
+        usernames = [p.user.username for p in response.context['recent_users']]
+        self.assertIn('student1', usernames)
+        self.assertNotIn('findme', usernames)
+
+    def test_dashboard_user_pagination(self):
+        for i in range(25):
+            create_student(username=f'bulk{i}', email=f'bulk{i}@test.com')
+        page1 = self.client.get(reverse('superadmin_dashboard'))
+        self.assertEqual(len(page1.context['recent_users']), 20)
+        page2 = self.client.get(reverse('superadmin_dashboard') + '?page=2')
+        self.assertEqual(page2.context['page_obj'].number, 2)
+
+    def test_dashboard_revenue_stats(self):
+        from .models import Payment
+        Payment.objects.create(user=self.student, plan='PREMIUM', amount=199,
+                               tran_id='t1', status='COMPLETED')
+        Payment.objects.create(user=self.student, plan='BASIC', amount=99,
+                               tran_id='t2', status='FAILED')
+        response = self.client.get(reverse('superadmin_dashboard'))
+        self.assertEqual(response.context['total_revenue'], 199)
+        self.assertEqual(response.context['payment_count'], 1)
+
     def test_export_excel(self):
         response = self.client.get(reverse('export_excel'))
         self.assertEqual(response.status_code, 200)

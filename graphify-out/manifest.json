@@ -1,0 +1,937 @@
+{
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\__init__.py": {
+    "mtime": 1779388477.1460178,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\admin.py": {
+    "mtime": 1779655573.080261,
+    "ast_hash": "2d010cf70d684c694ce81eb7d03eeab1",
+    "semantic_hash": "2d010cf70d684c694ce81eb7d03eeab1"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\apps.py": {
+    "mtime": 1779388477.1545334,
+    "ast_hash": "0a9a65cd7341677c8aa206239aac679d",
+    "semantic_hash": "0a9a65cd7341677c8aa206239aac679d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\context_processors.py": {
+    "mtime": 1780241470.7541094,
+    "ast_hash": "d7868deed0a7a0650dd5d82b6040c194",
+    "semantic_hash": "d7868deed0a7a0650dd5d82b6040c194"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\management\\__init__.py": {
+    "mtime": 1779388477.1560485,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\management\\commands\\__init__.py": {
+    "mtime": 1779388477.1575499,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\management\\commands\\calculate_ratings.py": {
+    "mtime": 1779654671.1356342,
+    "ast_hash": "7ae8dbee89368bc1132220f606813301",
+    "semantic_hash": "7ae8dbee89368bc1132220f606813301"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\management\\commands\\daily_checkin.py": {
+    "mtime": 1779654681.2543817,
+    "ast_hash": "ddef50b6f45703aeda8f085f4ce25de5",
+    "semantic_hash": "ddef50b6f45703aeda8f085f4ce25de5"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\management\\commands\\seed_badges.py": {
+    "mtime": 1779654647.2414632,
+    "ast_hash": "16a084cf2f49d40de7c73309fb9f69b9",
+    "semantic_hash": "16a084cf2f49d40de7c73309fb9f69b9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\management\\commands\\send_grading_reminders.py": {
+    "mtime": 1779388477.1575499,
+    "ast_hash": "596d9b347602988473e6f0685da2dea9",
+    "semantic_hash": "596d9b347602988473e6f0685da2dea9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\middleware.py": {
+    "mtime": 1779388477.1580503,
+    "ast_hash": "d2fa9c007838400a14fa76cce73a2d4f",
+    "semantic_hash": "d2fa9c007838400a14fa76cce73a2d4f"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0001_initial.py": {
+    "mtime": 1779388477.1585505,
+    "ast_hash": "1cd772211ed28f101ee1886c7d43db36",
+    "semantic_hash": "1cd772211ed28f101ee1886c7d43db36"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0002_userprofile.py": {
+    "mtime": 1779388477.1590512,
+    "ast_hash": "cdbbcd416ebb2b59a067438946624759",
+    "semantic_hash": "cdbbcd416ebb2b59a067438946624759"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0003_userprofile_plan_userprofile_role.py": {
+    "mtime": 1779388477.1595514,
+    "ast_hash": "5ece5474afff0167ae688ac4139ac68a",
+    "semantic_hash": "5ece5474afff0167ae688ac4139ac68a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0004_alter_board_student_count_practicalvideo.py": {
+    "mtime": 1779388477.1600518,
+    "ast_hash": "9fa409b37e7de6acafdca44839bb7c52",
+    "semantic_hash": "9fa409b37e7de6acafdca44839bb7c52"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0005_userprofile_is_superadmin.py": {
+    "mtime": 1779388477.1600518,
+    "ast_hash": "b3db9d877549eaf2f0f6c8c5e2b3bcf0",
+    "semantic_hash": "b3db9d877549eaf2f0f6c8c5e2b3bcf0"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0006_userprogress.py": {
+    "mtime": 1779388477.1605527,
+    "ast_hash": "c726972cafc39108b636110017b71970",
+    "semantic_hash": "c726972cafc39108b636110017b71970"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0007_teacherfeedback.py": {
+    "mtime": 1779388477.1605527,
+    "ast_hash": "321ab42b292f066e48b72dc3b875f422",
+    "semantic_hash": "321ab42b292f066e48b72dc3b875f422"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0008_studynote.py": {
+    "mtime": 1779388477.1615558,
+    "ast_hash": "cc81f20dc03958e21bc70a6d96355024",
+    "semantic_hash": "cc81f20dc03958e21bc70a6d96355024"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0009_notebookmark_notereadprogress.py": {
+    "mtime": 1779388477.1615558,
+    "ast_hash": "c1f71fb4e5c078725372011b943f525b",
+    "semantic_hash": "c1f71fb4e5c078725372011b943f525b"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0010_notecomment.py": {
+    "mtime": 1779388477.1620567,
+    "ast_hash": "ea543073b507fa379293983cc9f31388",
+    "semantic_hash": "ea543073b507fa379293983cc9f31388"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0011_contest_contestquestion_contestsubmission_and_more.py": {
+    "mtime": 1779388477.1620567,
+    "ast_hash": "2899b0c27d46b489aa5f40a4e4d7d77a",
+    "semantic_hash": "2899b0c27d46b489aa5f40a4e4d7d77a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0012_syllabus.py": {
+    "mtime": 1779388477.1620567,
+    "ast_hash": "83b9285ff635417c8070de38d3d58856",
+    "semantic_hash": "83b9285ff635417c8070de38d3d58856"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0013_syllabus_content_syllabus_created_at_and_more.py": {
+    "mtime": 1779388477.1630592,
+    "ast_hash": "f9880d1c4ce88751cae6c9667f976f40",
+    "semantic_hash": "f9880d1c4ce88751cae6c9667f976f40"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0014_studynote_pdf_file.py": {
+    "mtime": 1779388477.1635664,
+    "ast_hash": "df44c301b572909a7a6c3159a97dfe1d",
+    "semantic_hash": "df44c301b572909a7a6c3159a97dfe1d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0015_exam_mode.py": {
+    "mtime": 1779388477.1640668,
+    "ast_hash": "df5262ee11dd4fe466ef7864ea9b1c72",
+    "semantic_hash": "df5262ee11dd4fe466ef7864ea9b1c72"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0016_exam_paper_optional_fields.py": {
+    "mtime": 1779388477.1640668,
+    "ast_hash": "0487773803fdd189f8583c6dc48b06bf",
+    "semantic_hash": "0487773803fdd189f8583c6dc48b06bf"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0017_notification.py": {
+    "mtime": 1779388477.1645672,
+    "ast_hash": "49498b72abf312a31aa09d4370153110",
+    "semantic_hash": "49498b72abf312a31aa09d4370153110"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0018_preferred_language.py": {
+    "mtime": 1779388477.1645672,
+    "ast_hash": "737100aa061d3dd96deaa6270e0f3d6a",
+    "semantic_hash": "737100aa061d3dd96deaa6270e0f3d6a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0019_profile_picture.py": {
+    "mtime": 1779388477.1645672,
+    "ast_hash": "01e97e34d98051342eaf31db84e80bf0",
+    "semantic_hash": "01e97e34d98051342eaf31db84e80bf0"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0020_noterequest.py": {
+    "mtime": 1779388477.1655695,
+    "ast_hash": "b631ffe567d3c476627791272f8e1016",
+    "semantic_hash": "b631ffe567d3c476627791272f8e1016"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0021_notification_bilingual.py": {
+    "mtime": 1779388477.1660779,
+    "ast_hash": "24b41c246b300a224ba4e51895f75643",
+    "semantic_hash": "24b41c246b300a224ba4e51895f75643"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0022_backfill_notification_english.py": {
+    "mtime": 1779388477.1660779,
+    "ast_hash": "ed436f483b566be18cacfaaa222de5a3",
+    "semantic_hash": "ed436f483b566be18cacfaaa222de5a3"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0023_written_cq_feature.py": {
+    "mtime": 1779388477.1665783,
+    "ast_hash": "b803eb6442fb0c508ec41bed1b5c353d",
+    "semantic_hash": "b803eb6442fb0c508ec41bed1b5c353d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0024_question_solution_image.py": {
+    "mtime": 1779388477.1670787,
+    "ast_hash": "967fe992b020540689d89dd3bafd667a",
+    "semantic_hash": "967fe992b020540689d89dd3bafd667a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0025_teacher_verification.py": {
+    "mtime": 1779388477.1670787,
+    "ast_hash": "5793507bb6751f72a021c41f0ea13344",
+    "semantic_hash": "5793507bb6751f72a021c41f0ea13344"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0026_teacher_subjects_claim_queue.py": {
+    "mtime": 1779388477.1675792,
+    "ast_hash": "67643c1fff0df7f21c37d8239ce1fd75",
+    "semantic_hash": "67643c1fff0df7f21c37d8239ce1fd75"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0027_cqsubmission_per_part_grading.py": {
+    "mtime": 1779388477.1680796,
+    "ast_hash": "b8d3cdc3a9cc2190c22be8de2f98fdcc",
+    "semantic_hash": "b8d3cdc3a9cc2190c22be8de2f98fdcc"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0028_question_cq_parts.py": {
+    "mtime": 1779388477.1680796,
+    "ast_hash": "9208052f24e208ed448c06a4a254ae96",
+    "semantic_hash": "9208052f24e208ed448c06a4a254ae96"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0029_question_mcq_file.py": {
+    "mtime": 1779390762.271027,
+    "ast_hash": "f835159a5547d5e3b30b8cef8fece1c2",
+    "semantic_hash": "f835159a5547d5e3b30b8cef8fece1c2"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0030_question_uniqueness.py": {
+    "mtime": 1779418560.0315468,
+    "ast_hash": "555d67865db9676af639cd436182d144",
+    "semantic_hash": "555d67865db9676af639cd436182d144"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0031_question_uniqueness_by_type.py": {
+    "mtime": 1779420455.1519077,
+    "ast_hash": "9904658b0c592d5f9a4f17597cc1ac12",
+    "semantic_hash": "9904658b0c592d5f9a4f17597cc1ac12"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0032_badge_contest_allow_unrated_join_and_more.py": {
+    "mtime": 1779654423.1977746,
+    "ast_hash": "9569379e1e4e6a7982bbc6ecba2ef84e",
+    "semantic_hash": "9569379e1e4e6a7982bbc6ecba2ef84e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0033_userprofile_board_userprofile_class_obj_and_more.py": {
+    "mtime": 1780244244.9556844,
+    "ast_hash": "cc7deb5351bd1546417ab8207a151865",
+    "semantic_hash": "cc7deb5351bd1546417ab8207a151865"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\0034_userprofile_plan_expires_at_payment.py": {
+    "mtime": 1780267338.7803524,
+    "ast_hash": "04b109796bc4fd0292c7db5a1e62f6e9",
+    "semantic_hash": "04b109796bc4fd0292c7db5a1e62f6e9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\migrations\\__init__.py": {
+    "mtime": 1779388477.16858,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\models.py": {
+    "mtime": 1780267255.6523142,
+    "ast_hash": "7cfa3833bc774a1ad111d53620442547",
+    "semantic_hash": "7cfa3833bc774a1ad111d53620442547"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\services\\__init__.py": {
+    "mtime": 1779654439.1816022,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\services\\ai.py": {
+    "mtime": 1781048884.3075774,
+    "ast_hash": "2287a6eb4c0106b3139484b82281fc43",
+    "semantic_hash": "2287a6eb4c0106b3139484b82281fc43"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\services\\badges.py": {
+    "mtime": 1779654660.1776426,
+    "ast_hash": "803ede12f0d2c749ee243b694978070a",
+    "semantic_hash": "803ede12f0d2c749ee243b694978070a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\services\\coins.py": {
+    "mtime": 1779654454.3151717,
+    "ast_hash": "7875b83b510f4fe107aa815e091cc6b4",
+    "semantic_hash": "7875b83b510f4fe107aa815e091cc6b4"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\services\\rating.py": {
+    "mtime": 1779654480.5073276,
+    "ast_hash": "0b1200ffcb745bf70b1ef7753b3acf11",
+    "semantic_hash": "0b1200ffcb745bf70b1ef7753b3acf11"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\templatetags\\__init__.py": {
+    "mtime": 1779388477.1894283,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\templatetags\\bn_filters.py": {
+    "mtime": 1779388477.191432,
+    "ast_hash": "3d8f13fbb5b9426fbb149c34ce187431",
+    "semantic_hash": "3d8f13fbb5b9426fbb149c34ce187431"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\templatetags\\contest_filters.py": {
+    "mtime": 1779655141.3018873,
+    "ast_hash": "d8882abb4b36f0076fc26586c6c59e34",
+    "semantic_hash": "d8882abb4b36f0076fc26586c6c59e34"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test.py": {
+    "mtime": 1781088131.195408,
+    "ast_hash": "259c3e1491b706ba325741091ce6e202",
+    "semantic_hash": "259c3e1491b706ba325741091ce6e202"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\__init__.py": {
+    "mtime": 1779388477.1919324,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\helpers.py": {
+    "mtime": 1779427626.613142,
+    "ast_hash": "7f90f6098d8d003e5b7e7cc7374028bb",
+    "semantic_hash": "7f90f6098d8d003e5b7e7cc7374028bb"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_auth.py": {
+    "mtime": 1779388477.192935,
+    "ast_hash": "bf5e1149a0333d48810c996b25dade96",
+    "semantic_hash": "bf5e1149a0333d48810c996b25dade96"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_contests.py": {
+    "mtime": 1781052558.3606472,
+    "ast_hash": "80ce29cd0ca642182f105b38e021f194",
+    "semantic_hash": "80ce29cd0ca642182f105b38e021f194"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_dashboard.py": {
+    "mtime": 1779388477.1939416,
+    "ast_hash": "df4988f0032376ef6e462cecae3f8459",
+    "semantic_hash": "df4988f0032376ef6e462cecae3f8459"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_e2e.py": {
+    "mtime": 1781052552.3785472,
+    "ast_hash": "e7a32d1ff335c17e401089910d8b2aed",
+    "semantic_hash": "e7a32d1ff335c17e401089910d8b2aed"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_exam_papers.py": {
+    "mtime": 1779388477.1944423,
+    "ast_hash": "b45b7dcfea6e7abe93df01f1ccb7981e",
+    "semantic_hash": "b45b7dcfea6e7abe93df01f1ccb7981e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_home.py": {
+    "mtime": 1781069689.5262957,
+    "ast_hash": "8baeea9302d556e45f770fa35973c5c1",
+    "semantic_hash": "8baeea9302d556e45f770fa35973c5c1"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_notifications.py": {
+    "mtime": 1779388477.1954446,
+    "ast_hash": "bb16db8d9b5862abe97a3740653942d2",
+    "semantic_hash": "bb16db8d9b5862abe97a3740653942d2"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_practical.py": {
+    "mtime": 1779388477.195953,
+    "ast_hash": "510c432d77200ea2af0002d69b057d6c",
+    "semantic_hash": "510c432d77200ea2af0002d69b057d6c"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_pricing.py": {
+    "mtime": 1779388477.195953,
+    "ast_hash": "f5c4e3c6159b0cc7d3cae2a2b2673a02",
+    "semantic_hash": "f5c4e3c6159b0cc7d3cae2a2b2673a02"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_profile.py": {
+    "mtime": 1781069682.4717197,
+    "ast_hash": "00c3f3048965646ce0417c73e5380647",
+    "semantic_hash": "00c3f3048965646ce0417c73e5380647"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_question_bank.py": {
+    "mtime": 1781045702.6862416,
+    "ast_hash": "99a32307b0e5fc7f9b884d31e127e1ff",
+    "semantic_hash": "99a32307b0e5fc7f9b884d31e127e1ff"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_study_notes.py": {
+    "mtime": 1779388477.1969533,
+    "ast_hash": "27ff6b9cedb48287416223f5cfbca8e0",
+    "semantic_hash": "27ff6b9cedb48287416223f5cfbca8e0"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_superadmin.py": {
+    "mtime": 1779388477.1974533,
+    "ast_hash": "3fa3459227b9b301db4437f06153832d",
+    "semantic_hash": "3fa3459227b9b301db4437f06153832d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_syllabus.py": {
+    "mtime": 1779388477.1979537,
+    "ast_hash": "c826ec11d95d9d026004a97fc58e8e63",
+    "semantic_hash": "c826ec11d95d9d026004a97fc58e8e63"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\test_selenium\\test_teacher.py": {
+    "mtime": 1779388477.1984541,
+    "ast_hash": "c4518d0e55526af7649cab9e32e7d453",
+    "semantic_hash": "c4518d0e55526af7649cab9e32e7d453"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\urls.py": {
+    "mtime": 1780267391.9144616,
+    "ast_hash": "2dd0e0715e849124fffc57e92dd14c17",
+    "semantic_hash": "2dd0e0715e849124fffc57e92dd14c17"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\__init__.py": {
+    "mtime": 1781051728.941437,
+    "ast_hash": "f0203f90a33a58ae9f0936ec873cc8a3",
+    "semantic_hash": "f0203f90a33a58ae9f0936ec873cc8a3"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\auth.py": {
+    "mtime": 1781051728.942438,
+    "ast_hash": "f20dc31a1c06c7d7223fe913b613bbc8",
+    "semantic_hash": "f20dc31a1c06c7d7223fe913b613bbc8"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\base.py": {
+    "mtime": 1781051728.9434388,
+    "ast_hash": "f2f35bf4287d5a7b8ff700ba5b1f0784",
+    "semantic_hash": "f2f35bf4287d5a7b8ff700ba5b1f0784"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\contests.py": {
+    "mtime": 1781051728.9439397,
+    "ast_hash": "6f9589d51f9c0b57d0f559daeba24e77",
+    "semantic_hash": "6f9589d51f9c0b57d0f559daeba24e77"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\dashboard.py": {
+    "mtime": 1781084280.8649535,
+    "ast_hash": "bfcc92b5dfb5d4450b174098416fbf71",
+    "semantic_hash": "bfcc92b5dfb5d4450b174098416fbf71"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\exams.py": {
+    "mtime": 1781087020.463309,
+    "ast_hash": "c8c770c7b53a775d1c9dca8194c985d9",
+    "semantic_hash": "c8c770c7b53a775d1c9dca8194c985d9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\exports.py": {
+    "mtime": 1781051728.9474666,
+    "ast_hash": "d33c1b725b3fdf2147f4d6accca0014e",
+    "semantic_hash": "d33c1b725b3fdf2147f4d6accca0014e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\gamification.py": {
+    "mtime": 1781075103.6855514,
+    "ast_hash": "83cd8b90202c88183e3de7a6b2e558b9",
+    "semantic_hash": "83cd8b90202c88183e3de7a6b2e558b9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\manage.py": {
+    "mtime": 1781087125.1911528,
+    "ast_hash": "ea2552301a6a56466da70d65506e98bc",
+    "semantic_hash": "ea2552301a6a56466da70d65506e98bc"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\notes.py": {
+    "mtime": 1781074779.1760216,
+    "ast_hash": "44d5e5af2f8e337a86f519e36f76613d",
+    "semantic_hash": "44d5e5af2f8e337a86f519e36f76613d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\pages.py": {
+    "mtime": 1781051728.9514692,
+    "ast_hash": "6dfb41a76fc0a7064978f15356a88769",
+    "semantic_hash": "6dfb41a76fc0a7064978f15356a88769"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\payments.py": {
+    "mtime": 1781051728.95247,
+    "ast_hash": "0016fb97c84bd7f096f97ef691f61181",
+    "semantic_hash": "0016fb97c84bd7f096f97ef691f61181"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\profile.py": {
+    "mtime": 1781051728.9529705,
+    "ast_hash": "6175b7e68ca8121ce941a70dca2c4e3d",
+    "semantic_hash": "6175b7e68ca8121ce941a70dca2c4e3d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\question_bank.py": {
+    "mtime": 1781074169.214782,
+    "ast_hash": "f88abb64e4089f097264a2cb20fb7ed1",
+    "semantic_hash": "f88abb64e4089f097264a2cb20fb7ed1"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\superadmin.py": {
+    "mtime": 1781051728.9549754,
+    "ast_hash": "9087d4cc3be8605a50c676f6a5be8c0e",
+    "semantic_hash": "9087d4cc3be8605a50c676f6a5be8c0e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\syllabus.py": {
+    "mtime": 1781051728.9549754,
+    "ast_hash": "a073d0abd247d0879c4ce3fa3dbeb8a6",
+    "semantic_hash": "a073d0abd247d0879c4ce3fa3dbeb8a6"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\core\\views\\teacher.py": {
+    "mtime": 1781087248.93596,
+    "ast_hash": "5ee4772183f4da7b431d405b534b7f27",
+    "semantic_hash": "5ee4772183f4da7b431d405b534b7f27"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\manage.py": {
+    "mtime": 1779388477.2144938,
+    "ast_hash": "6132e795af7f8df433ecce0f3db1433d",
+    "semantic_hash": "6132e795af7f8df433ecce0f3db1433d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\prepare_yourself\\__init__.py": {
+    "mtime": 1779388477.247604,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\prepare_yourself\\asgi.py": {
+    "mtime": 1779388477.2509277,
+    "ast_hash": "af99eb70c07a8de9a9c308322d2a14a1",
+    "semantic_hash": "af99eb70c07a8de9a9c308322d2a14a1"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\prepare_yourself\\settings.py": {
+    "mtime": 1781075117.4173338,
+    "ast_hash": "0753fdd6d8c5a8320ab7ea388d652f15",
+    "semantic_hash": "0753fdd6d8c5a8320ab7ea388d652f15"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\prepare_yourself\\urls.py": {
+    "mtime": 1781053136.936721,
+    "ast_hash": "b0f5ee92f3fb6d7e4eb8265a5c12b7b1",
+    "semantic_hash": "b0f5ee92f3fb6d7e4eb8265a5c12b7b1"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\prepare_yourself\\wsgi.py": {
+    "mtime": 1779388477.2519288,
+    "ast_hash": "8593d45f90cc3e049c4a3937ba058777",
+    "semantic_hash": "8593d45f90cc3e049c4a3937ba058777"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\static\\js\\contest.js": {
+    "mtime": 1779655538.8506534,
+    "ast_hash": "f4fc8ea3a9bc2d2af54dc95e115795f4",
+    "semantic_hash": "f4fc8ea3a9bc2d2af54dc95e115795f4"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\.github\\ISSUE_TEMPLATE\\bug_report.md": {
+    "mtime": 1779650745.9890344,
+    "ast_hash": "b129c1ec1c96b8d7605a84451405c1c7",
+    "semantic_hash": "b129c1ec1c96b8d7605a84451405c1c7"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\.github\\ISSUE_TEMPLATE\\feature_request.md": {
+    "mtime": 1779650749.1417575,
+    "ast_hash": "6b0fb2009ce6c6cfd56c54b2b178bc4f",
+    "semantic_hash": "6b0fb2009ce6c6cfd56c54b2b178bc4f"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\.github\\pull_request_template.md": {
+    "mtime": 1779650753.1662357,
+    "ast_hash": "c4420ee2bc7155e515f7457aaa55d7a9",
+    "semantic_hash": "c4420ee2bc7155e515f7457aaa55d7a9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\.github\\workflows\\ci.yml": {
+    "mtime": 1781069831.025639,
+    "ast_hash": "677399bb8e6f52ef4c7bdc0f52ae753f",
+    "semantic_hash": "677399bb8e6f52ef4c7bdc0f52ae753f"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\CONTRIBUTING.md": {
+    "mtime": 1779650707.3690512,
+    "ast_hash": "84ae3635cc49b5fd002686fdcb4259e0",
+    "semantic_hash": "84ae3635cc49b5fd002686fdcb4259e0"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\README.md": {
+    "mtime": 1781075194.564954,
+    "ast_hash": "d8f69bb6e48020bfe287130bd166cb5d",
+    "semantic_hash": "d8f69bb6e48020bfe287130bd166cb5d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\requirements-dev.txt": {
+    "mtime": 1781069825.9878023,
+    "ast_hash": "90a71a3180c3b135006e02890a7ad356",
+    "semantic_hash": "90a71a3180c3b135006e02890a7ad356"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\requirements.txt": {
+    "mtime": 1781052709.1117766,
+    "ast_hash": "7ed828aff53f9f5a01fdbeda1f0a41ae",
+    "semantic_hash": "7ed828aff53f9f5a01fdbeda1f0a41ae"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\base.html": {
+    "mtime": 1781071159.4953423,
+    "ast_hash": "b5acc288eb8e4c2d376ff6c585d5151a",
+    "semantic_hash": "b5acc288eb8e4c2d376ff6c585d5151a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\_notif_system_card.html": {
+    "mtime": 1779388477.2554402,
+    "ast_hash": "f0b7eb2a3866b36f7b7a237e8d319fc8",
+    "semantic_hash": "f0b7eb2a3866b36f7b7a237e8d319fc8"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\badge_gallery.html": {
+    "mtime": 1780698719.9215991,
+    "ast_hash": "7e221d3a90417eb8aafe801d883970d4",
+    "semantic_hash": "7e221d3a90417eb8aafe801d883970d4"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\checkout.html": {
+    "mtime": 1780698719.9261026,
+    "ast_hash": "c2eb1bacc1df9b6975a54c215c13ca83",
+    "semantic_hash": "c2eb1bacc1df9b6975a54c215c13ca83"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\contest_create.html": {
+    "mtime": 1780255217.037666,
+    "ast_hash": "5d533f303679661dac9ac91e5c5b90cd",
+    "semantic_hash": "5d533f303679661dac9ac91e5c5b90cd"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\contest_detail.html": {
+    "mtime": 1780698719.932619,
+    "ast_hash": "fa714303318ebd044403c40d9b35198f",
+    "semantic_hash": "fa714303318ebd044403c40d9b35198f"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\contest_exam.html": {
+    "mtime": 1780255217.0381658,
+    "ast_hash": "8a823c7b46dafa47d2b3e703f34db719",
+    "semantic_hash": "8a823c7b46dafa47d2b3e703f34db719"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\contest_leaderboard.html": {
+    "mtime": 1780698719.9371226,
+    "ast_hash": "52ec923e77cba47a082dd2aab36e0f98",
+    "semantic_hash": "52ec923e77cba47a082dd2aab36e0f98"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\contest_list.html": {
+    "mtime": 1779655163.868392,
+    "ast_hash": "23edea76d2ee27d7edf3d5d8b9e9ac67",
+    "semantic_hash": "23edea76d2ee27d7edf3d5d8b9e9ac67"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\contest_result.html": {
+    "mtime": 1780255956.9479177,
+    "ast_hash": "91d83dd75523aba092568dd6aeabc7c3",
+    "semantic_hash": "91d83dd75523aba092568dd6aeabc7c3"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\contest_stats.html": {
+    "mtime": 1780255217.0396671,
+    "ast_hash": "e06f895be6a24ae24b327f4a5e5b4da8",
+    "semantic_hash": "e06f895be6a24ae24b327f4a5e5b4da8"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\dashboard.html": {
+    "mtime": 1780698719.9767141,
+    "ast_hash": "6972f61f5fb66a92a7a97afdd930cd3e",
+    "semantic_hash": "6972f61f5fb66a92a7a97afdd930cd3e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\exam_cq_phase.html": {
+    "mtime": 1780698719.9812253,
+    "ast_hash": "96562aca084b8623ea4853e9829be8a2",
+    "semantic_hash": "96562aca084b8623ea4853e9829be8a2"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\exam_mcq_phase.html": {
+    "mtime": 1780698719.984729,
+    "ast_hash": "c052cf05d534632c03cde116802f2e72",
+    "semantic_hash": "c052cf05d534632c03cde116802f2e72"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\exam_paper_detail.html": {
+    "mtime": 1780247751.4747345,
+    "ast_hash": "fbc7dc46522d08460f0baf6db0bbf3bb",
+    "semantic_hash": "fbc7dc46522d08460f0baf6db0bbf3bb"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\exam_paper_list.html": {
+    "mtime": 1780247116.138257,
+    "ast_hash": "fbded491666d1aee5495a6b48d2ead81",
+    "semantic_hash": "fbded491666d1aee5495a6b48d2ead81"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\exam_results.html": {
+    "mtime": 1780255217.0451727,
+    "ast_hash": "f31262249061a83a4ebd6f922c7db2ac",
+    "semantic_hash": "f31262249061a83a4ebd6f922c7db2ac"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\generate_note.html": {
+    "mtime": 1780255217.0401683,
+    "ast_hash": "ee4385d71945c5c18e01ae5c6c939b19",
+    "semantic_hash": "ee4385d71945c5c18e01ae5c6c939b19"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\home.html": {
+    "mtime": 1780698720.0027697,
+    "ast_hash": "905ccd0de1bbe9c449a944fc15724346",
+    "semantic_hash": "905ccd0de1bbe9c449a944fc15724346"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\login.html": {
+    "mtime": 1780698720.0112898,
+    "ast_hash": "16a241c47c0ffbbb3cc507fe3d181ab3",
+    "semantic_hash": "16a241c47c0ffbbb3cc507fe3d181ab3"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\notifications.html": {
+    "mtime": 1781075074.8096714,
+    "ast_hash": "8f1414eaeba756f70aab5d1843e5ea61",
+    "semantic_hash": "8f1414eaeba756f70aab5d1843e5ea61"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\onboarding.html": {
+    "mtime": 1780698720.0192976,
+    "ast_hash": "e74d690945b0952c2fe653be9a8f4ab7",
+    "semantic_hash": "e74d690945b0952c2fe653be9a8f4ab7"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\password_reset_complete.html": {
+    "mtime": 1780255266.2324634,
+    "ast_hash": "ea428eda87202fe01da7baed84f49234",
+    "semantic_hash": "ea428eda87202fe01da7baed84f49234"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\password_reset_confirm.html": {
+    "mtime": 1780255266.2329633,
+    "ast_hash": "c8798ff66eab66cca15c94da9f3e7d68",
+    "semantic_hash": "c8798ff66eab66cca15c94da9f3e7d68"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\password_reset_done.html": {
+    "mtime": 1780255266.2339642,
+    "ast_hash": "c741a0c579eeb6e5e27292a61786b2bc",
+    "semantic_hash": "c741a0c579eeb6e5e27292a61786b2bc"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\password_reset_email.html": {
+    "mtime": 1780255266.234465,
+    "ast_hash": "ca7a3496fe1cd37b8d38c102c62ee780",
+    "semantic_hash": "ca7a3496fe1cd37b8d38c102c62ee780"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\payment_failed.html": {
+    "mtime": 1779388477.2644641,
+    "ast_hash": "9a008f80ed7b85deba53ebf151e0097c",
+    "semantic_hash": "9a008f80ed7b85deba53ebf151e0097c"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\payment_simulate.html": {
+    "mtime": 1780267409.213688,
+    "ast_hash": "bc6e90072d1bc0829a8aa6105972962f",
+    "semantic_hash": "bc6e90072d1bc0829a8aa6105972962f"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\payment_success.html": {
+    "mtime": 1780698720.025311,
+    "ast_hash": "2651bcc03791f0cccd532ca028cf13e7",
+    "semantic_hash": "2651bcc03791f0cccd532ca028cf13e7"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\practical_lab.html": {
+    "mtime": 1781072521.8095212,
+    "ast_hash": "e542805b329a8a7b384aa3f564f56037",
+    "semantic_hash": "e542805b329a8a7b384aa3f564f56037"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\practical_videos.html": {
+    "mtime": 1779388477.266475,
+    "ast_hash": "a7ded21761c5bb6f8b3554b2a3001bb3",
+    "semantic_hash": "a7ded21761c5bb6f8b3554b2a3001bb3"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\pricing.html": {
+    "mtime": 1779388477.266475,
+    "ast_hash": "1b79bb38fc79f2933407841d4fb5ff07",
+    "semantic_hash": "1b79bb38fc79f2933407841d4fb5ff07"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\profile.html": {
+    "mtime": 1780698720.0443554,
+    "ast_hash": "04798b4dddc3d8cfe0bd24b762504a26",
+    "semantic_hash": "04798b4dddc3d8cfe0bd24b762504a26"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\profile_contests.html": {
+    "mtime": 1780698720.037335,
+    "ast_hash": "958d878d9565519ef727e831d360f77f",
+    "semantic_hash": "958d878d9565519ef727e831d360f77f"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\progress_history.html": {
+    "mtime": 1780255217.0411685,
+    "ast_hash": "4ca1b9d9119837213426d4ebcb51bbdd",
+    "semantic_hash": "4ca1b9d9119837213426d4ebcb51bbdd"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\question_bank.html": {
+    "mtime": 1781074743.83405,
+    "ast_hash": "1c662d061e1328fc0ad318ae66cfb01a",
+    "semantic_hash": "1c662d061e1328fc0ad318ae66cfb01a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\search.html": {
+    "mtime": 1780244748.663124,
+    "ast_hash": "df9a923157ed1a71bd625aa55d546bc6",
+    "semantic_hash": "df9a923157ed1a71bd625aa55d546bc6"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\signup.html": {
+    "mtime": 1780698720.063895,
+    "ast_hash": "31378ce3762c6cbd5ce3ed753aadbda6",
+    "semantic_hash": "31378ce3762c6cbd5ce3ed753aadbda6"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\study_note_add.html": {
+    "mtime": 1780698720.0668983,
+    "ast_hash": "610019145d81e8a479ebb4db8ee54b96",
+    "semantic_hash": "610019145d81e8a479ebb4db8ee54b96"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\study_note_detail.html": {
+    "mtime": 1780698720.072927,
+    "ast_hash": "a9569e4b1798b9db869885d14739502a",
+    "semantic_hash": "a9569e4b1798b9db869885d14739502a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\study_note_edit.html": {
+    "mtime": 1780698720.0759294,
+    "ast_hash": "302f65c01b2e7dea3389ba5fb2e1f9c5",
+    "semantic_hash": "302f65c01b2e7dea3389ba5fb2e1f9c5"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\study_notes.html": {
+    "mtime": 1780698720.0794394,
+    "ast_hash": "c45e69036553548d40d4ce55397200c9",
+    "semantic_hash": "c45e69036553548d40d4ce55397200c9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\superadmin_dashboard.html": {
+    "mtime": 1780698720.0899632,
+    "ast_hash": "3d388c6b67856d63c66e8339ccf85262",
+    "semantic_hash": "3d388c6b67856d63c66e8339ccf85262"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\syllabus_detail.html": {
+    "mtime": 1779388477.2704782,
+    "ast_hash": "ba80d1f0292a52b0e713a21fd5368d98",
+    "semantic_hash": "ba80d1f0292a52b0e713a21fd5368d98"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\syllabus_form.html": {
+    "mtime": 1779388477.2714808,
+    "ast_hash": "7a945a63b2476bf61d98d807b5015327",
+    "semantic_hash": "7a945a63b2476bf61d98d807b5015327"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\syllabus_list.html": {
+    "mtime": 1780255956.947417,
+    "ast_hash": "ada23ea37611e3c93b993099471bfd7a",
+    "semantic_hash": "ada23ea37611e3c93b993099471bfd7a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\teacher_applications.html": {
+    "mtime": 1779388477.2719812,
+    "ast_hash": "47e1d04a57d0b86b316d5b03046715e7",
+    "semantic_hash": "47e1d04a57d0b86b316d5b03046715e7"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\teacher_pending.html": {
+    "mtime": 1780698720.0979705,
+    "ast_hash": "e8bb520fad5ceec9a6b98d98a484d106",
+    "semantic_hash": "e8bb520fad5ceec9a6b98d98a484d106"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\video_add.html": {
+    "mtime": 1780255217.0426707,
+    "ast_hash": "f8cfd04a45d5fd260738fdcdf10dfd25",
+    "semantic_hash": "f8cfd04a45d5fd260738fdcdf10dfd25"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\virtual_contest.html": {
+    "mtime": 1779663437.1319833,
+    "ast_hash": "585f18a4cbb03347a883a6f12daa4d83",
+    "semantic_hash": "585f18a4cbb03347a883a6f12daa4d83"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\core\\written_question_practice.html": {
+    "mtime": 1780698720.1105082,
+    "ast_hash": "e511e28e2a3788afa98d99dd555dfe6f",
+    "semantic_hash": "e511e28e2a3788afa98d99dd555dfe6f"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\includes\\footer.html": {
+    "mtime": 1780698720.114512,
+    "ast_hash": "600d555b03b96097d6c8e610b7bcae5a",
+    "semantic_hash": "600d555b03b96097d6c8e610b7bcae5a"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\includes\\navbar.html": {
+    "mtime": 1780698720.1210299,
+    "ast_hash": "9ca01d2efc131eeb8ffc0ccf1f7235b5",
+    "semantic_hash": "9ca01d2efc131eeb8ffc0ccf1f7235b5"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\boards.html": {
+    "mtime": 1781087152.6242995,
+    "ast_hash": "99254aaa34bb8ed77dc3af28684ce7a8",
+    "semantic_hash": "99254aaa34bb8ed77dc3af28684ce7a8"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\classes.html": {
+    "mtime": 1781087194.0965762,
+    "ast_hash": "7f999e241cca7447d3980ca00f9a01b8",
+    "semantic_hash": "7f999e241cca7447d3980ca00f9a01b8"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\create_exam_paper.html": {
+    "mtime": 1780257212.1253755,
+    "ast_hash": "f3de5ae7f95d000a705d12c3e365d382",
+    "semantic_hash": "f3de5ae7f95d000a705d12c3e365d382"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\dashboard.html": {
+    "mtime": 1780698720.1360533,
+    "ast_hash": "a3de51583bce2b85059d37ddf3f18994",
+    "semantic_hash": "a3de51583bce2b85059d37ddf3f18994"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\edit_exam_paper.html": {
+    "mtime": 1780257212.1268764,
+    "ast_hash": "118fda65686fba0a9415e463ffe187e2",
+    "semantic_hash": "118fda65686fba0a9415e463ffe187e2"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\grade_cq_submission.html": {
+    "mtime": 1780257065.4642038,
+    "ast_hash": "e4042314e578fa608701eba62243f778",
+    "semantic_hash": "e4042314e578fa608701eba62243f778"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\grade_queue.html": {
+    "mtime": 1780257212.1298914,
+    "ast_hash": "c537713d267b48a1463b981c3cbf18bf",
+    "semantic_hash": "c537713d267b48a1463b981c3cbf18bf"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\note_requests.html": {
+    "mtime": 1780698720.1510906,
+    "ast_hash": "df4e4a0bd6d59e1e609b7eb81415b685",
+    "semantic_hash": "df4e4a0bd6d59e1e609b7eb81415b685"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\preview_exam.html": {
+    "mtime": 1780698720.1580963,
+    "ast_hash": "8b0ea60b56ac3ffe0b727ce3662b3a05",
+    "semantic_hash": "8b0ea60b56ac3ffe0b727ce3662b3a05"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\question_add_mcq.html": {
+    "mtime": 1780257212.1278772,
+    "ast_hash": "2e38f4396903a5676cdde3094cee5a44",
+    "semantic_hash": "2e38f4396903a5676cdde3094cee5a44"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\question_form.html": {
+    "mtime": 1780257422.185303,
+    "ast_hash": "238a01e18879c6bf729a49916602d136",
+    "semantic_hash": "238a01e18879c6bf729a49916602d136"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\questions.html": {
+    "mtime": 1781087100.3550944,
+    "ast_hash": "519008b66692de45451fa8db46c05aae",
+    "semantic_hash": "519008b66692de45451fa8db46c05aae"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\manage\\subjects.html": {
+    "mtime": 1781087184.010193,
+    "ast_hash": "efc066f4ae11f947beba681d4ed0a19b",
+    "semantic_hash": "efc066f4ae11f947beba681d4ed0a19b"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\teacher\\dashboard.html": {
+    "mtime": 1780698720.1791496,
+    "ast_hash": "40cc5e0a51903368847844648ffe5a69",
+    "semantic_hash": "40cc5e0a51903368847844648ffe5a69"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\templates\\teacher\\student_detail.html": {
+    "mtime": 1780257065.4738438,
+    "ast_hash": "8b8a519eec330edeab26fd6a294abc5b",
+    "semantic_hash": "8b8a519eec330edeab26fd6a294abc5b"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\activity_exam.png": {
+    "mtime": 1779388477.2029624,
+    "ast_hash": "803d57c03af6db6ba39eeaff25f29f0c",
+    "semantic_hash": "803d57c03af6db6ba39eeaff25f29f0c"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\dfd_level0.png": {
+    "mtime": 1779388477.203969,
+    "ast_hash": "87f1a1cadb29fe7ca3ce7433d97ee1ff",
+    "semantic_hash": "87f1a1cadb29fe7ca3ce7433d97ee1ff"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\dfd_level1.png": {
+    "mtime": 1779388477.205472,
+    "ast_hash": "eb63f37641ee3fd9db00b1abfea8743d",
+    "semantic_hash": "eb63f37641ee3fd9db00b1abfea8743d"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\dfd_level2_contest.png": {
+    "mtime": 1779388477.2064786,
+    "ast_hash": "f125d88d1517ffeace98796dcc45362e",
+    "semantic_hash": "f125d88d1517ffeace98796dcc45362e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\dfd_level2_payment.png": {
+    "mtime": 1779388477.2074797,
+    "ast_hash": "685aac3d6b80da90b90105454f7f4d36",
+    "semantic_hash": "685aac3d6b80da90b90105454f7f4d36"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\dfd_level2_question.png": {
+    "mtime": 1779388477.2084804,
+    "ast_hash": "66235ef6fa5c7ba8e5aeed5bd2741b50",
+    "semantic_hash": "66235ef6fa5c7ba8e5aeed5bd2741b50"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\gantt_chart.png": {
+    "mtime": 1779388477.208981,
+    "ast_hash": "e468010f63d4529f5965dd349aa3d5a3",
+    "semantic_hash": "e468010f63d4529f5965dd349aa3d5a3"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\seq_contest.png": {
+    "mtime": 1779388477.2099817,
+    "ast_hash": "6d5de4ad872c428a9663a1aabbe920c9",
+    "semantic_hash": "6d5de4ad872c428a9663a1aabbe920c9"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\seq_cq_grade.png": {
+    "mtime": 1779388477.210482,
+    "ast_hash": "a57a0c2c099378f6bb4ed3ad236fea3e",
+    "semantic_hash": "a57a0c2c099378f6bb4ed3ad236fea3e"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\seq_login.png": {
+    "mtime": 1779388477.2114844,
+    "ast_hash": "2b3cd7ec6a233756d39c81f9dae4329b",
+    "semantic_hash": "2b3cd7ec6a233756d39c81f9dae4329b"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\seq_mcq.png": {
+    "mtime": 1779388477.211985,
+    "ast_hash": "73b1fdbbaa43ca8cdf774e88a48db400",
+    "semantic_hash": "73b1fdbbaa43ca8cdf774e88a48db400"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\seq_subscription.png": {
+    "mtime": 1779388477.2129874,
+    "ast_hash": "fc3b31e8204c33e1455a3127cfd9c405",
+    "semantic_hash": "fc3b31e8204c33e1455a3127cfd9c405"
+  },
+  "C:\\Users\\UseR\\OneDrive\\Desktop\\New folder (9)\\diagrams\\tech_stack.png": {
+    "mtime": 1779388477.2139933,
+    "ast_hash": "c381588a662920c98a648f5239803993",
+    "semantic_hash": "c381588a662920c98a648f5239803993"
+  }
+}

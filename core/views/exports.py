@@ -28,7 +28,7 @@ def export_excel(request):
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment
     from django.http import HttpResponse
-    from ..models import UserProgress, TeacherFeedback, StudyNote, Contest, ContestSubmission, NoteBookmark, ExamPaper, ExamAttempt, NoteRequest, WrittenSolveSubmission
+    from ..models import UserProgress, TeacherFeedback, StudyNote, Contest, ContestSubmission, NoteBookmark, ExamPaper, ExamAttempt, NoteRequest, WrittenSolveSubmission, Payment
 
     wb = openpyxl.Workbook()
 
@@ -193,6 +193,21 @@ def export_excel(request):
             ws.question.board.name,
             ws.question.year,
             ws.submitted_at.strftime('%d-%m-%Y %H:%M'),
+        ])
+
+    ws13 = wb.create_sheet('Payments')
+    headers13 = ['User', 'Plan', 'Amount (BDT)', 'Method', 'Transaction ID', 'Gateway', 'Status', 'Created At']
+    style_header(ws13, headers13)
+    for pay in Payment.objects.select_related('user').all():
+        ws13.append([
+            pay.user.username,
+            pay.plan,
+            pay.amount,
+            pay.method or '',
+            pay.tran_id,
+            pay.gateway,
+            pay.status,
+            pay.created_at.strftime('%d-%m-%Y %H:%M'),
         ])
 
     from django.utils import timezone
