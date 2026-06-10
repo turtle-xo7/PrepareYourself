@@ -87,8 +87,19 @@ def question_bank(request):
     ])
     total_matched = questions.count()
 
+    # Free users see a fixed 10-question teaser; everyone else gets pages of 30
+    # so huge banks don't render thousands of rows at once.
+    page_obj = None
+    base_qs = ''
     if not is_premium and not is_teacher:
         questions = questions[:10]
+    else:
+        from django.core.paginator import Paginator
+        params = request.GET.copy()
+        params.pop('page', None)
+        base_qs = params.urlencode()
+        page_obj = Paginator(questions, 30).get_page(request.GET.get('page'))
+        questions = page_obj.object_list
 
     # Per-question attempt stats for teachers
     if is_teacher:
@@ -130,6 +141,8 @@ def question_bank(request):
         'sel_type': qtype or '',
         'sel_difficulties': difficulties,
         'sel_status': status or '',
+        'page_obj': page_obj,
+        'base_qs': base_qs,
     })
 
 

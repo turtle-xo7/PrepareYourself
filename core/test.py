@@ -38,10 +38,10 @@ def create_subject():
 def create_class():
     return Class.objects.create(name='Class 9', numeric_value=9)
 
-def create_question(board, subject, class_obj):
+def create_question(board, subject, class_obj, year=2024):
     return Question.objects.create(
         board=board, subject=subject, class_obj=class_obj,
-        year=2024, chapter='Chapter 1',
+        year=year, chapter='Chapter 1',
         question_text='What is force?',
         question_type='MCQ', difficulty='Easy',
         option1='Push', option2='Pull', option3='Both', option4='None',
@@ -180,6 +180,18 @@ class QuestionBankTests(TestCase):
         self.client.login(username='student1', password='testpass123')
         response = self.client.get(reverse('question_bank'))
         self.assertGreaterEqual(len(response.context['questions']), 1)
+
+    def test_premium_question_bank_paginated(self):
+        # Distinct years — Question is unique on (board, subject, class, year, type).
+        for year in range(1990, 2024):
+            create_question(self.board, self.subject, self.class_obj, year=year)
+        create_student(plan='PREMIUM')
+        self.client.login(username='student1', password='testpass123')
+        page1 = self.client.get(reverse('question_bank'))
+        self.assertEqual(len(page1.context['questions']), 30)
+        page2 = self.client.get(reverse('question_bank') + '?page=2')
+        self.assertEqual(len(page2.context['questions']), 5)
+        self.assertEqual(page2.context['page_obj'].number, 2)
 
     def test_filter_by_board(self):
         response = self.client.get(reverse('question_bank') + f'?board={self.board.pk}')
@@ -367,12 +379,29 @@ class TeacherFeedbackTests(TestCase):
         feedback = TeacherFeedback.objects.get(teacher=self.teacher, student=self.student)
         self.assertTrue(feedback.is_read)
 
+    def test_notifications_paginated(self):
+        from .models import Notification
+        for i in range(30):
+            Notification.objects.create(
+                recipient=self.student, notif_type='note',
+                title=f'Notif {i}', message='hello',
+            )
+        self.client.login(username='student1', password='testpass123')
+        page1 = self.client.get(reverse('notifications'))
+        self.assertEqual(len(page1.context['notifications']), 25)
+        page2 = self.client.get(reverse('notifications') + '?page=2')
+        self.assertEqual(len(page2.context['notifications']), 5)
+
 
 # -------- CONTEST TESTS --------
 
 class ContestTests(TestCase):
 
     def setUp(self):
+        # The leaderboard JSON endpoint caches rows per contest pk; pks repeat
+        # across test cases, so start each test with a clean cache.
+        from django.core.cache import cache
+        cache.clear()
         self.teacher = create_teacher()
         self.student = create_student()
         self.subject = create_subject()
@@ -429,6 +458,25 @@ class ContestTests(TestCase):
         self.client.login(username='student1', password='testpass123')
         response = self.client.get(reverse('contest_leaderboard', kwargs={'pk': self.contest.pk}))
         self.assertEqual(response.status_code, 200)
+
+    def test_leaderboard_data_is_me_correct_per_viewer(self):
+        """Cached leaderboard rows must not leak one viewer's is_me flag to another."""
+        student2 = create_student(username='student2', email='s2@test.com')
+        for s in (self.student, student2):
+            ContestSubmission.objects.create(
+                contest=self.contest, student=s, is_submitted=True,
+                total_marks=1, duration_taken=60,
+            )
+        url = reverse('leaderboard_data', kwargs={'pk': self.contest.pk})
+        self.client.login(username='student1', password='testpass123')
+        rows1 = self.client.get(url).json()['rows']
+        self.client.logout()
+        # Second request is served from the cache populated by the first.
+        self.client.login(username='student2', password='testpass123')
+        rows2 = self.client.get(url).json()['rows']
+        self.assertEqual([r['username'] for r in rows1 if r['is_me']], ['student1'])
+        self.assertEqual([r['username'] for r in rows2 if r['is_me']], ['student2'])
+        self.assertEqual(len(rows1), 2)
 
     def test_teacher_can_delete_contest(self):
         self.client.login(username='teacher1', password='testpass123')

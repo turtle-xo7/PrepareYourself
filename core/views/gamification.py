@@ -141,6 +141,7 @@ def contest_set_rated(request, pk):
 def leaderboard_data(request, pk):
     """JSON leaderboard for AJAX polling."""
     from ..models import Contest, ContestSubmission, UserRating
+    from django.core.cache import cache
     from django.http import JsonResponse
     from django.utils import timezone
 
@@ -153,37 +154,50 @@ def leaderboard_data(request, pk):
             'updated_at': now.isoformat(),
         })
 
-    subs = ContestSubmission.objects.filter(
-        contest=contest, is_submitted=True,
-        student__profile__role='STUDENT',
-    ).select_related('student').order_by('-total_marks', 'duration_taken')
+    # Every participant polls this endpoint; cache the shared rows briefly and
+    # apply the viewer-specific is_me flag after retrieval.
+    cache_key = f'contest_lb_rows:{contest.pk}'
+    cached = cache.get(cache_key)
+    if cached is None:
+        subs = ContestSubmission.objects.filter(
+            contest=contest, is_submitted=True,
+            student__profile__role='STUDENT',
+        ).select_related('student').order_by('-total_marks', 'duration_taken')
 
-    ratings = {
-        ur.user_id: ur for ur in UserRating.objects.filter(
-            user_id__in=[s.student_id for s in subs]
-        )
-    }
-    rows = []
-    for idx, s in enumerate(subs):
-        ur = ratings.get(s.student_id)
-        title = ur.rank_title if ur else {'title': 'Newcomer', 'color': '#808080'}
-        rows.append({
-            'rank': idx + 1,
-            'username': s.student.username,
-            'score': s.total_marks,
-            'time_taken': s.duration_taken,
-            'rating': ur.rating if ur else 1000,
-            'rank_title': title['title'],
-            'rank_color': title['color'],
-            'rating_change': s.rating_change,
-            'percentile': s.percentile,
-            'is_virtual': s.is_virtual,
-            'is_me': s.student_id == request.user.id,
-        })
+        ratings = {
+            ur.user_id: ur for ur in UserRating.objects.filter(
+                user_id__in=[s.student_id for s in subs]
+            )
+        }
+        rows = []
+        for idx, s in enumerate(subs):
+            ur = ratings.get(s.student_id)
+            title = ur.rank_title if ur else {'title': 'Newcomer', 'color': '#808080'}
+            rows.append({
+                'rank': idx + 1,
+                'user_id': s.student_id,
+                'username': s.student.username,
+                'score': s.total_marks,
+                'time_taken': s.duration_taken,
+                'rating': ur.rating if ur else 1000,
+                'rank_title': title['title'],
+                'rank_color': title['color'],
+                'rating_change': s.rating_change,
+                'percentile': s.percentile,
+                'is_virtual': s.is_virtual,
+            })
+        cached = {'rows': rows, 'updated_at': now.isoformat()}
+        cache.set(cache_key, cached, 15)
+
+    rows = [
+        {**{k: v for k, v in row.items() if k != 'user_id'},
+         'is_me': row['user_id'] == request.user.id}
+        for row in cached['rows']
+    ]
     return JsonResponse({
         'hidden': False,
         'rows': rows,
-        'updated_at': now.isoformat(),
+        'updated_at': cached['updated_at'],
         'contest_status': 'live' if contest.start_time <= now <= contest.end_time
                           else ('past' if now > contest.end_time else 'upcoming'),
     })

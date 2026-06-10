@@ -148,6 +148,15 @@ JAZZMIN_SETTINGS = {
     "copyright": "Prepare Yourself 2026",
 }
 
+# Local-memory cache (per-process). Swap BACKEND for django-redis + REDIS_URL
+# when running multiple workers in production.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'prepare-yourself',
+    }
+}
+
 LOGS_DIR = BASE_DIR / 'logs'
 LOGS_DIR.mkdir(exist_ok=True)
 

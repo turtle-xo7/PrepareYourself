@@ -117,9 +117,13 @@ def notifications(request):
     notifs = Notification.objects.filter(recipient=request.user)
     notifs.filter(is_read=False).update(is_read=True)
 
+    from django.core.paginator import Paginator
+    page_obj = Paginator(notifs, 25).get_page(request.GET.get('page'))
+
     return render(request, 'core/notifications.html', {
         'feedbacks': feedbacks,
-        'notifications': notifs,
+        'notifications': page_obj.object_list,
+        'page_obj': page_obj,
     })
 
 

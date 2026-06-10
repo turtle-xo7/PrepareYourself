@@ -46,7 +46,7 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 | **Notifications** | Real-time bilingual (বাংলা/English) notification system |
 | **Bilingual UI** | Full interface in Bangla and English; user-selectable |
 | **Admin Panel** | Jazzmin-powered admin dashboard for platform management |
-| **Testing** | 60+ Selenium E2E tests + Django unit test suite |
+| **Testing** | 190+ Selenium E2E tests + Django unit suite, run in CI on every push |
 
 ---
 
@@ -55,12 +55,15 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | Django 6.0.5, Python 3.12 |
-| **Database** | SQLite (dev) — PostgreSQL-ready |
-| **Frontend** | Bootstrap, custom CSS/JS |
+| **Database** | SQLite (dev) — PostgreSQL via `DATABASE_URL` (dj-database-url) |
+| **Frontend** | Tailwind CSS, GSAP + Lenis animations, KaTeX math rendering |
+| **Config** | python-dotenv (`.env` secrets), env-driven hosts/email/DB |
+| **Deployment** | Gunicorn + WhiteNoise (Procfile included) |
+| **AI** | Anthropic API (note generation, MCQ, summaries), Gemini (OCR) |
 | **Admin** | Django Jazzmin 3.0.4 |
 | **File Processing** | Pillow, python-docx, python-pptx, openpyxl, xlsxwriter |
 | **Data / Charts** | Matplotlib, NumPy |
-| **Testing** | Django TestCase, Selenium WebDriver |
+| **Testing** | Django TestCase, Selenium WebDriver, ruff (CI lint) |
 
 ---
 
@@ -78,9 +81,13 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 git clone https://github.com/turtle-xo7/PrepareYourself.git
 cd PrepareYourself
 
-# 2. Run the one-time setup (creates .venv, installs packages, runs migrations)
+# 2. Run the one-time setup
+#    (creates .venv, installs packages, generates .env with a fresh SECRET_KEY, runs migrations)
 setup.bat
 ```
+
+> Optional: open `.env` afterwards to add your own `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
+> and Gmail credentials — AI features and password-reset emails need them.
 
 ### Running the Server
 
@@ -100,6 +107,10 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
+
+# Create your environment file and set SECRET_KEY (any long random string)
+cp .env.example .env
+
 python manage.py migrate
 python manage.py runserver
 ```
@@ -130,10 +141,11 @@ python manage.py test core
 
 ### Selenium End-to-End Tests
 
-> Requires Chrome + ChromeDriver on your PATH.
+> Requires Chrome. Install the test dependencies first — the driver is downloaded automatically:
+> `pip install -r requirements-dev.txt`
 
 ```bash
-# Run the full Selenium suite
+# Run the full Selenium suite (190+ tests)
 python manage.py test core.test_selenium
 
 # Run a specific module
@@ -170,7 +182,13 @@ Available Selenium test modules:
 PrepareYourself/
 ├── core/                    # Main application
 │   ├── models.py            # All data models
-│   ├── views.py             # Request handlers
+│   ├── views/               # Request handlers, split by domain
+│   │   ├── base.py          #   shared helpers, decorators, upload validation
+│   │   ├── auth.py          #   login / signup / onboarding
+│   │   ├── exams.py         #   exam papers, MCQ/CQ phases, grading
+│   │   ├── contests.py      #   contests, submissions, leaderboards
+│   │   └── ...              #   payments, notes, dashboard, manage, etc.
+│   ├── services/            # Business logic (ratings, coins, badges, AI gateway)
 │   ├── urls.py              # URL routing
 │   ├── admin.py             # Admin configuration
 │   ├── middleware.py        # Custom middleware
@@ -178,10 +196,10 @@ PrepareYourself/
 │   ├── templatetags/        # Custom template filters (Bangla support)
 │   ├── migrations/          # Database schema history
 │   ├── management/commands/ # Management commands (e.g. send_grading_reminders)
-│   └── test_selenium/       # Selenium E2E test suite
-├── users/                   # Authentication app
-├── PrepareYourself/         # Django project config
-│   └── settings.py
+│   ├── test.py              # Unit test suite
+│   └── test_selenium/       # Selenium E2E test suite (190+ tests)
+├── prepare_yourself/        # Django project config
+│   └── settings.py          # Reads secrets from .env
 ├── templates/               # HTML templates
 │   ├── base.html
 │   ├── core/
@@ -189,7 +207,11 @@ PrepareYourself/
 ├── static/                  # CSS, JS, images
 ├── media/                   # User-uploaded files (gitignored)
 ├── diagrams/                # Architecture & design diagrams
-├── requirements.txt
+├── .github/workflows/ci.yml # CI: lint + checks + unit tests on every push/PR
+├── .env.example             # Environment template (copy to .env)
+├── Procfile                 # Production entrypoint (gunicorn)
+├── requirements.txt         # Runtime dependencies
+├── requirements-dev.txt     # + selenium, webdriver-manager, ruff
 ├── manage.py
 ├── setup.bat                # One-click Windows setup
 └── run.bat                  # One-click dev server launcher

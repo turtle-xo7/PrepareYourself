@@ -268,10 +268,22 @@ def dashboard(request):
                 weakest = s
 
     # ----- Rank (among students) by total correct answers -----
-    rank = User.objects.filter(profile__role='STUDENT').annotate(
-        cc=Count('progress', filter=Q(progress__is_correct=True))
-    ).filter(cc__gt=total_correct).count() + 1
-    total_students = User.objects.filter(profile__role='STUDENT').count() or 1
+    # Aggregates over every student's progress; cache per (user, score) so the
+    # rank refreshes immediately when the viewer answers more questions but the
+    # heavy scan runs at most once per 5 minutes otherwise.
+    from django.core.cache import cache
+    rank = cache.get_or_set(
+        f'dash_rank:{user.id}:{total_correct}',
+        lambda: User.objects.filter(profile__role='STUDENT').annotate(
+            cc=Count('progress', filter=Q(progress__is_correct=True))
+        ).filter(cc__gt=total_correct).count() + 1,
+        300,
+    )
+    total_students = cache.get_or_set(
+        'dash_total_students',
+        lambda: User.objects.filter(profile__role='STUDENT').count() or 1,
+        300,
+    )
 
     # ----- Teacher feedback -----
     feedbacks = list(
