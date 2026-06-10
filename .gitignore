@@ -60,3 +60,5 @@ geckodriver*
 
 # Jupyter
 .ipynb_checkpoints/
+
+graphify-out/
