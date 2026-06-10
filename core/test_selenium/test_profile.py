@@ -60,6 +60,11 @@ class ProfileSeleniumTests(SeleniumMixin, LiveServerTestCase):
         self.selenium_login('profileuser', 'testpass123')
         self.go('/profile/')
         WebDriverWait(self.driver, 8).until(EC.url_contains('/profile/'))
+        # The edit form sits inside a collapsed <details id="edit-panel"> —
+        # open it first or the inputs are not interactable.
+        self.driver.execute_script(
+            "var d = document.getElementById('edit-panel'); if (d) d.open = true;"
+        )
         try:
             first_name_input = self.driver.find_element(By.NAME, 'first_name')
             first_name_input.clear()

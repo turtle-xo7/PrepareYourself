@@ -117,6 +117,14 @@ def question_add(request):
 
             # Single shared file for the whole batch — save once and assign path to every MCQ
             shared_file = request.FILES.get('mcq_question_file')
+            err = _upload_error(shared_file, kind='doc', max_mb=20)
+            if err:
+                messages.error(request, _L(request, *err))
+                return render(request, 'manage/question_form.html', {
+                    'boards': boards, 'subjects': subjects,
+                    'classes': classes, 'years': YEARS, 'action': 'Add',
+                    'post': request.POST,
+                })
             shared_file_path = None
             if shared_file:
                 from django.core.files.storage import default_storage
@@ -220,12 +228,15 @@ def question_add(request):
                 'classes': classes, 'years': YEARS, 'action': 'Add',
                 'post': request.POST,
             })
-        if request.FILES.get('stimulus_image'):
-            q.stimulus_image = request.FILES['stimulus_image']
-            q.save()
-        if request.FILES.get('solution_image'):
-            q.solution_image = request.FILES['solution_image']
-            q.save()
+        for img_field in ('stimulus_image', 'solution_image'):
+            uploaded = request.FILES.get(img_field)
+            if uploaded:
+                err = _upload_error(uploaded, kind='image', max_mb=10)
+                if err:
+                    messages.error(request, _L(request, *err))
+                    continue
+                setattr(q, img_field, uploaded)
+                q.save()
         _notify_all_students(
             'question',
             f'New Question Added — {q.subject.name}',
@@ -307,6 +318,13 @@ def question_add_mcq_bulk(request):
 
         # Single shared file for the whole batch — save once and assign path to the MCQ row
         shared_file = request.FILES.get('mcq_question_file')
+        err = _upload_error(shared_file, kind='doc', max_mb=20)
+        if err:
+            messages.error(request, _L(request, *err))
+            return render(request, 'manage/question_add_mcq.html', {
+                'boards': boards, 'subjects': subjects,
+                'classes': classes, 'years': years, 'post': request.POST,
+            })
         shared_file_path = None
         if shared_file:
             from django.core.files.storage import default_storage
@@ -426,6 +444,10 @@ def upload_question_solution(request, question_id):
         messages.error(request, _L(request, 'Only Teachers can do this.', 'শুধু Teacher এই কাজটি করতে পারবে।'))
         return redirect('written_question_practice', question_id=question.pk)
     if request.method == 'POST' and request.FILES.get('solution_image'):
+        err = _upload_error(request.FILES['solution_image'], kind='image', max_mb=10)
+        if err:
+            messages.error(request, _L(request, *err))
+            return redirect('written_question_practice', question_id=question.pk)
         question.solution_image = request.FILES['solution_image']
         question.save()
         lang = getattr(request, 'LANG', 'bn')
@@ -507,10 +529,14 @@ def question_edit(request, pk):
         else:
             question.question_text = (request.POST.get('question_text') or '').strip()
             question.answer_hint = request.POST.get('answer_hint', '')
-            if request.FILES.get('stimulus_image'):
-                question.stimulus_image = request.FILES['stimulus_image']
-            if request.FILES.get('solution_image'):
-                question.solution_image = request.FILES['solution_image']
+            for img_field in ('stimulus_image', 'solution_image'):
+                uploaded = request.FILES.get(img_field)
+                if uploaded:
+                    err = _upload_error(uploaded, kind='image', max_mb=10)
+                    if err:
+                        messages.error(request, _L(request, *err))
+                    else:
+                        setattr(question, img_field, uploaded)
         from django.db import IntegrityError
         try:
             question.save()

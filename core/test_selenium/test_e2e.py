@@ -114,9 +114,14 @@ class EndToEndSeleniumTests(SeleniumMixin, LiveServerTestCase):
     def test_home_to_pricing_navigation(self):
         """User can navigate from home page to pricing page."""
         self.go('/')
-        pricing_links = self.driver.find_elements(By.CSS_SELECTOR, 'a[href="/pricing/"]')
-        self.assertGreater(len(pricing_links), 0, 'No pricing link found on home page')
-        pricing_links[0].click()
+        # The redesigned home renders some pricing links hidden (e.g. inside the
+        # collapsed mobile menu) — only a visible one counts as navigable.
+        pricing_links = [
+            link for link in self.driver.find_elements(By.CSS_SELECTOR, 'a[href="/pricing/"]')
+            if link.is_displayed()
+        ]
+        self.assertGreater(len(pricing_links), 0, 'No visible pricing link found on home page')
+        self.driver.execute_script('arguments[0].click()', pricing_links[0])
         WebDriverWait(self.driver, 8).until(EC.url_contains('/pricing/'))
         self.assertNotIn('Server Error', self.driver.page_source)
 
@@ -129,7 +134,9 @@ class EndToEndSeleniumTests(SeleniumMixin, LiveServerTestCase):
         create_student(username='e2conteststudent', password='testpass123', plan='PREMIUM')
         self.selenium_login('e2conteststudent', 'testpass123')
 
-        self.go('/contests/')
+        # The contest list defaults to the "upcoming" tab; this contest already
+        # started (minutes_ago=5), so it lives on the "live" tab.
+        self.go('/contests/?tab=live')
         WebDriverWait(self.driver, 8).until(EC.url_contains('/contests/'))
         self.assertIn('E2E Contest', self.driver.page_source)
 

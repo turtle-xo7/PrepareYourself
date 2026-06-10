@@ -66,8 +66,16 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM 5. Apply database migrations
-echo [4/4] Applying database migrations ...
+REM 5. Create .env with a fresh SECRET_KEY if it does not exist
+if not exist ".env" (
+    echo [4/5] Creating .env from .env.example with a fresh SECRET_KEY ...
+    ".venv\Scripts\python.exe" -c "import pathlib; from django.core.management.utils import get_random_secret_key; t = pathlib.Path('.env.example').read_text(encoding='utf-8'); pathlib.Path('.env').write_text(t.replace('replace-with-a-long-random-string', get_random_secret_key()), encoding='utf-8')"
+) else (
+    echo [4/5] .env already exists. Skipping.
+)
+
+REM 6. Apply database migrations
+echo [5/5] Applying database migrations ...
 ".venv\Scripts\python.exe" manage.py migrate
 
 echo.

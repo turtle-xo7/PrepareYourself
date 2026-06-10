@@ -41,10 +41,11 @@ class ContestSeleniumTests(SeleniumMixin, LiveServerTestCase):
         self.assertNotIn('Server Error', self.driver.page_source)
 
     def test_active_contest_shows_in_list(self):
-        """The active test contest appears on the contest list page."""
+        """The active test contest appears on the contest list's live tab."""
         create_student(username='listcontest', password='testpass123', plan='PREMIUM')
         self.selenium_login('listcontest', 'testpass123')
-        self.go('/contests/')
+        # Already-started contests are on the "live" tab, not the default "upcoming".
+        self.go('/contests/?tab=live')
         WebDriverWait(self.driver, 8).until(EC.url_contains('/contests/'))
         self.assertIn('Test Contest', self.driver.page_source)
 

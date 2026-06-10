@@ -22,6 +22,8 @@ from .base import (
     admin_required, superadmin_required, premium_required,
     _is_exam_staff, _notify_all_students,
 )
+from .pages import SUBJECT_COLOR_HEX, _SUBJECT_EMOJI
+from .exams import EXAM_TOTAL_MAX
 
 def _streak_from_dates(active_dates, today):
     """Walk backwards from today (or yesterday) and count consecutive active days."""

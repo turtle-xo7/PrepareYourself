@@ -99,8 +99,14 @@ class NavbarSeleniumTests(SeleniumMixin, LiveServerTestCase):
     def test_navbar_question_bank_link_navigates(self):
         """Question Bank nav link goes to the correct page."""
         self.go('/')
-        link = self.driver.find_element(By.CSS_SELECTOR, 'a[href="/question-bank/"]')
-        link.click()
+        # Some question-bank links are hidden (mobile menu); use a visible one
+        # and click via JS so sticky/animated overlays can't intercept it.
+        links = [
+            link for link in self.driver.find_elements(By.CSS_SELECTOR, 'a[href="/question-bank/"]')
+            if link.is_displayed()
+        ]
+        self.assertGreater(len(links), 0, 'No visible question bank link found')
+        self.driver.execute_script('arguments[0].click()', links[0])
         self.wait_for_url_contains('/question-bank/')
         self.assertIn('question-bank', self.driver.current_url)
 

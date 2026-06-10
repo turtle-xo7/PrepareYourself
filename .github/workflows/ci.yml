@@ -23,7 +23,10 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt ruff
+
+      - name: Check for undefined names
+        run: ruff check core prepare_yourself --select F821
 
       - name: Django system check
         run: python manage.py check
