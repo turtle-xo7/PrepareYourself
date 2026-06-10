@@ -22,6 +22,91 @@
     overflow: hidden;
     box-shadow: 0 16px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(5,150,105,0.12);
 }
+.lab-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(15,23,42,0.7);
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+}
+.lab-tab.is-active {
+    background: linear-gradient(135deg, #059669, #0d9488);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(5,150,105,0.35);
+}
+.lab-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #1e293b;
+    outline: none;
+}
+.lab-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #10b981;
+    cursor: pointer;
+    border: 2px solid #022c22;
+}
+.lab-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #10b981;
+    cursor: pointer;
+    border: 2px solid #022c22;
+}
+.lab-info-cell {
+    padding: 10px 14px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+}
+.lab-info-cell:last-child { border-right: none; }
+.lab-info-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 3px;
+}
+.lab-info-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+.lab-canvas-wrap {
+    flex: 1;
+    position: relative;
+    min-height: 300px;
+    background: radial-gradient(ellipse at 50% 50%, #0f1f3d 0%, #050d1a 100%);
+}
+.lab-canvas-wrap canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+}
+@media (max-width: 768px) {
+    .lab-grid { display: flex !important; flex-direction: column; }
+    #molList { display: flex; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
+    #molList button { flex: 0 0 auto; width: auto !important; margin-bottom: 0 !important; }
+    .lab-info { grid-template-columns: repeat(2, 1fr) !important; }
+    .lab-info-cell:nth-child(2n) { border-right: none; }
+}
 </style>
 
 <!-- Page Header -->
@@ -37,17 +122,21 @@
         </div>
         <div class="flex items-center gap-3 mb-3" data-aos="fade-down">
             <span class="inline-flex items-center gap-1.5 bg-white/10 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm border border-white/15">
-                ⚗️ Molecular Simulation
+                🔬 {% if LANG == 'en' %}3 Experiments{% else %}৩টি এক্সপেরিমেন্ট{% endif %}
             </span>
             <span class="inline-flex items-center gap-1.5 bg-green-500/20 text-green-300 text-xs font-bold px-3 py-1 rounded-full border border-green-500/30 backdrop-blur-sm">
                 <span class="live-dot"></span> LIVE
             </span>
         </div>
         <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight" data-aos="fade-up" data-aos-delay="50">
-            ⚗️ Interactive Lab
+            ⚗️ {% if LANG == 'en' %}Interactive Lab{% else %}ইন্টারঅ্যাকটিভ ল্যাব{% endif %}
         </h1>
         <p class="text-green-200/80 mt-1 text-sm max-w-xl" data-aos="fade-up" data-aos-delay="100">
-            Interactive molecular simulation — watch bonds break &amp; form with real charge indicators.
+            {% if LANG == 'en' %}
+                Hands-on simulations — build molecules, wire circuits and shape waves in real time.
+            {% else %}
+                হাতে-কলমে সিমুলেশন — অণু গড়ো, সার্কিট চালাও আর তরঙ্গ নিয়ন্ত্রণ করো রিয়েল টাইমে।
+            {% endif %}
         </p>
     </div>
 </div>
@@ -55,11 +144,19 @@
 <!-- Content -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <div class="lab-panel" style="display:grid;grid-template-columns:220px 1fr;gap:0;min-height:600px;" data-aos="fade-up">
+    <!-- Experiment Tabs -->
+    <div class="flex flex-wrap gap-3 mb-5" data-aos="fade-up">
+        <button class="lab-tab is-active" data-tab="mol">⚗️ {% if LANG == 'en' %}Molecule Lab{% else %}অণু ল্যাব{% endif %}</button>
+        <button class="lab-tab" data-tab="cir">⚡ {% if LANG == 'en' %}Circuit Lab{% else %}সার্কিট ল্যাব{% endif %}</button>
+        <button class="lab-tab" data-tab="wav">🌊 {% if LANG == 'en' %}Wave Lab{% else %}তরঙ্গ ল্যাব{% endif %}</button>
+    </div>
+
+    <!-- ════════ MOLECULE LAB ════════ -->
+    <div id="panel-mol" class="lab-panel lab-grid" style="display:grid;grid-template-columns:220px 1fr;gap:0;min-height:600px;" data-aos="fade-up">
 
         <!-- Sidebar -->
         <div style="background:#0a1628;padding:14px;display:flex;flex-direction:column;gap:6px;border-right:1px solid rgba(255,255,255,0.07)">
-            <p style="font-size:10px;letter-spacing:2px;color:#475569;text-transform:uppercase;padding:4px 6px 10px;margin:0">Select Molecule</p>
+            <p style="font-size:10px;letter-spacing:2px;color:#475569;text-transform:uppercase;padding:4px 6px 10px;margin:0">{% if LANG == 'en' %}Select Molecule{% else %}অণু বাছাই করো{% endif %}</p>
             <div id="molList"></div>
         </div>
 
@@ -67,54 +164,182 @@
         <div style="background:#0f172a;overflow:hidden;display:flex;flex-direction:column">
 
             <!-- Header -->
-            <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px">
-                <div id="eqBadge" style="background: linear-gradient(135deg, #059669, #0d9488);color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:20px;white-space:nowrap">
-                    Equation: <span id="eqText">2H + O → H₂O</span>
+            <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="background: linear-gradient(135deg, #059669, #0d9488);color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:20px;white-space:nowrap">
+                    {% if LANG == 'en' %}Equation{% else %}সমীকরণ{% endif %}: <span id="eqText">2H + O → H₂O</span>
                 </div>
-                <p style="font-size:11px;color:#64748b;margin:0">Click Break Bonds to scatter atoms, Form Bonds to snap back.</p>
+                <p style="font-size:11px;color:#64748b;margin:0">
+                    {% if LANG == 'en' %}Drag atoms with your mouse. Break bonds to scatter, form bonds to snap back.{% else %}মাউস দিয়ে পরমাণু টেনে দেখো। Break Bonds-এ ছড়িয়ে যাবে, Form Bonds-এ জোড়া লাগবে।{% endif %}
+                </p>
             </div>
 
             <!-- Canvas -->
-            <div style="flex:1;position:relative;min-height:300px;background:radial-gradient(ellipse at 50% 50%,#0f1f3d 0%,#050d1a 100%)">
-                <canvas id="moleculeCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+            <div class="lab-canvas-wrap">
+                <canvas id="moleculeCanvas"></canvas>
                 <div id="legend" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:14px;align-items:center"></div>
             </div>
 
             <!-- Info Bar -->
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06)">
-                <div style="padding:10px 14px;border-right:1px solid rgba(255,255,255,0.06)">
-                    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#475569;margin-bottom:3px">Shape</div>
-                    <div style="font-size:13px;font-weight:600;color:#e2e8f0" id="iShape">Bent (V-shaped)</div>
+            <div class="lab-info" style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06)">
+                <div class="lab-info-cell">
+                    <div class="lab-info-label">{% if LANG == 'en' %}Shape{% else %}আকৃতি{% endif %}</div>
+                    <div class="lab-info-value" id="iShape">Bent (V-shaped)</div>
                 </div>
-                <div style="padding:10px 14px;border-right:1px solid rgba(255,255,255,0.06)">
-                    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#475569;margin-bottom:3px">Bond Angle</div>
-                    <div style="font-size:13px;font-weight:600;color:#e2e8f0" id="iAngle">104.5°</div>
+                <div class="lab-info-cell">
+                    <div class="lab-info-label">{% if LANG == 'en' %}Bond Angle{% else %}বন্ধন কোণ{% endif %}</div>
+                    <div class="lab-info-value" id="iAngle">104.5°</div>
                 </div>
-                <div style="padding:10px 14px;border-right:1px solid rgba(255,255,255,0.06)">
-                    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#475569;margin-bottom:3px">Bond Type</div>
-                    <div style="font-size:13px;font-weight:600;color:#e2e8f0" id="iType">Covalent (Polar)</div>
+                <div class="lab-info-cell">
+                    <div class="lab-info-label">{% if LANG == 'en' %}Bond Type{% else %}বন্ধনের ধরন{% endif %}</div>
+                    <div class="lab-info-value" id="iType">Covalent (Polar)</div>
                 </div>
-                <div style="padding:10px 14px">
-                    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#475569;margin-bottom:3px">Energy</div>
-                    <div style="font-size:13px;font-weight:600;color:#e2e8f0" id="iEnergy">498 kJ/mol</div>
+                <div class="lab-info-cell">
+                    <div class="lab-info-label">{% if LANG == 'en' %}Energy{% else %}শক্তি{% endif %}</div>
+                    <div class="lab-info-value" id="iEnergy">498 kJ/mol</div>
                 </div>
             </div>
 
             <!-- Buttons -->
             <div style="display:flex;gap:10px;padding:14px 16px">
                 <button id="breakBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#ef4444;color:#fff;transition:background .15s">
-                    ⚡ Break Bonds
+                    ⚡ {% if LANG == 'en' %}Break Bonds{% else %}বন্ধন ভাঙো{% endif %}
                 </button>
                 <button id="formBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background: linear-gradient(135deg, #059669, #0d9488);color:#fff;transition:opacity .15s">
-                    ✦ Form Bonds
+                    ✦ {% if LANG == 'en' %}Form Bonds{% else %}বন্ধন গড়ো{% endif %}
                 </button>
             </div>
 
             <!-- Fact -->
-            <div id="factBox" style="margin:0 16px 14px;background:#0a1628;border:1px solid rgba(5,150,105,0.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#6ee7b7;line-height:1.65">
-                Water is bent — 2 lone pairs on O push the H atoms down. δ+ on H, δ− on O makes it polar.
+            <div id="factBox" style="margin:0 16px 14px;background:#0a1628;border:1px solid rgba(5,150,105,0.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#6ee7b7;line-height:1.65"></div>
+        </div>
+    </div>
+
+    <!-- ════════ CIRCUIT LAB ════════ -->
+    <div id="panel-cir" class="lab-panel" style="display:none;min-height:600px;flex-direction:column" data-aos="fade-up">
+
+        <!-- Header -->
+        <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="background: linear-gradient(135deg, #d97706, #b45309);color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:20px;white-space:nowrap">
+                {% if LANG == 'en' %}Ohm's Law{% else %}ওহমের সূত্র{% endif %}: V = I × R
+            </div>
+            <p style="font-size:11px;color:#64748b;margin:0">
+                {% if LANG == 'en' %}Flip the switch, then drag the sliders — watch the current and bulb respond instantly.{% else %}সুইচ অন করো, তারপর স্লাইডার টানো — কারেন্ট আর বাল্ব সাথে সাথে বদলে যাবে।{% endif %}
+            </p>
+        </div>
+
+        <!-- Canvas -->
+        <div class="lab-canvas-wrap">
+            <canvas id="circuitCanvas"></canvas>
+        </div>
+
+        <!-- Info Bar -->
+        <div class="lab-info" style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06)">
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Voltage{% else %}ভোল্টেজ{% endif %}</div>
+                <div class="lab-info-value" id="cVolt">12.0 V</div>
+            </div>
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Resistance{% else %}রোধ{% endif %}</div>
+                <div class="lab-info-value" id="cRes">8 Ω</div>
+            </div>
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Current (I = V/R){% else %}কারেন্ট (I = V/R){% endif %}</div>
+                <div class="lab-info-value" id="cCur" style="color:#fbbf24">1.50 A</div>
+            </div>
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Power (P = VI){% else %}ক্ষমতা (P = VI){% endif %}</div>
+                <div class="lab-info-value" id="cPow" style="color:#fbbf24">18.0 W</div>
             </div>
         </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:16px;padding:14px 16px;align-items:center;flex-wrap:wrap">
+            <button id="switchBtn" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#475569;color:#fff;transition:background .15s;white-space:nowrap">
+                🔌 <span id="switchLabel">{% if LANG == 'en' %}Switch: OFF{% else %}সুইচ: বন্ধ{% endif %}</span>
+            </button>
+            <div style="flex:1;min-width:180px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px">
+                    <span>{% if LANG == 'en' %}Battery Voltage{% else %}ব্যাটারি ভোল্টেজ{% endif %}</span><span id="voltLabel" style="color:#6ee7b7;font-weight:700">12 V</span>
+                </div>
+                <input type="range" id="voltSlider" class="lab-slider" min="1" max="24" step="1" value="12">
+            </div>
+            <div style="flex:1;min-width:180px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px">
+                    <span>{% if LANG == 'en' %}Resistance{% else %}রোধ{% endif %}</span><span id="resLabel" style="color:#6ee7b7;font-weight:700">8 Ω</span>
+                </div>
+                <input type="range" id="resSlider" class="lab-slider" min="1" max="50" step="1" value="8">
+            </div>
+        </div>
+
+        <!-- Fact -->
+        <div id="cirFactBox" style="margin:0 16px 14px;background:#0a1628;border:1px solid rgba(217,119,6,0.25);border-radius:10px;padding:11px 14px;font-size:12px;color:#fcd34d;line-height:1.65"></div>
+    </div>
+
+    <!-- ════════ WAVE LAB ════════ -->
+    <div id="panel-wav" class="lab-panel" style="display:none;min-height:600px;flex-direction:column" data-aos="fade-up">
+
+        <!-- Header -->
+        <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="background: linear-gradient(135deg, #2563eb, #0891b2);color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:20px;white-space:nowrap">
+                {% if LANG == 'en' %}Wave Equation{% else %}তরঙ্গ সমীকরণ{% endif %}: v = f × λ
+            </div>
+            <p style="font-size:11px;color:#64748b;margin:0">
+                {% if LANG == 'en' %}Change frequency, amplitude and speed — then add a reflected wave to see a standing wave.{% else %}কম্পাঙ্ক, বিস্তার আর বেগ বদলে দেখো — তারপর প্রতিফলিত তরঙ্গ যোগ করে স্থির তরঙ্গ দেখো।{% endif %}
+            </p>
+        </div>
+
+        <!-- Canvas -->
+        <div class="lab-canvas-wrap">
+            <canvas id="waveCanvas"></canvas>
+        </div>
+
+        <!-- Info Bar -->
+        <div class="lab-info" style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06)">
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Frequency{% else %}কম্পাঙ্ক{% endif %}</div>
+                <div class="lab-info-value" id="wFreq">1.0 Hz</div>
+            </div>
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Wavelength (λ = v/f){% else %}তরঙ্গদৈর্ঘ্য (λ = v/f){% endif %}</div>
+                <div class="lab-info-value" id="wLen" style="color:#60a5fa">240 px</div>
+            </div>
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Period (T = 1/f){% else %}পর্যায়কাল (T = 1/f){% endif %}</div>
+                <div class="lab-info-value" id="wPeriod">1.00 s</div>
+            </div>
+            <div class="lab-info-cell">
+                <div class="lab-info-label">{% if LANG == 'en' %}Wave Speed{% else %}তরঙ্গ বেগ{% endif %}</div>
+                <div class="lab-info-value" id="wSpeed">240 px/s</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:16px;padding:14px 16px;align-items:center;flex-wrap:wrap">
+            <div style="flex:1;min-width:160px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px">
+                    <span>{% if LANG == 'en' %}Frequency{% else %}কম্পাঙ্ক{% endif %}</span><span id="freqLabel" style="color:#60a5fa;font-weight:700">1.0 Hz</span>
+                </div>
+                <input type="range" id="freqSlider" class="lab-slider" min="0.5" max="4" step="0.1" value="1">
+            </div>
+            <div style="flex:1;min-width:160px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px">
+                    <span>{% if LANG == 'en' %}Amplitude{% else %}বিস্তার{% endif %}</span><span id="ampLabel" style="color:#60a5fa;font-weight:700">60 px</span>
+                </div>
+                <input type="range" id="ampSlider" class="lab-slider" min="10" max="90" step="5" value="60">
+            </div>
+            <div style="flex:1;min-width:160px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px">
+                    <span>{% if LANG == 'en' %}Wave Speed{% else %}তরঙ্গ বেগ{% endif %}</span><span id="speedLabel" style="color:#60a5fa;font-weight:700">240 px/s</span>
+                </div>
+                <input type="range" id="speedSlider" class="lab-slider" min="80" max="480" step="20" value="240">
+            </div>
+            <button id="superBtn" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid rgba(96,165,250,0.4);background:rgba(37,99,235,0.15);color:#93c5fd;transition:all .15s;white-space:nowrap">
+                🪞 <span id="superLabel">{% if LANG == 'en' %}Add Reflected Wave{% else %}প্রতিফলিত তরঙ্গ যোগ করো{% endif %}</span>
+            </button>
+        </div>
+
+        <!-- Fact -->
+        <div id="wavFactBox" style="margin:0 16px 14px;background:#0a1628;border:1px solid rgba(37,99,235,0.3);border-radius:10px;padding:11px 14px;font-size:12px;color:#93c5fd;line-height:1.65"></div>
     </div>
 
 </div>
@@ -123,19 +348,60 @@
 {% block scripts %}
 <script>
 (function(){
+const LANG='{{ LANG }}';
+const DPR=window.devicePixelRatio||1;
 
+/* ───────────────────────── TAB SWITCHING ───────────────────────── */
+let activeTab='mol';
+const panels={mol:document.getElementById('panel-mol'),cir:document.getElementById('panel-cir'),wav:document.getElementById('panel-wav')};
+document.querySelectorAll('.lab-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activeTab=btn.dataset.tab;
+    document.querySelectorAll('.lab-tab').forEach(b=>b.classList.toggle('is-active',b===btn));
+    Object.entries(panels).forEach(([id,el])=>{
+      el.style.display = id===activeTab ? (id==='mol'?'grid':'flex') : 'none';
+    });
+    // Canvases inside hidden panels have zero size — resize after showing
+    requestAnimationFrame(()=>{
+      if(activeTab==='mol'){resizeMol();resetMolPositions();}
+      if(activeTab==='cir')resizeCir();
+      if(activeTab==='wav')resizeWav();
+    });
+  });
+});
+
+function fitCanvas(canvas,ctx){
+  const p=canvas.parentElement.getBoundingClientRect();
+  if(p.width<2||p.height<2)return false;
+  canvas.width=p.width*DPR;
+  canvas.height=p.height*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  return true;
+}
+function lighten(hex,amt){
+  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  r=Math.min(255,Math.round(r+(255-r)*amt));g=Math.min(255,Math.round(g+(255-g)*amt));b=Math.min(255,Math.round(b+(255-b)*amt));
+  return `rgb(${r},${g},${b})`;
+}
+function darken(hex,amt){
+  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.round(r*(1-amt))},${Math.round(g*(1-amt))},${Math.round(b*(1-amt))})`;
+}
+
+/* ═════════════════════════ MOLECULE LAB ═════════════════════════ */
 const MOLS = {
   h2o:{name:'H₂O',label:'Water',icon:'💧',iconBg:'#0c2340',
     eq:'2H + O → H₂O',
     atoms:[
-      {sym:'O',charge:'δ−',x:.5,y:.46,color:'#f87171',r:28},
+      {sym:'O',charge:'δ−',x:.5,y:.46,color:'#f87171',r:28,lp:[-35,35]},
       {sym:'H',charge:'δ+',x:.32,y:.28,color:'#94a3b8',r:19},
       {sym:'H',charge:'δ+',x:.32,y:.64,color:'#94a3b8',r:19}
     ],
     bonds:[[0,1,1],[0,2,1]],
     legend:[{c:'#f87171',l:'Oxygen (O)'},{c:'#94a3b8',l:'Hydrogen (H)'}],
     shape:'Bent (V-shaped)',angle:'104.5°',type:'Covalent (Polar)',energy:'498 kJ/mol',
-    fact:'Water is bent — 2 lone pairs on O compress the H–O–H angle to 104.5°. δ+ on H, δ− on O makes it polar.'
+    fact:'Water is bent — 2 lone pairs on O compress the H–O–H angle to 104.5°. δ+ on H, δ− on O makes it polar.',
+    fact_bn:'পানির অণু বাঁকা — O-এর ২টি নিঃসঙ্গ ইলেকট্রন জোড় H–O–H কোণকে ১০৪.৫°-এ নামিয়ে আনে। H-এ δ+ আর O-এ δ− থাকায় এটি পোলার।'
   },
   co2:{name:'CO₂',label:'Carbon Dioxide',icon:'💨',iconBg:'#1a1a2e',
     eq:'C + 2O → CO₂',
@@ -147,7 +413,8 @@ const MOLS = {
     bonds:[[0,1,2],[0,2,2]],
     legend:[{c:'#64748b',l:'Carbon (C)'},{c:'#f87171',l:'Oxygen (O)'}],
     shape:'Linear',angle:'180°',type:'Covalent (Nonpolar)',energy:'799 kJ/mol',
-    fact:'CO₂ has two C=O double bonds. The dipoles cancel perfectly — nonpolar overall despite polar bonds.'
+    fact:'CO₂ has two C=O double bonds. The dipoles cancel perfectly — nonpolar overall despite polar bonds.',
+    fact_bn:'CO₂-তে দুটি C=O দ্বিবন্ধন আছে। ডাইপোলগুলো একে অপরকে বাতিল করে — বন্ধন পোলার হলেও অণুটি অপোলার।'
   },
   o2:{name:'O₂',label:'Oxygen',icon:'🔵',iconBg:'#0c1a40',
     eq:'O + O → O₂',
@@ -158,12 +425,37 @@ const MOLS = {
     bonds:[[0,1,2]],
     legend:[{c:'#f87171',l:'Oxygen (O)'}],
     shape:'Linear (Diatomic)',angle:'180°',type:'Covalent (Nonpolar)',energy:'498 kJ/mol',
-    fact:'O₂ has a double bond and 2 unpaired electrons — making it paramagnetic. It is attracted to magnets!'
+    fact:'O₂ has a double bond and 2 unpaired electrons — making it paramagnetic. It is attracted to magnets!',
+    fact_bn:'O₂-তে দ্বিবন্ধন আর ২টি অযুগ্ম ইলেকট্রন আছে — তাই এটি প্যারাম্যাগনেটিক। চুম্বকের প্রতি আকৃষ্ট হয়!'
+  },
+  n2:{name:'N₂',label:'Nitrogen',icon:'🌫️',iconBg:'#101a30',
+    eq:'N + N → N₂',
+    atoms:[
+      {sym:'N',charge:'',x:.38,y:.50,color:'#818cf8',r:25},
+      {sym:'N',charge:'',x:.62,y:.50,color:'#818cf8',r:25}
+    ],
+    bonds:[[0,1,3]],
+    legend:[{c:'#818cf8',l:'Nitrogen (N)'}],
+    shape:'Linear (Diatomic)',angle:'180°',type:'Covalent (Nonpolar)',energy:'945 kJ/mol',
+    fact:'N≡N is one of the strongest bonds in chemistry (945 kJ/mol) — that is why N₂ makes up 78% of air yet barely reacts.',
+    fact_bn:'N≡N রসায়নের অন্যতম শক্তিশালী বন্ধন (৯৪৫ kJ/mol) — তাই বাতাসের ৭৮% N₂ হলেও এটি সহজে বিক্রিয়া করে না।'
+  },
+  hcl:{name:'HCl',label:'Hydrogen Chloride',icon:'🍋',iconBg:'#1a1500',
+    eq:'H + Cl → HCl',
+    atoms:[
+      {sym:'H',charge:'δ+',x:.36,y:.50,color:'#94a3b8',r:19},
+      {sym:'Cl',charge:'δ−',x:.62,y:.50,color:'#4ade80',r:28}
+    ],
+    bonds:[[0,1,1]],
+    legend:[{c:'#94a3b8',l:'Hydrogen (H)'},{c:'#4ade80',l:'Chlorine (Cl)'}],
+    shape:'Linear (Diatomic)',angle:'180°',type:'Covalent (Polar)',energy:'431 kJ/mol',
+    fact:'Cl pulls the shared electrons hard (high electronegativity) → strong δ+/δ−. Dissolved in water it becomes hydrochloric acid.',
+    fact_bn:'Cl ভাগ করা ইলেকট্রন জোরে টানে (উচ্চ তড়িৎঋণাত্মকতা) → শক্তিশালী δ+/δ−। পানিতে দ্রবীভূত হলে এটি হাইড্রোক্লোরিক অ্যাসিড হয়।'
   },
   nh3:{name:'NH₃',label:'Ammonia',icon:'🧪',iconBg:'#1a0a2e',
     eq:'N + 3H → NH₃',
     atoms:[
-      {sym:'N',charge:'δ−',x:.50,y:.38,color:'#818cf8',r:25},
+      {sym:'N',charge:'δ−',x:.50,y:.38,color:'#818cf8',r:25,lp:[-90]},
       {sym:'H',charge:'δ+',x:.32,y:.60,color:'#94a3b8',r:17},
       {sym:'H',charge:'δ+',x:.50,y:.70,color:'#94a3b8',r:17},
       {sym:'H',charge:'δ+',x:.68,y:.60,color:'#94a3b8',r:17}
@@ -171,7 +463,8 @@ const MOLS = {
     bonds:[[0,1,1],[0,2,1],[0,3,1]],
     legend:[{c:'#818cf8',l:'Nitrogen (N)'},{c:'#94a3b8',l:'Hydrogen (H)'}],
     shape:'Trigonal Pyramidal',angle:'107°',type:'Covalent (Polar)',energy:'391 kJ/mol',
-    fact:'Lone pair on N pushes 3 H atoms into a pyramid shape. This makes N a great Lewis base (electron donor).'
+    fact:'Lone pair on N pushes 3 H atoms into a pyramid shape. This makes N a great Lewis base (electron donor).',
+    fact_bn:'N-এর নিঃসঙ্গ ইলেকট্রন জোড় ৩টি H-কে পিরামিড আকৃতিতে ঠেলে দেয়। এ কারণে N চমৎকার লুইস ক্ষারক (ইলেকট্রন দাতা)।'
   },
   ch4:{name:'CH₄',label:'Methane',icon:'🔥',iconBg:'#1a0f00',
     eq:'C + 4H → CH₄',
@@ -185,7 +478,8 @@ const MOLS = {
     bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]],
     legend:[{c:'#64748b',l:'Carbon (C)'},{c:'#94a3b8',l:'Hydrogen (H)'}],
     shape:'Tetrahedral',angle:'109.5°',type:'Covalent (Nonpolar)',energy:'411 kJ/mol',
-    fact:'4 equal C–H bonds point to tetrahedral corners — all dipoles cancel. Perfectly symmetric, completely nonpolar.'
+    fact:'4 equal C–H bonds point to tetrahedral corners — all dipoles cancel. Perfectly symmetric, completely nonpolar.',
+    fact_bn:'৪টি সমান C–H বন্ধন চতুস্তলকের কোণার দিকে নির্দেশ করে — সব ডাইপোল বাতিল হয়। নিখুঁত প্রতিসম, সম্পূর্ণ অপোলার।'
   },
   nacl:{name:'NaCl',label:'Sodium Chloride',icon:'🧂',iconBg:'#1a0a1a',
     eq:'Na⁰ + Cl⁰ → Na⁺ + Cl⁻',
@@ -196,30 +490,49 @@ const MOLS = {
     bonds:[[0,1,0]],
     legend:[{c:'#c084fc',l:'Sodium Na⁺'},{c:'#4ade80',l:'Chlorine Cl⁻'}],
     shape:'Linear (Ionic)',angle:'180°',type:'Ionic Bond',energy:'787 kJ/mol',
-    fact:'Na gives its electron to Cl → Na⁺ and Cl⁻ attract strongly. In water the crystal dissolves into free ions.'
+    fact:'Na gives its electron to Cl → Na⁺ and Cl⁻ attract strongly. In water the crystal dissolves into free ions.',
+    fact_bn:'Na তার ইলেকট্রন Cl-কে দিয়ে দেয় → Na⁺ আর Cl⁻ প্রবলভাবে আকর্ষণ করে। পানিতে স্ফটিকটি মুক্ত আয়নে দ্রবীভূত হয়।'
+  },
+  mgo:{name:'MgO',label:'Magnesium Oxide',icon:'✨',iconBg:'#0a1a14',
+    eq:'Mg⁰ + O⁰ → Mg²⁺ + O²⁻',
+    atoms:[
+      {sym:'Mg',charge:'2+',x:.35,y:.50,color:'#fbbf24',r:26},
+      {sym:'O',charge:'2−',x:.65,y:.50,color:'#f87171',r:27}
+    ],
+    bonds:[[0,1,0]],
+    legend:[{c:'#fbbf24',l:'Magnesium Mg²⁺'},{c:'#f87171',l:'Oxygen O²⁻'}],
+    shape:'Linear (Ionic)',angle:'180°',type:'Ionic Bond',energy:'3795 kJ/mol',
+    fact:'Mg transfers 2 electrons to O. Double charges (2+/2−) attract far harder than NaCl — MgO melts at 2852°C!',
+    fact_bn:'Mg দুটি ইলেকট্রন O-কে দেয়। দ্বিগুণ চার্জ (2+/2−) NaCl-এর চেয়ে অনেক বেশি আকর্ষণ করে — MgO গলে ২৮৫২°C-এ!'
   }
 };
 
-const molOrder=['h2o','co2','o2','nh3','ch4','nacl'];
-let curId='h2o', atoms=[], isBroken=false, raf=null, animRunning=false;
+const molOrder=['h2o','co2','o2','n2','hcl','nh3','ch4','nacl','mgo'];
+let curId='h2o', atoms=[], isBroken=false, dragAtom=null;
+const molParticles=[];
 
-const canvas=document.getElementById('moleculeCanvas');
-const ctx=canvas.getContext('2d');
-const breakBtn=document.getElementById('breakBtn');
-const formBtn=document.getElementById('formBtn');
-
-function W(){return canvas.width/devicePixelRatio}
-function H(){return canvas.height/devicePixelRatio}
-
-function lighten(hex,amt){
-  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  r=Math.min(255,Math.round(r+(255-r)*amt));g=Math.min(255,Math.round(g+(255-g)*amt));b=Math.min(255,Math.round(b+(255-b)*amt));
-  return `rgb(${r},${g},${b})`;
+// Visible valence electrons: ions show transfer (cation 0, anion 3), H shows 1
+function eCountFor(a){
+  if(a.charge==='+'||a.charge==='2+')return 0;
+  if(a.charge==='−'||a.charge==='2−')return 3;
+  return a.sym==='H'?1:2;
 }
-function darken(hex,amt){
-  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return `rgb(${Math.round(r*(1-amt))},${Math.round(g*(1-amt))},${Math.round(b*(1-amt))})`;
+
+function spawnBondParticles(color){
+  const m=MOLS[curId];
+  m.bonds.forEach(([i,j])=>{
+    const mx=(atoms[i].tx+atoms[j].tx)/2,my=(atoms[i].ty+atoms[j].ty)/2;
+    for(let k=0;k<8;k++){
+      const a0=Math.random()*2*Math.PI,sp=1+Math.random()*2.5;
+      molParticles.push({x:mx,y:my,vx:Math.cos(a0)*sp,vy:Math.sin(a0)*sp,life:1,c:color});
+    }
+  });
 }
+
+const molCanvas=document.getElementById('moleculeCanvas');
+const mctx=molCanvas.getContext('2d');
+function MW(){return molCanvas.width/DPR}
+function MH(){return molCanvas.height/DPR}
 
 // Build sidebar
 (function(){
@@ -235,26 +548,25 @@ function darken(hex,amt){
   });
 })();
 
-function resizeCanvas(){
-  const p=canvas.parentElement.getBoundingClientRect();
-  canvas.width=p.width*devicePixelRatio;
-  canvas.height=p.height*devicePixelRatio;
-  ctx.scale(devicePixelRatio,devicePixelRatio);
-  draw();
+function resizeMol(){fitCanvas(molCanvas,mctx);}
+new ResizeObserver(()=>{if(activeTab==='mol')resizeMol();}).observe(molCanvas.parentElement);
+
+function resetMolPositions(){
+  const m=MOLS[curId];
+  atoms.forEach((a,i)=>{a.tx=m.atoms[i].x*MW();a.ty=m.atoms[i].y*MH();});
 }
-new ResizeObserver(resizeCanvas).observe(canvas.parentElement);
 
 let tick=0;
 function selectMol(id){
-  cancelAnimationFrame(raf); isBroken=false; animRunning=false; curId=id;
+  isBroken=false; dragAtom=null; curId=id;
   const m=MOLS[id];
-  atoms=m.atoms.map(a=>({...a,cx:a.x*W(),cy:a.y*H(),tx:a.x*W(),ty:a.y*H(),vx:0,vy:0,pulseT:Math.random()*Math.PI*2}));
+  atoms=m.atoms.map(a=>({...a,cx:a.x*MW(),cy:a.y*MH(),tx:a.x*MW(),ty:a.y*MH(),vx:0,vy:0,pulseT:Math.random()*Math.PI*2,jp:Math.random()*Math.PI*2,eph:Math.random()*Math.PI*2,ec:eCountFor(a)}));
   document.getElementById('eqText').textContent=m.eq;
   document.getElementById('iShape').textContent=m.shape;
   document.getElementById('iAngle').textContent=m.angle;
   document.getElementById('iType').textContent=m.type;
   document.getElementById('iEnergy').textContent=m.energy;
-  document.getElementById('factBox').textContent=m.fact;
+  document.getElementById('factBox').textContent=(LANG==='bn'&&m.fact_bn)?m.fact_bn:m.fact;
   document.getElementById('legend').innerHTML=m.legend.map(l=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};flex-shrink:0"></div>${l.l}</div>`).join('');
   document.querySelectorAll('[data-mol]').forEach(b=>{
     const active=b.dataset.mol===id;
@@ -262,134 +574,249 @@ function selectMol(id){
     b.style.borderColor=active?'#059669':'transparent';
     b.style.color=active?'#6ee7b7':'#94a3b8';
   });
-  startPulseLoop();
 }
 
-function draw(){
-  const w=W(),h=H();
+// Drag atoms with pointer events
+function molPointerPos(e){
+  const rect=molCanvas.getBoundingClientRect();
+  return {x:e.clientX-rect.left,y:e.clientY-rect.top};
+}
+molCanvas.addEventListener('pointerdown',e=>{
+  const p=molPointerPos(e);
+  // Iterate in reverse so atoms drawn on top are grabbed first
+  for(let i=atoms.length-1;i>=0;i--){
+    const a=atoms[i];
+    if(Math.hypot(p.x-a.cx,p.y-a.cy)<=a.r+8){
+      dragAtom=a;
+      molCanvas.setPointerCapture(e.pointerId);
+      molCanvas.style.cursor='grabbing';
+      break;
+    }
+  }
+});
+molCanvas.addEventListener('pointermove',e=>{
+  const p=molPointerPos(e);
+  if(dragAtom){
+    dragAtom.cx=dragAtom.tx=p.x;
+    dragAtom.cy=dragAtom.ty=p.y;
+    dragAtom.vx=0;dragAtom.vy=0;
+  } else {
+    const hover=atoms.some(a=>Math.hypot(p.x-a.cx,p.y-a.cy)<=a.r+8);
+    molCanvas.style.cursor=hover?'grab':'default';
+  }
+});
+function molPointerUp(){
+  if(!dragAtom)return;
+  dragAtom=null;
+  molCanvas.style.cursor='default';
+  // When the molecule is formed, atoms spring back home after a drag
+  if(!isBroken)resetMolPositions();
+}
+molCanvas.addEventListener('pointerup',molPointerUp);
+molCanvas.addEventListener('pointercancel',molPointerUp);
+
+const K=0.11,D=0.74;
+function updateMol(){
+  atoms.forEach(a=>{
+    if(a===dragAtom)return;
+    a.vx=(a.vx+(a.tx-a.cx)*K)*D;
+    a.vy=(a.vy+(a.ty-a.cy)*K)*D;
+    a.cx+=a.vx;a.cy+=a.vy;
+  });
+  // Gentle thermal vibration while the molecule is intact
+  atoms.forEach(a=>{
+    const still=!isBroken&&a!==dragAtom;
+    a.rx=a.cx+(still?Math.sin(tick*2.2+a.jp)*1.15:0);
+    a.ry=a.cy+(still?Math.cos(tick*1.9+a.jp)*1.15:0);
+  });
+}
+
+function drawMol(){
+  const w=MW(),h=MH();
   tick+=0.035;
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle='#050d1a';
-  ctx.fillRect(0,0,w,h);
+  mctx.clearRect(0,0,w,h);
+  mctx.fillStyle='#050d1a';
+  mctx.fillRect(0,0,w,h);
 
   const m=MOLS[curId];
 
-  // Draw bonds
-  m.bonds.forEach(([i,j,order])=>{
+  // Bonds
+  m.bonds.forEach(([i,j,order],bi)=>{
     const a=atoms[i],b=atoms[j];
-    const dx=b.cx-a.cx,dy=b.cy-a.cy;
+    const ax=a.rx??a.cx,ay=a.ry??a.cy,bx=b.rx??b.cx,by=b.ry??b.cy;
+    const dx=bx-ax,dy=by-ay;
     const len=Math.sqrt(dx*dx+dy*dy)||1;
-    const px=-dy/len,py=dx/len;
+    const ux=dx/len,uy=dy/len;
+    const px=-uy,py=ux;
 
     if(isBroken){
-      ctx.save();
-      ctx.setLineDash([7,10]);
-      ctx.strokeStyle='rgba(148,163,184,0.22)';
-      ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(a.cx,a.cy);ctx.lineTo(b.cx,b.cy);ctx.stroke();
-      ctx.restore();
+      mctx.save();
+      mctx.setLineDash([7,10]);
+      mctx.strokeStyle='rgba(148,163,184,0.22)';
+      mctx.lineWidth=2;
+      mctx.beginPath();mctx.moveTo(ax,ay);mctx.lineTo(bx,by);mctx.stroke();
+      mctx.restore();
     } else {
       const offsets=order===2?[-4.5,4.5]:order===3?[-7,0,7]:[0];
       offsets.forEach((off,oi)=>{
-        ctx.beginPath();
-        ctx.moveTo(a.cx+px*off,a.cy+py*off);
-        ctx.lineTo(b.cx+px*off,b.cy+py*off);
+        mctx.beginPath();
+        mctx.moveTo(ax+px*off,ay+py*off);
+        mctx.lineTo(bx+px*off,by+py*off);
         if(order===0){
-          ctx.setLineDash([8,6]);
-          ctx.strokeStyle='rgba(248,113,113,0.55)';
-          ctx.lineWidth=3;
+          mctx.setLineDash([8,6]);
+          mctx.strokeStyle='rgba(248,113,113,0.55)';
+          mctx.lineWidth=3;
         } else {
-          ctx.setLineDash([]);
-          ctx.strokeStyle='rgba(255,255,255,0.72)';
-          ctx.lineWidth=3.5;
+          mctx.setLineDash([]);
+          mctx.strokeStyle='rgba(255,255,255,0.72)';
+          mctx.lineWidth=3.5;
         }
-        ctx.stroke();
-        ctx.setLineDash([]);
+        mctx.stroke();
+        mctx.setLineDash([]);
 
         // Electron sharing glow on double/triple bonds
         if(order>1){
           const pulse=0.45+0.45*Math.sin(tick*2.2+oi*1.1);
-          const mx=(a.cx+b.cx)/2+px*off,my=(a.cy+b.cy)/2+py*off;
-          const g=ctx.createRadialGradient(mx,my,0,mx,my,16);
+          const mx=(ax+bx)/2+px*off,my=(ay+by)/2+py*off;
+          const g=mctx.createRadialGradient(mx,my,0,mx,my,16);
           g.addColorStop(0,`rgba(96,165,250,${0.22*pulse})`);
           g.addColorStop(1,'transparent');
-          ctx.beginPath();ctx.arc(mx,my,16,0,2*Math.PI);
-          ctx.fillStyle=g;ctx.fill();
+          mctx.beginPath();mctx.arc(mx,my,16,0,2*Math.PI);
+          mctx.fillStyle=g;mctx.fill();
         }
       });
 
+      // Shared electron pair circulating around covalent bonds
+      if(order>0){
+        const mx=(ax+bx)/2,my=(ay+by)/2;
+        for(let k=0;k<2;k++){
+          const t=tick*1.6+bi*1.3+k*Math.PI;
+          const ex=mx+ux*Math.cos(t)*len*0.27+px*Math.sin(t)*7;
+          const ey=my+uy*Math.cos(t)*len*0.27+py*Math.sin(t)*7;
+          mctx.beginPath();mctx.arc(ex,ey,2.4,0,2*Math.PI);
+          mctx.fillStyle='#7dd3fc';mctx.fill();
+        }
+      }
+
       // Ionic label
       if(order===0){
-        const mx=(a.cx+b.cx)/2,my=(a.cy+b.cy)/2;
-        ctx.font='bold 10px system-ui';
-        ctx.fillStyle='#fca5a5';
-        ctx.textAlign='center';
-        ctx.fillText('ionic',mx,my-13);
+        const mx=(ax+bx)/2,my=(ay+by)/2;
+        mctx.font='bold 10px system-ui';
+        mctx.fillStyle='#fca5a5';
+        mctx.textAlign='center';
+        mctx.fillText('ionic',mx,my-13);
       }
     }
   });
 
-  // Draw atoms
+  // Atoms
   atoms.forEach(atom=>{
+    const x=atom.rx??atom.cx,y=atom.ry??atom.cy;
     const pulse=0.5+0.5*Math.sin(tick+atom.pulseT);
     const glowR=atom.r*(isBroken?1.3:1.9+pulse*0.35);
-    const g=ctx.createRadialGradient(atom.cx,atom.cy,0,atom.cx,atom.cy,glowR);
+    const g=mctx.createRadialGradient(x,y,0,x,y,glowR);
     g.addColorStop(0,atom.color+(isBroken?'28':'48'));
     g.addColorStop(1,'transparent');
-    ctx.beginPath();ctx.arc(atom.cx,atom.cy,glowR,0,2*Math.PI);
-    ctx.fillStyle=g;ctx.fill();
+    mctx.beginPath();mctx.arc(x,y,glowR,0,2*Math.PI);
+    mctx.fillStyle=g;mctx.fill();
 
-    // Atom body (radial gradient for 3D feel)
-    ctx.beginPath();ctx.arc(atom.cx,atom.cy,atom.r,0,2*Math.PI);
-    const rg=ctx.createRadialGradient(atom.cx-atom.r*.3,atom.cy-atom.r*.35,0,atom.cx,atom.cy,atom.r);
+    mctx.beginPath();mctx.arc(x,y,atom.r,0,2*Math.PI);
+    const rg=mctx.createRadialGradient(x-atom.r*.3,y-atom.r*.35,0,x,y,atom.r);
     rg.addColorStop(0,lighten(atom.color,.38));
     rg.addColorStop(1,darken(atom.color,.25));
-    ctx.fillStyle=rg;ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1.5;ctx.stroke();
+    mctx.fillStyle=rg;mctx.fill();
+    mctx.strokeStyle=atom===dragAtom?'rgba(110,231,183,0.9)':'rgba(255,255,255,0.18)';
+    mctx.lineWidth=atom===dragAtom?2.5:1.5;mctx.stroke();
 
-    // Atom symbol
+    // Valence electrons orbiting on a faint shell ring
+    if(atom.ec){
+      mctx.strokeStyle='rgba(125,211,252,0.10)';
+      mctx.lineWidth=1;
+      mctx.beginPath();mctx.arc(x,y,atom.r+9,0,2*Math.PI);mctx.stroke();
+      for(let k=0;k<atom.ec;k++){
+        const t=tick*1.4+atom.eph+k*2*Math.PI/atom.ec;
+        mctx.beginPath();
+        mctx.arc(x+Math.cos(t)*(atom.r+9),y+Math.sin(t)*(atom.r+9),2,0,2*Math.PI);
+        mctx.fillStyle='#bae6fd';mctx.fill();
+      }
+    }
+
+    // Lone pairs (two dots per pair)
+    if(atom.lp&&!isBroken){
+      atom.lp.forEach(deg=>{
+        const a0=deg*Math.PI/180;
+        const lx=x+Math.cos(a0)*(atom.r+13),ly=y+Math.sin(a0)*(atom.r+13);
+        const ppx=-Math.sin(a0),ppy=Math.cos(a0);
+        [-3.2,3.2].forEach(o=>{
+          mctx.beginPath();mctx.arc(lx+ppx*o,ly+ppy*o,2.4,0,2*Math.PI);
+          mctx.fillStyle='#fde68a';mctx.fill();
+        });
+      });
+    }
+
     const fs=Math.round(atom.r*0.66);
-    ctx.font=`bold ${fs}px system-ui`;
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillStyle='#ffffff';
-    ctx.fillText(atom.sym,atom.cx,atom.cy+(atom.charge?-2:0));
+    mctx.font=`bold ${fs}px system-ui`;
+    mctx.textAlign='center';mctx.textBaseline='middle';
+    mctx.fillStyle='#ffffff';
+    mctx.fillText(atom.sym,x,y+(atom.charge?-2:0));
 
-    // Charge label (δ+, δ−, +, −)
     if(atom.charge){
       const cfs=Math.round(atom.r*0.40);
-      ctx.font=`bold ${cfs}px system-ui`;
-      const isPos=atom.charge==='+'||atom.charge==='δ+';
-      ctx.fillStyle=isPos?'#fde68a':'#86efac';
-      ctx.fillText(atom.charge,atom.cx+atom.r*.65,atom.cy-atom.r*.65);
+      mctx.font=`bold ${cfs}px system-ui`;
+      const isPos=atom.charge.includes('+');
+      mctx.fillStyle=isPos?'#fde68a':'#86efac';
+      mctx.fillText(atom.charge,x+atom.r*.65,y-atom.r*.65);
     }
   });
-}
 
-let pulseRaf=null;
-function startPulseLoop(){
-  cancelAnimationFrame(pulseRaf);
-  function loop(){draw();pulseRaf=requestAnimationFrame(loop);}
-  loop();
-}
+  // Dipole compass (polar molecules, intact only): arrow points + → −
+  if(!isBroken&&m.type.includes('Polar')){
+    let pxs=0,pys=0,pn=0,nxs=0,nys=0,nn=0;
+    atoms.forEach(a=>{
+      if(a.charge.includes('+')){pxs+=a.cx;pys+=a.cy;pn++;}
+      if(a.charge.includes('−')){nxs+=a.cx;nys+=a.cy;nn++;}
+    });
+    if(pn&&nn){
+      const ddx=nxs/nn-pxs/pn,ddy=nys/nn-pys/pn;
+      const dl=Math.hypot(ddx,ddy)||1,ux=ddx/dl,uy=ddy/dl;
+      const ox=58,oy=h-58,L2=44;
+      const exx=ox+ux*L2,eyy=oy+uy*L2;
+      mctx.strokeStyle='rgba(253,230,138,0.9)';
+      mctx.lineWidth=2;
+      mctx.beginPath();mctx.moveTo(ox,oy);mctx.lineTo(exx,eyy);mctx.stroke();
+      // crossed tail = positive end (chemistry convention)
+      mctx.beginPath();
+      mctx.moveTo(ox+ux*7-(-uy)*5,oy+uy*7-ux*5);
+      mctx.lineTo(ox+ux*7+(-uy)*5,oy+uy*7+ux*5);
+      mctx.stroke();
+      // arrowhead
+      mctx.beginPath();
+      mctx.moveTo(exx,eyy);
+      mctx.lineTo(exx-ux*8-(-uy)*4,eyy-uy*8-ux*4);
+      mctx.lineTo(exx-ux*8+(-uy)*4,eyy-uy*8+ux*4);
+      mctx.closePath();
+      mctx.fillStyle='rgba(253,230,138,0.9)';mctx.fill();
+      mctx.font='bold 11px system-ui';mctx.textAlign='center';mctx.textBaseline='alphabetic';
+      mctx.fillStyle='#fde68a';
+      mctx.fillText('μ '+(LANG==='bn'?'ডাইপোল':'dipole'),ox+ux*L2/2,oy-14);
+    }
+  }
 
-const K=0.11,D=0.74;
-function animFrame(){
-  let settled=true;
-  atoms.forEach(a=>{
-    a.vx=(a.vx+(a.tx-a.cx)*K)*D;
-    a.vy=(a.vy+(a.ty-a.cy)*K)*D;
-    a.cx+=a.vx;a.cy+=a.vy;
-    if(Math.abs(a.tx-a.cx)>.2||Math.abs(a.ty-a.cy)>.2)settled=false;
-  });
-  draw();
-  if(!settled)raf=requestAnimationFrame(animFrame);
-  else animRunning=false;
+  // Reaction spark particles
+  for(let i=molParticles.length-1;i>=0;i--){
+    const p=molParticles[i];
+    p.x+=p.vx;p.y+=p.vy;p.vx*=0.96;p.vy*=0.96;p.life-=0.025;
+    if(p.life<=0){molParticles.splice(i,1);continue;}
+    mctx.beginPath();mctx.arc(p.x,p.y,2.5*p.life+0.5,0,2*Math.PI);
+    mctx.fillStyle=p.c.replace('ALPHA',p.life.toFixed(2));
+    mctx.fill();
+  }
 }
 
 function breakBonds(){
-  if(isBroken)return; isBroken=true;
-  cancelAnimationFrame(raf); animRunning=false;
-  const cx=W()/2,cy=H()/2,sp=Math.min(W(),H())*0.34;
+  if(isBroken)return; isBroken=true; dragAtom=null;
+  spawnBondParticles('rgba(248,113,113,ALPHA)');
+  const cx=MW()/2,cy=MH()/2,sp=Math.min(MW(),MH())*0.34;
   atoms.forEach((a,i)=>{
     const ang=(2*Math.PI/atoms.length)*i+Math.PI/5;
     const d=i===0?sp*.22:sp;
@@ -397,26 +824,487 @@ function breakBonds(){
     a.ty=cy+Math.sin(ang)*d+(Math.random()-.5)*28;
     a.vx=Math.cos(ang)*7;a.vy=Math.sin(ang)*7;
   });
-  animRunning=true;raf=requestAnimationFrame(animFrame);
 }
-
 function formBonds(){
-  if(!isBroken)return; isBroken=false;
-  cancelAnimationFrame(raf); animRunning=false;
-  const m=MOLS[curId];
-  atoms.forEach((a,i)=>{a.tx=m.atoms[i].x*W();a.ty=m.atoms[i].y*H();a.vx=0;a.vy=0;});
-  animRunning=true;raf=requestAnimationFrame(animFrame);
+  if(!isBroken)return; isBroken=false; dragAtom=null;
+  resetMolPositions();
+  spawnBondParticles('rgba(110,231,183,ALPHA)');
 }
 
+const breakBtn=document.getElementById('breakBtn');
+const formBtn=document.getElementById('formBtn');
 breakBtn.onmouseenter=()=>breakBtn.style.background='#dc2626';
 breakBtn.onmouseleave=()=>breakBtn.style.background='#ef4444';
 formBtn.onmouseenter=()=>formBtn.style.opacity='0.85';
 formBtn.onmouseleave=()=>formBtn.style.opacity='1';
-
 breakBtn.addEventListener('click',breakBonds);
 formBtn.addEventListener('click',formBonds);
 
-window.addEventListener('load',()=>{resizeCanvas();selectMol('h2o');});
+/* ═════════════════════════ CIRCUIT LAB ═════════════════════════ */
+const cirCanvas=document.getElementById('circuitCanvas');
+const cctx=cirCanvas.getContext('2d');
+function CW(){return cirCanvas.width/DPR}
+function CH(){return cirCanvas.height/DPR}
+function resizeCir(){fitCanvas(cirCanvas,cctx);}
+new ResizeObserver(()=>{if(activeTab==='cir')resizeCir();}).observe(cirCanvas.parentElement);
+
+let volt=12, res=8, switchOn=false, electronOffset=0, cirSparkT=0;
+const cirHeatP=[];
+
+const CIR_FACTS={
+  off:{
+    en:'The switch is open — the circuit is broken, so no electrons can flow. Current I = 0 A no matter the voltage.',
+    bn:'সুইচ খোলা — সার্কিট ভাঙা, তাই কোনো ইলেকট্রন প্রবাহিত হতে পারে না। ভোল্টেজ যা-ই হোক, কারেন্ট I = 0 A।'
+  },
+  on:{
+    en:'Electrons drift from − to + terminal. Raise voltage → more current; raise resistance → less current. That is Ohm\'s law: I = V/R.',
+    bn:'ইলেকট্রন − থেকে + প্রান্তের দিকে প্রবাহিত হয়। ভোল্টেজ বাড়াও → কারেন্ট বাড়ে; রোধ বাড়াও → কারেন্ট কমে। এটিই ওহমের সূত্র: I = V/R।'
+  }
+};
+
+function updateCirReadouts(){
+  const I=switchOn?volt/res:0;
+  const P=volt*I;
+  document.getElementById('cVolt').textContent=volt.toFixed(1)+' V';
+  document.getElementById('cRes').textContent=res+' Ω';
+  document.getElementById('cCur').textContent=I.toFixed(2)+' A';
+  document.getElementById('cPow').textContent=P.toFixed(1)+' W';
+  document.getElementById('voltLabel').textContent=volt+' V';
+  document.getElementById('resLabel').textContent=res+' Ω';
+  document.getElementById('cirFactBox').textContent=CIR_FACTS[switchOn?'on':'off'][LANG==='bn'?'bn':'en'];
+}
+
+document.getElementById('voltSlider').addEventListener('input',e=>{volt=+e.target.value;updateCirReadouts();});
+document.getElementById('resSlider').addEventListener('input',e=>{res=+e.target.value;updateCirReadouts();});
+const switchBtn=document.getElementById('switchBtn');
+switchBtn.addEventListener('click',()=>{
+  switchOn=!switchOn;
+  cirSparkT=performance.now();
+  switchBtn.style.background=switchOn?'linear-gradient(135deg,#059669,#0d9488)':'#475569';
+  document.getElementById('switchLabel').textContent=switchOn
+    ?(LANG==='bn'?'সুইচ: চালু':'Switch: ON')
+    :(LANG==='bn'?'সুইচ: বন্ধ':'Switch: OFF');
+  updateCirReadouts();
+});
+
+// Rectangular loop with parametric position for electron animation
+function cirLayout(){
+  const w=CW(),h=CH();
+  const L=Math.max(70,w*0.14), R=w-L, T=96, B=h-64;
+  return {L,R,T,B,perim:2*(R-L)+2*(B-T)};
+}
+function pointAt(d,lay){
+  // Start at top-left corner, clockwise: top → right → bottom → left
+  const {L,R,T,B}=lay;
+  const wSeg=R-L,hSeg=B-T;
+  d=((d%lay.perim)+lay.perim)%lay.perim;
+  if(d<wSeg)return {x:L+d,y:T};
+  d-=wSeg;
+  if(d<hSeg)return {x:R,y:T+d};
+  d-=hSeg;
+  if(d<wSeg)return {x:R-d,y:B};
+  d-=wSeg;
+  return {x:L,y:B-d};
+}
+
+function drawCir(dt){
+  const w=CW(),h=CH();
+  cctx.clearRect(0,0,w,h);
+  cctx.fillStyle='#050d1a';
+  cctx.fillRect(0,0,w,h);
+
+  const lay=cirLayout();
+  const {L,R,T,B}=lay;
+  const midX=(L+R)/2, midY=(T+B)/2;
+  const I=switchOn?volt/res:0;
+  const overload=I>12;
+  let brightness=Math.min(1,(volt*I)/22);
+  if(overload)brightness*=0.55+0.45*Math.random();   // unstable flicker
+  const heat=Math.min(1,(I*I*res)/130);              // P = I²R heats the resistor
+
+  // Wire (leave gaps for battery on left and switch on bottom)
+  cctx.strokeStyle=switchOn?(overload?'#fda4af':'#5eead4'):'#475569';
+  cctx.lineWidth=3.5;
+  cctx.lineCap='round';
+  const swGap=26, batGap=22;
+  cctx.beginPath();
+  cctx.moveTo(L,midY-batGap);cctx.lineTo(L,T);            // left upper
+  cctx.lineTo(R,T);                                        // top
+  cctx.lineTo(R,B);                                        // right
+  cctx.lineTo(midX+swGap,B);                               // bottom right half
+  cctx.moveTo(midX-swGap,B);cctx.lineTo(L,B);              // bottom left half
+  cctx.lineTo(L,midY+batGap);                              // left lower
+  cctx.stroke();
+
+  // Battery (left middle): long plate = +, short plate = −
+  cctx.lineWidth=4;
+  cctx.strokeStyle='#fbbf24';
+  cctx.beginPath();cctx.moveTo(L-20,midY-batGap+4);cctx.lineTo(L+20,midY-batGap+4);cctx.stroke();
+  cctx.lineWidth=7;
+  cctx.strokeStyle='#94a3b8';
+  cctx.beginPath();cctx.moveTo(L-10,midY+batGap-4);cctx.lineTo(L+10,midY+batGap-4);cctx.stroke();
+  cctx.font='bold 13px system-ui';cctx.textAlign='left';cctx.textBaseline='middle';
+  cctx.fillStyle='#fbbf24';cctx.fillText('+',L+26,midY-batGap+3);
+  cctx.fillStyle='#94a3b8';cctx.fillText('−',L+26,midY+batGap-5);
+  cctx.fillStyle='#e2e8f0';cctx.font='bold 12px system-ui';cctx.textAlign='right';
+  cctx.fillText(volt+' V',L-14,midY);
+
+  // Switch (bottom middle): lever rotates up when open
+  const pivX=midX-swGap,conX=midX+swGap;
+  cctx.fillStyle='#cbd5e1';
+  cctx.beginPath();cctx.arc(pivX,B,4.5,0,2*Math.PI);cctx.fill();
+  cctx.beginPath();cctx.arc(conX,B,4.5,0,2*Math.PI);cctx.fill();
+  cctx.strokeStyle=switchOn?'#5eead4':'#94a3b8';
+  cctx.lineWidth=4;
+  cctx.beginPath();
+  cctx.moveTo(pivX,B);
+  if(switchOn)cctx.lineTo(conX,B);
+  else cctx.lineTo(pivX+(conX-pivX)*Math.cos(-0.62),B+(conX-pivX)*Math.sin(-0.62));
+  cctx.stroke();
+  cctx.font='11px system-ui';cctx.textAlign='center';cctx.fillStyle='#64748b';
+  cctx.fillText(LANG==='bn'?'সুইচ':'switch',midX,B+22);
+
+  // Contact spark right after toggling
+  const sparkAge=(performance.now()-cirSparkT)/280;
+  if(sparkAge<1){
+    const sr=20*(1-sparkAge)+4;
+    const g=cctx.createRadialGradient(conX,B,0,conX,B,sr);
+    g.addColorStop(0,`rgba(254,249,195,${0.9*(1-sparkAge)})`);
+    g.addColorStop(0.5,`rgba(251,191,36,${0.5*(1-sparkAge)})`);
+    g.addColorStop(1,'transparent');
+    cctx.beginPath();cctx.arc(conX,B,sr,0,2*Math.PI);
+    cctx.fillStyle=g;cctx.fill();
+  }
+
+  // Resistor (right middle): zigzag that heats from orange to white-hot
+  const rzTop=midY-30,rzBot=midY+30,zw=13;
+  if(heat>0.05){
+    const g=cctx.createRadialGradient(R,midY,0,R,midY,70);
+    g.addColorStop(0,`rgba(249,80,22,${0.30*heat})`);
+    g.addColorStop(1,'transparent');
+    cctx.beginPath();cctx.arc(R,midY,70,0,2*Math.PI);cctx.fillStyle=g;cctx.fill();
+  }
+  cctx.strokeStyle=`hsl(${24-heat*24},95%,${50+heat*22}%)`;
+  cctx.lineWidth=3;
+  cctx.beginPath();
+  cctx.moveTo(R,rzTop);
+  for(let i=0;i<6;i++){
+    cctx.lineTo(R+(i%2===0?zw:-zw),rzTop+(rzBot-rzTop)*(i+0.5)/6);
+  }
+  cctx.lineTo(R,rzBot);
+  cctx.stroke();
+  cctx.font='bold 12px system-ui';cctx.textAlign='left';cctx.fillStyle='#fb923c';
+  cctx.fillText(res+' Ω',R+22,midY);
+
+  // Heat shimmer rising off a hot resistor
+  if(switchOn&&heat>0.18&&Math.random()<heat*0.5)
+    cirHeatP.push({x:R+(Math.random()*26-13),y:midY+(Math.random()*44-22),life:1});
+  for(let i=cirHeatP.length-1;i>=0;i--){
+    const p=cirHeatP[i];
+    p.y-=42*dt;p.x+=Math.sin(p.y*0.15)*0.4;p.life-=0.016;
+    if(p.life<=0){cirHeatP.splice(i,1);continue;}
+    cctx.beginPath();cctx.arc(p.x,p.y,2.2+2.5*(1-p.life),0,2*Math.PI);
+    cctx.fillStyle=`rgba(251,113,36,${0.28*p.life})`;
+    cctx.fill();
+  }
+
+  // Bulb (top middle): glass envelope + coiled filament + screw base
+  const gy=T-30,gr=20;
+  if(brightness>0){
+    const g=cctx.createRadialGradient(midX,gy,0,midX,gy,gr*4.2);
+    g.addColorStop(0,`rgba(253,224,71,${0.55*brightness})`);
+    g.addColorStop(1,'transparent');
+    cctx.beginPath();cctx.arc(midX,gy,gr*4.2,0,2*Math.PI);
+    cctx.fillStyle=g;cctx.fill();
+  }
+  cctx.beginPath();cctx.arc(midX,gy,gr,0,2*Math.PI);
+  cctx.fillStyle=brightness>0?`rgba(253,224,71,${0.10+0.45*brightness})`:'rgba(148,163,184,0.06)';
+  cctx.fill();
+  cctx.strokeStyle='rgba(203,213,225,0.55)';
+  cctx.lineWidth=1.6;cctx.stroke();
+  // screw base with threads
+  cctx.fillStyle='#64748b';
+  cctx.fillRect(midX-8,T-13,16,13);
+  cctx.strokeStyle='#94a3b8';cctx.lineWidth=1;
+  for(let k=1;k<=2;k++){
+    cctx.beginPath();cctx.moveTo(midX-8,T-13+k*4);cctx.lineTo(midX+8,T-13+k*4);cctx.stroke();
+  }
+  // lead wires up into the glass
+  cctx.strokeStyle=brightness>0?'#fff7cc':'#64748b';
+  cctx.lineWidth=1.6;
+  cctx.beginPath();
+  cctx.moveTo(midX-6,T-13);cctx.lineTo(midX-6,gy+4);
+  cctx.moveTo(midX+6,T-13);cctx.lineTo(midX+6,gy+4);
+  cctx.stroke();
+  // coiled filament
+  cctx.lineWidth=brightness>0?2.2:1.6;
+  cctx.beginPath();
+  cctx.moveTo(midX-6,gy+4);
+  for(let k=0;k<5;k++)cctx.lineTo(midX-6+(k+0.5)*12/5,gy+4+(k%2?3:-5));
+  cctx.lineTo(midX+6,gy+4);
+  cctx.stroke();
+  cctx.font='11px system-ui';cctx.textAlign='center';cctx.fillStyle='#64748b';
+  cctx.fillText(LANG==='bn'?'বাল্ব':'bulb',midX,gy-gr-10);
+  if(overload){
+    cctx.font='bold 12px system-ui';
+    cctx.fillStyle='#f87171';
+    cctx.fillText(LANG==='bn'?'⚠ ওভারলোড!':'⚠ OVERLOAD!',midX,gy-gr-26);
+  }
+
+  // Analog ammeter inside the loop
+  const gx=L+90,gyy=B-84,grr=34;
+  cctx.beginPath();cctx.arc(gx,gyy,grr,0,2*Math.PI);
+  cctx.fillStyle='#0a1628';cctx.fill();
+  cctx.strokeStyle='rgba(148,163,184,0.35)';cctx.lineWidth=1.5;cctx.stroke();
+  for(let k=0;k<=5;k++){
+    const ta=Math.PI+(k/5)*Math.PI;
+    cctx.beginPath();
+    cctx.moveTo(gx+Math.cos(ta)*(grr-9),gyy+Math.sin(ta)*(grr-9));
+    cctx.lineTo(gx+Math.cos(ta)*(grr-4),gyy+Math.sin(ta)*(grr-4));
+    cctx.strokeStyle='rgba(203,213,225,0.5)';cctx.lineWidth=1.2;cctx.stroke();
+  }
+  const na=Math.PI+Math.min(1,I/10)*Math.PI;
+  cctx.strokeStyle='#f87171';cctx.lineWidth=2;
+  cctx.beginPath();cctx.moveTo(gx,gyy);
+  cctx.lineTo(gx+Math.cos(na)*(grr-11),gyy+Math.sin(na)*(grr-11));cctx.stroke();
+  cctx.beginPath();cctx.arc(gx,gyy,3,0,2*Math.PI);cctx.fillStyle='#cbd5e1';cctx.fill();
+  cctx.font='bold 11px system-ui';cctx.textAlign='center';cctx.fillStyle='#94a3b8';
+  cctx.fillText('A',gx,gyy+15);
+  cctx.fillStyle='#fbbf24';
+  cctx.fillText(I.toFixed(2)+' A',gx,gyy+grr+16);
+
+  // Conventional current arrows on the top wire (+ → − outside the battery)
+  if(switchOn&&I>0){
+    cctx.fillStyle='#facc15';
+    [0.28,0.72].forEach(f=>{
+      const x=L+(R-L)*f;
+      cctx.beginPath();
+      cctx.moveTo(x+7,T);cctx.lineTo(x-4,T-5);cctx.lineTo(x-4,T+5);
+      cctx.closePath();cctx.fill();
+    });
+  }
+  cctx.font='10px system-ui';cctx.textAlign='left';
+  cctx.fillStyle='#facc15';
+  cctx.fillText('▶ '+(LANG==='bn'?'প্রচলিত কারেন্ট (I)':'conventional current (I)'),12,16);
+  cctx.fillStyle='#34d399';
+  cctx.fillText('● '+(LANG==='bn'?'ইলেকট্রন প্রবাহ':'electron flow'),12,30);
+
+  // Electrons drift opposite to conventional current, speed ∝ I
+  if(switchOn&&I>0){
+    electronOffset=(electronOffset-I*45*dt)%lay.perim;
+    const n=26;
+    for(let i=0;i<n;i++){
+      const p=pointAt(electronOffset+i*lay.perim/n,lay);
+      // Hide electrons inside the battery / switch gaps
+      if(Math.abs(p.x-L)<2&&Math.abs(p.y-midY)<batGap)continue;
+      if(Math.abs(p.y-B)<2&&Math.abs(p.x-midX)<swGap)continue;
+      cctx.beginPath();cctx.arc(p.x,p.y,3.2,0,2*Math.PI);
+      cctx.fillStyle='#34d399';cctx.fill();
+      const g=cctx.createRadialGradient(p.x,p.y,0,p.x,p.y,8);
+      g.addColorStop(0,'rgba(52,211,153,0.5)');
+      g.addColorStop(1,'transparent');
+      cctx.beginPath();cctx.arc(p.x,p.y,8,0,2*Math.PI);
+      cctx.fillStyle=g;cctx.fill();
+    }
+  }
+}
+
+/* ═════════════════════════ WAVE LAB ═════════════════════════ */
+const wavCanvas=document.getElementById('waveCanvas');
+const wctx=wavCanvas.getContext('2d');
+function WW(){return wavCanvas.width/DPR}
+function WH(){return wavCanvas.height/DPR}
+function resizeWav(){fitCanvas(wavCanvas,wctx);}
+new ResizeObserver(()=>{if(activeTab==='wav')resizeWav();}).observe(wavCanvas.parentElement);
+
+let freq=1, amp=60, waveSpeed=240, superpose=false, waveT=0;
+
+const WAV_FACTS={
+  single:{
+    en:'A travelling wave: every point oscillates with the same frequency while the pattern moves at speed v. Doubling f halves λ — speed stays fixed by the medium.',
+    bn:'চলমান তরঙ্গ: প্রতিটি বিন্দু একই কম্পাঙ্কে দোলে আর প্যাটার্নটি v বেগে এগোয়। f দ্বিগুণ করলে λ অর্ধেক হয় — বেগ মাধ্যমের ওপর নির্ভর করে।'
+  },
+  standing:{
+    en:'Two identical waves travelling in opposite directions superpose into a standing wave. The still points are nodes; the maximum swings are antinodes — this is how guitar strings vibrate!',
+    bn:'বিপরীত দিকে চলা দুটি অভিন্ন তরঙ্গ মিলে স্থির তরঙ্গ তৈরি করে। স্থির বিন্দুগুলো নিস্পন্দ বিন্দু (node); সর্বোচ্চ দোলনের জায়গা সুস্পন্দ বিন্দু (antinode) — গিটারের তারে এভাবেই কম্পন হয়!'
+  }
+};
+
+function updateWavReadouts(){
+  const lam=waveSpeed/freq;
+  document.getElementById('wFreq').textContent=freq.toFixed(1)+' Hz';
+  document.getElementById('wLen').textContent=Math.round(lam)+' px';
+  document.getElementById('wPeriod').textContent=(1/freq).toFixed(2)+' s';
+  document.getElementById('wSpeed').textContent=waveSpeed+' px/s';
+  document.getElementById('freqLabel').textContent=freq.toFixed(1)+' Hz';
+  document.getElementById('ampLabel').textContent=amp+' px';
+  document.getElementById('speedLabel').textContent=waveSpeed+' px/s';
+  document.getElementById('wavFactBox').textContent=WAV_FACTS[superpose?'standing':'single'][LANG==='bn'?'bn':'en'];
+}
+
+document.getElementById('freqSlider').addEventListener('input',e=>{freq=+e.target.value;updateWavReadouts();});
+document.getElementById('ampSlider').addEventListener('input',e=>{amp=+e.target.value;updateWavReadouts();});
+document.getElementById('speedSlider').addEventListener('input',e=>{waveSpeed=+e.target.value;updateWavReadouts();});
+const superBtn=document.getElementById('superBtn');
+superBtn.addEventListener('click',()=>{
+  superpose=!superpose;
+  superBtn.style.background=superpose?'linear-gradient(135deg,#2563eb,#0891b2)':'rgba(37,99,235,0.15)';
+  superBtn.style.color=superpose?'#fff':'#93c5fd';
+  document.getElementById('superLabel').textContent=superpose
+    ?(LANG==='bn'?'একক তরঙ্গ দেখাও':'Show Single Wave')
+    :(LANG==='bn'?'প্রতিফলিত তরঙ্গ যোগ করো':'Add Reflected Wave');
+  updateWavReadouts();
+});
+
+function traceWave(mid,lam,dir,scale){
+  wctx.beginPath();
+  for(let x=0;x<=WW();x+=2){
+    const y=mid-amp*scale*Math.sin(2*Math.PI*(x/lam-dir*freq*waveT));
+    if(x===0)wctx.moveTo(x,y);else wctx.lineTo(x,y);
+  }
+  wctx.stroke();
+}
+
+function drawWav(dt){
+  const w=WW(),h=WH();
+  waveT+=dt;
+  wctx.clearRect(0,0,w,h);
+  wctx.fillStyle='#050d1a';
+  wctx.fillRect(0,0,w,h);
+
+  const mid=h/2;
+  const lam=waveSpeed/freq;
+  const yAt=x=>mid-amp*Math.sin(2*Math.PI*(x/lam-freq*waveT));
+  const yStand=x=>mid-amp*Math.sin(2*Math.PI*x/lam)*Math.cos(2*Math.PI*freq*waveT)*1.4;
+
+  // Grid
+  wctx.strokeStyle='rgba(148,163,184,0.07)';
+  wctx.lineWidth=1;
+  for(let x=0;x<w;x+=40){wctx.beginPath();wctx.moveTo(x,0);wctx.lineTo(x,h);wctx.stroke();}
+  for(let y=mid%40;y<h;y+=40){wctx.beginPath();wctx.moveTo(0,y);wctx.lineTo(w,y);wctx.stroke();}
+  // Axis
+  wctx.strokeStyle='rgba(148,163,184,0.25)';
+  wctx.setLineDash([4,6]);
+  wctx.beginPath();wctx.moveTo(0,mid);wctx.lineTo(w,mid);wctx.stroke();
+  wctx.setLineDash([]);
+
+  // Medium particles: dots riding the wave, oscillating in place
+  function mediumDots(fn){
+    for(let x=24;x<w-8;x+=36){
+      wctx.beginPath();wctx.arc(x,fn(x),2.8,0,2*Math.PI);
+      wctx.fillStyle='rgba(191,219,254,0.9)';wctx.fill();
+    }
+  }
+
+  if(superpose){
+    // Faint component waves travelling opposite directions
+    wctx.lineWidth=1.5;
+    wctx.strokeStyle='rgba(96,165,250,0.25)';
+    traceWave(mid,lam,1,1);
+    wctx.strokeStyle='rgba(45,212,191,0.25)';
+    traceWave(mid,lam,-1,1);
+    // Bright resultant: sum = 2A·sin(kx)·cos(ωt) → standing wave
+    wctx.lineWidth=3;
+    wctx.strokeStyle='#60a5fa';
+    wctx.beginPath();
+    for(let x=0;x<=w;x+=2){
+      const y=yStand(x);
+      if(x===0)wctx.moveTo(x,y);else wctx.lineTo(x,y);
+    }
+    wctx.stroke();
+    mediumDots(yStand);
+    // Mark nodes
+    wctx.fillStyle='#f87171';
+    for(let x=0;x<=w;x+=lam/2){
+      wctx.beginPath();wctx.arc(x,mid,4,0,2*Math.PI);wctx.fill();
+    }
+    // First antinode marker
+    if(lam/4<w-30){
+      wctx.font='11px system-ui';wctx.textAlign='center';wctx.fillStyle='#93c5fd';
+      wctx.fillText(LANG==='bn'?'সুস্পন্দ বিন্দু (antinode)':'antinode',lam/4,24);
+      wctx.strokeStyle='rgba(147,197,253,0.3)';wctx.lineWidth=1;
+      wctx.setLineDash([3,4]);
+      wctx.beginPath();wctx.moveTo(lam/4,30);wctx.lineTo(lam/4,mid-amp*1.4-6);wctx.stroke();
+      wctx.setLineDash([]);
+    }
+    wctx.font='11px system-ui';wctx.textAlign='left';wctx.fillStyle='#fca5a5';
+    wctx.fillText(LANG==='bn'?'লাল বিন্দু = নিস্পন্দ বিন্দু (node)':'red dots = nodes',12,h-14);
+  } else {
+    wctx.lineWidth=3;
+    wctx.strokeStyle='#60a5fa';
+    traceWave(mid,lam,1,1);
+    mediumDots(yAt);
+
+    // One highlighted particle: proves the medium only bobs up and down
+    const hx=24+Math.round((w*0.32-24)/36)*36;
+    wctx.strokeStyle='rgba(248,113,113,0.3)';
+    wctx.lineWidth=1;
+    wctx.setLineDash([3,4]);
+    wctx.beginPath();wctx.moveTo(hx,mid-amp-8);wctx.lineTo(hx,mid+amp+8);wctx.stroke();
+    wctx.setLineDash([]);
+    wctx.beginPath();wctx.arc(hx,yAt(hx),4.5,0,2*Math.PI);
+    wctx.fillStyle='#f87171';wctx.fill();
+    wctx.font='11px system-ui';wctx.textAlign='left';wctx.fillStyle='#fca5a5';
+    wctx.fillText(LANG==='bn'?'লাল কণা শুধু উপরে-নিচে দোলে — তরঙ্গ এগোয়, মাধ্যম এগোয় না':'red particle only bobs up–down — the wave moves, the medium does not',12,h-14);
+
+    // Wavelength bracket between two successive crests
+    const x1=lam*(((0.25+freq*waveT)%1)+1)%lam;
+    if(x1+lam<w-10){
+      const yB=mid-amp-22;
+      wctx.strokeStyle='#fbbf24';
+      wctx.lineWidth=1.5;
+      wctx.beginPath();
+      wctx.moveTo(x1,yB+6);wctx.lineTo(x1,yB);
+      wctx.lineTo(x1+lam,yB);wctx.lineTo(x1+lam,yB+6);
+      wctx.stroke();
+      wctx.font='bold 12px system-ui';wctx.textAlign='center';wctx.fillStyle='#fbbf24';
+      wctx.fillText('λ = '+Math.round(lam)+' px',x1+lam/2,yB-8);
+      // Crest / trough labels
+      wctx.font='10px system-ui';wctx.fillStyle='#93c5fd';
+      wctx.fillText(LANG==='bn'?'চূড়া':'crest',x1,mid-amp+18);
+      const xT=x1+lam/2;
+      if(xT<w-20)wctx.fillText(LANG==='bn'?'খাঁজ':'trough',xT,mid+amp+16);
+    }
+
+    // Amplitude arrow at left
+    wctx.strokeStyle='#34d399';
+    wctx.lineWidth=1.5;
+    wctx.beginPath();wctx.moveTo(26,mid);wctx.lineTo(26,mid-amp);wctx.stroke();
+    wctx.beginPath();wctx.moveTo(22,mid-amp+7);wctx.lineTo(26,mid-amp);wctx.lineTo(30,mid-amp+7);wctx.stroke();
+    wctx.font='bold 11px system-ui';wctx.textAlign='left';wctx.fillStyle='#34d399';
+    wctx.fillText('A',34,mid-amp/2);
+  }
+
+  // Oscillating source driving the wave at the left edge
+  const sy=(superpose?yStand:yAt)(10);
+  wctx.strokeStyle='rgba(148,163,184,0.3)';
+  wctx.lineWidth=2;
+  wctx.beginPath();wctx.moveTo(12,mid-amp*1.45-8);wctx.lineTo(12,mid+amp*1.45+8);wctx.stroke();
+  wctx.beginPath();wctx.arc(12,sy,6,0,2*Math.PI);
+  wctx.fillStyle='#f59e0b';wctx.fill();
+  wctx.strokeStyle='#b45309';wctx.lineWidth=1.5;wctx.stroke();
+  wctx.font='10px system-ui';wctx.textAlign='left';wctx.fillStyle='#fbbf24';
+  wctx.fillText(LANG==='bn'?'উৎস':'source',20,mid-amp*1.45-12);
+}
+
+/* ───────────────────────── MASTER LOOP ───────────────────────── */
+let lastTime=performance.now();
+function masterLoop(now){
+  const dt=Math.min(0.05,(now-lastTime)/1000);
+  lastTime=now;
+  if(activeTab==='mol'){updateMol();drawMol();}
+  else if(activeTab==='cir')drawCir(dt);
+  else if(activeTab==='wav')drawWav(dt);
+  requestAnimationFrame(masterLoop);
+}
+
+window.addEventListener('load',()=>{
+  resizeMol();
+  selectMol('h2o');
+  updateCirReadouts();
+  updateWavReadouts();
+  requestAnimationFrame(masterLoop);
+});
 })();
 </script>
 {% endblock %}

@@ -40,7 +40,7 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 | **Contests** | Scheduled competitive exams, live leaderboards, results & stats |
 | **Study Notes** | Rich text + PDF notes, bookmarks, scroll-based read-progress tracking |
 | **Note Comments** | Moderated student discussion threads on every note |
-| **Practical Lab** | YouTube-integrated video lessons by subject and class |
+| **Practical Lab** | Interactive simulations (molecule builder, circuit lab, wave lab) + YouTube video lessons by subject and class |
 | **Syllabus** | Board-wise structured syllabus viewer |
 | **Subscriptions** | Free / Basic / Premium tiers with payment simulation |
 | **Notifications** | Real-time bilingual (বাংলা/English) notification system |

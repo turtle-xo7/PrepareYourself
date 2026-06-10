@@ -57,7 +57,7 @@
             crossorigin="anonymous"></script>
     <script defer
             src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-            integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMofbd/ugpvmd2Vved"
+            integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"
             crossorigin="anonymous"></script>
 
     {% block extra_head %}{% endblock %}
@@ -498,5 +498,7 @@
     })();
     </script>
     {% endif %}
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>
