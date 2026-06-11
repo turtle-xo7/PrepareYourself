@@ -1093,13 +1093,33 @@ html.dark .opt-letter {
   border-color: #475569 !important;
   color: #94a3b8 !important;
 }
+/* State classes must outrank the flat .mcq-btn repaint above, or answer
+   feedback (selected/correct/wrong) is invisible in dark mode */
+html.dark .mcq-btn.opt-selected {
+  background: rgba(13,148,136,0.16) !important;
+  border-color: #0d9488 !important;
+  color: #5eead4 !important;
+}
+html.dark .mcq-btn.opt-correct {
+  background: rgba(34,197,94,0.14) !important;
+  border-color: #22c55e !important;
+  color: #86efac !important;
+}
+html.dark .mcq-btn.opt-wrong {
+  background: rgba(239,68,68,0.14) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+html.dark .opt-selected .opt-letter { background: #059669 !important; border-color: #059669 !important; color: #fff !important; }
+html.dark .opt-correct  .opt-letter { background: #22c55e !important; border-color: #22c55e !important; color: #fff !important; }
+html.dark .opt-wrong    .opt-letter { background: #ef4444 !important; border-color: #ef4444 !important; color: #fff !important; }
 html.dark .nav-dot {
   background: #263348 !important;
   color: #94a3b8 !important;
 }
 html.dark .nav-dot:hover {
   background: rgba(5,150,105,0.2) !important;
-  color: #60a5fa !important;
+  color: #2dd4bf !important;
 }
 
 /* ── Hero headline shine (animated gradient sweep) ── */

@@ -3,7 +3,7 @@
 {% block content %}
 
 <!-- ── Page Header ── -->
-<div class="relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #059669 50%, #0d9488 100%); min-height: 160px; display:flex; align-items:center;">
+<div class="relative overflow-hidden" style="background: linear-gradient(130deg, #022c22 0%, #064e3b 38%, #047857 72%, #0d9488 100%); min-height: 160px; display:flex; align-items:center;">
     <div class="hero-dot-grid absolute inset-0 opacity-20 pointer-events-none"></div>
     <div class="float-shape" style="width:260px;height:260px;top:-80px;right:-40px;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);animation:floatY 14s ease-in-out infinite;"></div>
     <div class="float-shape" style="width:140px;height:140px;bottom:-50px;left:5%;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);animation:floatY 10s ease-in-out infinite reverse;"></div>
@@ -16,14 +16,14 @@
                 <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight" data-aos="fade-up" data-aos-delay="60">
                     {% if LANG == 'en' %}Question Bank{% else %}প্রশ্ন ব্যাংক{% endif %}
                 </h1>
-                <p class="text-blue-100 mt-1 text-sm" data-aos="fade-up" data-aos-delay="120">
+                <p class="text-emerald-100 mt-1 text-sm" data-aos="fade-up" data-aos-delay="120">
                     {% if LANG == 'en' %}Filter questions from all boards by year, subject, and class.{% else %}সব board এর প্রশ্ন — year, subject, class দিয়ে filter করো।{% endif %}
                 </p>
             </div>
             <div class="flex gap-3 items-center" data-aos="fade-left" data-aos-delay="100">
                 <div class="bg-white/10 border border-white/20 rounded-2xl px-4 py-2 text-center backdrop-blur-sm">
                     <div class="text-xl font-extrabold text-white">{{ questions|length }}</div>
-                    <div class="text-xs text-blue-200">{% if LANG == 'en' %}Questions{% else %}প্রশ্ন{% endif %}</div>
+                    <div class="text-xs text-emerald-200">{% if LANG == 'en' %}Questions{% else %}প্রশ্ন{% endif %}</div>
                 </div>
                 {% if is_teacher %}
                 <a href="{% url 'manage_questions' %}"
@@ -31,7 +31,7 @@
                     📋 {% if LANG == 'en' %}Manage Questions{% else %}প্রশ্ন ম্যানেজ{% endif %}
                 </a>
                 <a href="{% url 'question_add' %}"
-                   class="flex items-center gap-2 bg-white text-blue-700 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-blue-50 transition shadow-sm">
+                   class="qb-cta-light flex items-center gap-2 bg-white text-emerald-800 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-emerald-50 transition shadow-sm">
                     + {% if LANG == 'en' %}Add Question{% else %}প্রশ্ন যোগ করো{% endif %}
                 </a>
                 {% endif %}
@@ -49,28 +49,28 @@
                 {% if LANG == 'en' %}Filter{% else %}ফিল্টার{% endif %}
             </div>
             <select name="board" onchange="this.form.submit()"
-                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition cursor-pointer">
                 <option value="">{% if LANG == 'en' %}All Boards{% else %}সব বোর্ড{% endif %}</option>
                 {% for b in boards %}
                 <option value="{{ b.pk }}" {% if request.GET.board == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
                 {% endfor %}
             </select>
             <select name="class" onchange="this.form.submit()"
-                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition cursor-pointer">
                 <option value="">{% if LANG == 'en' %}All Classes{% else %}সব শ্রেণি{% endif %}</option>
                 {% for c in classes %}
                 <option value="{{ c.pk }}" {% if request.GET.class == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
                 {% endfor %}
             </select>
             <select name="subject" onchange="this.form.submit()"
-                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition cursor-pointer">
                 <option value="">{% if LANG == 'en' %}All Subjects{% else %}সব বিষয়{% endif %}</option>
                 {% for s in subjects %}
                 <option value="{{ s.pk }}" {% if request.GET.subject == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
                 {% endfor %}
             </select>
             <select name="year" onchange="this.form.submit()"
-                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition cursor-pointer">
                 <option value="">{% if LANG == 'en' %}All Years{% else %}সব বছর{% endif %}</option>
                 {% for y in years %}
                 <option value="{{ y }}" {% if request.GET.year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
@@ -79,7 +79,7 @@
 
             <!-- Type -->
             <select name="type" onchange="this.form.submit()"
-                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition cursor-pointer">
                 <option value="">{% if LANG == 'en' %}All Types{% else %}সব ধরন{% endif %}</option>
                 <option value="MCQ" {% if sel_type == 'MCQ' %}selected{% endif %}>MCQ</option>
                 <option value="WRITTEN" {% if sel_type == 'WRITTEN' %}selected{% endif %}>{% if LANG == 'en' %}Written{% else %}সৃজনশীল{% endif %}</option>
@@ -88,7 +88,7 @@
             <!-- Status (logged-in students) -->
             {% if request.user.is_authenticated and not is_teacher %}
             <select name="status" onchange="this.form.submit()"
-                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition cursor-pointer">
+                class="filter-select border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition cursor-pointer">
                 <option value="">{% if LANG == 'en' %}Any Status{% else %}যেকোনো অবস্থা{% endif %}</option>
                 <option value="unsolved" {% if sel_status == 'unsolved' %}selected{% endif %}>{% if LANG == 'en' %}Unsolved{% else %}অমীমাংসিত{% endif %}</option>
                 <option value="wrong" {% if sel_status == 'wrong' %}selected{% endif %}>{% if LANG == 'en' %}Got wrong before{% else %}আগে ভুল করেছি{% endif %}</option>
@@ -136,8 +136,8 @@
         <div class="hidden lg:block w-60 shrink-0">
             <div class="bg-white rounded-2xl border border-gray-100 p-4 sticky top-32" style="box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
                 <div class="flex items-center gap-2 mb-4">
-                    <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    <div class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                     </div>
                     <h2 class="text-sm font-bold text-gray-800">{% if LANG == 'en' %}Navigator{% else %}নেভিগেটর{% endif %}</h2>
                 </div>
@@ -151,7 +151,7 @@
                 <div class="grid grid-cols-5 gap-1.5" id="nav-grid">
                     {% for q in questions %}
                     <button onclick="scrollToQ({{ forloop.counter }})" id="nav-{{ forloop.counter }}"
-                        class="nav-dot w-8 h-8 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">
+                        class="nav-dot w-8 h-8 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500 hover:bg-teal-100 hover:text-teal-700 transition-all duration-200">
                         {{ forloop.counter }}
                     </button>
                     {% endfor %}
@@ -160,7 +160,7 @@
                 <div class="mt-4 pt-4 border-t border-gray-100">
                     <div class="flex justify-between text-xs text-gray-500 mb-2">
                         <span class="font-medium">{% if LANG == 'en' %}Progress{% else %}অগ্রগতি{% endif %}</span>
-                        <span id="progress-text" class="font-semibold text-blue-600">0 / {{ questions|length }}</span>
+                        <span id="progress-text" class="font-semibold text-teal-600">0 / {{ questions|length }}</span>
                     </div>
                     <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                         <div id="progress-bar" class="h-2 rounded-full transition-all duration-500"
@@ -294,14 +294,14 @@
                         </span>
                         <a href="{% url 'written_question_practice' q.pk %}"
                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                           style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
+                           style="background: linear-gradient(135deg, #047857, #0d9488);">
                             ✍️ {% if LANG == 'en' %}View Submission →{% else %}উত্তর দেখো →{% endif %}
                         </a>
                     </div>
                     {% else %}
                     <a href="{% url 'written_question_practice' q.pk %}"
                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                       style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
+                       style="background: linear-gradient(135deg, #047857, #0d9488);">
                         ✍️ {% if LANG == 'en' %}Practice this Question →{% else %}এই প্রশ্নে Practice করো →{% endif %}
                     </a>
                     {% endif %}
@@ -331,7 +331,7 @@
                 <div class="text-5xl mb-4">🔍</div>
                 <p class="text-gray-700 font-semibold text-lg">{% if LANG == 'en' %}No questions found{% else %}কোনো question পাওয়া যায়নি{% endif %}</p>
                 <p class="text-gray-400 text-sm mt-1">{% if LANG == 'en' %}Try changing the filters and search again.{% else %}Filter পরিবর্তন করে আবার চেষ্টা করো।{% endif %}</p>
-                <a href="{% url 'question_bank' %}" class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline">
+                <a href="{% url 'question_bank' %}" class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-teal-600 hover:underline">
                     {% if LANG == 'en' %}View all questions →{% else %}সব প্রশ্ন দেখো →{% endif %}
                 </a>
             </div>
@@ -341,7 +341,7 @@
             <div class="flex items-center justify-center gap-3 pt-6" id="qb-pagination">
                 {% if page_obj.has_previous %}
                 <a href="?{{ base_qs }}&amp;page={{ page_obj.previous_page_number }}"
-                   class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-400 transition">
+                   class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-teal-400 transition">
                     ← {% if LANG == 'en' %}Previous{% else %}আগের{% endif %}
                 </a>
                 {% endif %}
@@ -350,7 +350,7 @@
                 </span>
                 {% if page_obj.has_next %}
                 <a href="?{{ base_qs }}&amp;page={{ page_obj.next_page_number }}"
-                   class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-400 transition">
+                   class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-teal-400 transition">
                     {% if LANG == 'en' %}Next{% else %}পরের{% endif %} →
                 </a>
                 {% endif %}
@@ -375,8 +375,8 @@
 
 /* MCQ option states */
 .opt-default { background: white; color: #374151; }
-.opt-default:hover:not(:disabled) { background: #f8faff; border-color: #93c5fd; }
-.opt-selected { background: #eff6ff; border-color: #059669 !important; color: #1d4ed8; }
+.opt-default:hover:not(:disabled) { background: #f0fdfa; border-color: #5eead4; }
+.opt-selected { background: #f0fdfa; border-color: #059669 !important; color: #0f766e; }
 .opt-selected .opt-letter { background: #059669; border-color: #059669; color: white; }
 .opt-correct { background: #f0fdf4; border-color: #22c55e !important; color: #15803d; }
 .opt-correct .opt-letter { background: #22c55e; border-color: #22c55e; color: white; }
@@ -388,6 +388,22 @@
 
 /* Check button active hover */
 .check-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(5,150,105,0.35); }
+
+/* ── Dark mode (page-specific classes; utilities are repainted globally in styles.css) ── */
+html.dark .tag-board   { background: rgba(59,130,246,0.16);  color: #93c5fd; }
+html.dark .tag-class   { background: rgba(148,163,184,0.14); color: #cbd5e1; }
+html.dark .tag-subject { background: rgba(139,92,246,0.16);  color: #c4b5fd; }
+html.dark .tag-year    { background: rgba(34,197,94,0.16);   color: #86efac; }
+html.dark .diff-easy   { background: rgba(34,197,94,0.16);   color: #86efac; }
+html.dark .diff-medium { background: rgba(234,179,8,0.16);   color: #fde047; }
+html.dark .diff-hard   { background: rgba(239,68,68,0.16);   color: #fca5a5; }
+html.dark .qcard:hover { box-shadow: 0 8px 32px rgba(13,148,136,0.18); border-color: rgba(13,148,136,0.35); }
+/* MCQ option dark states live in styles.css next to the .mcq-btn dark repaint */
+html.dark .opt-default:hover:not(:disabled) { border-color: #2dd4bf !important; }
+html.dark .qcard .border-green-100 { border-color: rgba(34,197,94,0.3) !important; }
+html.dark .qcard .border-red-100   { border-color: rgba(239,68,68,0.3) !important; }
+/* styles.css repaints .bg-white to slate in dark (!important) — keep this CTA white on the teal hero */
+html.dark .qb-cta-light { background-color: #fff !important; color: #065f46 !important; }
 </style>
 
 <script>
@@ -398,9 +414,9 @@ let _answered = 0;
 function scrollToQ(qid) {
     const el = document.getElementById('q-' + qid);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('ring-2', 'ring-blue-400'));
+    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('ring-2', 'ring-teal-400'));
     const dot = document.getElementById('nav-' + qid);
-    if (dot) dot.classList.add('ring-2', 'ring-blue-400');
+    if (dot) dot.classList.add('ring-2', 'ring-teal-400');
 }
 
 function selectOpt(qid, btn, chosen, correct) {
