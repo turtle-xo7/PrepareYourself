@@ -1,0 +1,31 @@
+{% comment %}
+Reusable empty-state panel.
+Params (via {% include ... with ... %}):
+  icon          emoji shown in the soft chip (default 📭)
+  title_en / title_bn        headline (required)
+  sub_en / sub_bn            optional supporting line
+  cta_url + cta_label_en / cta_label_bn   optional action button
+  tone          'teal' (default) | 'amber' | 'slate' — chip + button colour
+  compact       truthy → tighter padding for table cells / small cards
+{% endcomment %}
+<div class="text-center {% if compact %}py-8 px-4{% else %}py-14 px-6{% endif %}">
+  <div class="{% if compact %}w-10 h-10 text-lg rounded-xl{% else %}w-14 h-14 text-2xl rounded-2xl{% endif %} flex items-center justify-center mx-auto
+              {% if tone == 'amber' %}bg-amber-50{% elif tone == 'slate' %}bg-gray-100{% else %}bg-teal-50{% endif %}">
+    {{ icon|default:"📭" }}
+  </div>
+  <p class="font-bold text-gray-700 {% if compact %}text-sm mt-2.5{% else %}text-base mt-4{% endif %}">
+    {% if LANG == 'en' %}{{ title_en }}{% else %}{{ title_bn|default:title_en }}{% endif %}
+  </p>
+  {% if sub_en %}
+  <p class="text-gray-400 {% if compact %}text-xs mt-1{% else %}text-sm mt-1.5{% endif %} font-medium">
+    {% if LANG == 'en' %}{{ sub_en }}{% else %}{{ sub_bn|default:sub_en }}{% endif %}
+  </p>
+  {% endif %}
+  {% if cta_url %}
+  <a href="{{ cta_url }}"
+     class="inline-flex items-center gap-1.5 {% if compact %}mt-3 text-xs px-3.5 py-1.5{% else %}mt-5 text-sm px-4 py-2{% endif %} font-bold text-white rounded-xl transition hover:opacity-90"
+     style="background:linear-gradient(135deg,{% if tone == 'amber' %}#d97706,#b45309{% else %}#059669,#0d9488{% endif %});">
+    {% if LANG == 'en' %}{{ cta_label_en }}{% else %}{{ cta_label_bn|default:cta_label_en }}{% endif %} →
+  </a>
+  {% endif %}
+</div>

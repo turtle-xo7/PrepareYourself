@@ -95,7 +95,7 @@
         {% if history %}
             <canvas id="ratingChart" height="100"></canvas>
         {% else %}
-            <p class="text-sm text-gray-500 text-center py-8">No rated contests yet. Join one to start building your history.</p>
+            {% url 'contest_list' as cl_url2 %}{% include 'includes/empty_state.html' with icon='📈' compact=1 tone='amber' title_en='No rated contests yet' title_bn='এখনো কোনো rated contest নেই' sub_en='Your rating graph starts with your first rated contest.' sub_bn='প্রথম rated contest দিলেই rating graph শুরু হবে।' cta_url=cl_url2 cta_label_en='Join one' cta_label_bn='যোগ দাও' %}
         {% endif %}
     </div>
 
@@ -167,7 +167,7 @@
                     <td class="text-right text-sm">{% if s.percentile is not None %}{{ s.percentile|floatformat:1 }}{% else %}—{% endif %}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="text-center py-12 text-gray-400">No contest history yet.</td></tr>
+                <tr><td colspan="6">{% url 'contest_list' as cl_url %}{% include 'includes/empty_state.html' with icon='🚀' tone='amber' title_en='No contest history yet' title_bn='এখনো contest history নেই' sub_en='Join your first contest to start building rating, coins and badges.' sub_bn='Rating, coin আর badge পেতে প্রথম contest এ যোগ দাও।' cta_url=cl_url cta_label_en='Browse contests' cta_label_bn='Contest দেখো' %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

@@ -148,7 +148,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="text-center py-12 text-gray-400">No submissions yet.</td></tr>
+                <tr><td colspan="6">{% include 'includes/empty_state.html' with icon='🏆' tone='amber' title_en='No submissions yet' title_bn='এখনো কোনো জমা নেই' sub_en='Standings appear live as participants submit.' sub_bn='অংশগ্রহণকারীরা জমা দিলে live standings দেখা যাবে।' %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

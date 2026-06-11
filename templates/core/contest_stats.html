@@ -96,7 +96,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-center text-gray-400 py-8">{% if LANG == 'en' %}No question data.{% else %}কোনো question data নেই।{% endif %}</p>
+        {% include 'includes/empty_state.html' with icon='📈' compact=1 tone='amber' title_en='No question data yet' title_bn='এখনো কোনো question data নেই' sub_en='Per-question accuracy appears after the first submissions.' sub_bn='প্রথম জমার পর প্রশ্নভিত্তিক হিসাব দেখা যাবে।' %}
         {% endif %}
     </div>
 

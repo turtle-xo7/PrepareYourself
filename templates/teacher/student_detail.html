@@ -106,7 +106,7 @@
           {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-400 text-sm text-center py-6">{% if LANG == 'en' %}No progress.{% else %}কোনো progress নেই।{% endif %}</p>
+        {% include 'includes/empty_state.html' with icon='📊' compact=1 title_en='No practice activity yet' title_bn='এখনো কোনো অনুশীলন নেই' sub_en='Subject progress shows up after the student answers questions.' sub_bn='শিক্ষার্থী প্রশ্নের উত্তর দিলে অগ্রগতি দেখা যাবে।' %}
         {% endif %}
       </div>
 
@@ -272,7 +272,7 @@
           </div>
         </div>
         {% empty %}
-        <div class="px-6 py-8 text-center text-gray-400">{% if LANG == 'en' %}No questions attempted.{% else %}কোনো প্রশ্ন করা হয়নি।{% endif %}</div>
+        {% include 'includes/empty_state.html' with icon='📝' compact=1 title_en='No questions attempted' title_bn='কোনো প্রশ্নের চেষ্টা হয়নি' sub_en='Recent attempts will be listed here.' sub_bn='সাম্প্রতিক প্রচেষ্টা এখানে দেখা যাবে।' %}
         {% endfor %}
       </div>
     </div>
@@ -305,7 +305,7 @@
           </div>
         </div>
         {% empty %}
-        <div class="px-6 py-8 text-center text-gray-400">{% if LANG == 'en' %}No feedback sent yet.{% else %}এখনো কোনো feedback পাঠানো হয়নি।{% endif %}</div>
+        {% include 'includes/empty_state.html' with icon='💬' compact=1 title_en='No feedback sent yet' title_bn='এখনো কোনো feedback পাঠানো হয়নি' sub_en='Feedback you write for this student will appear here.' sub_bn='এই শিক্ষার্থীকে দেওয়া feedback এখানে থাকবে।' %}
         {% endfor %}
       </div>
     </div>

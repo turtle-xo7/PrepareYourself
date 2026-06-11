@@ -375,7 +375,7 @@
         <span class="text-sm font-black" style="color:#047857;">৳{{ pay.amount }}</span>
       </div>
       {% empty %}
-      <p class="text-sm text-gray-400 py-6 text-center">No completed payments yet.</p>
+      {% include 'includes/empty_state.html' with icon='💳' compact=1 title_en='No completed payments yet' sub_en='Successful subscription payments will be listed here.' %}
       {% endfor %}
     </div>
   </div>
@@ -503,8 +503,8 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="px-5 py-14 text-center">
-              <p class="text-gray-400 font-medium" style="font-size:13px;">No users match.</p>
+            <td colspan="6">
+              {% include 'includes/empty_state.html' with icon='🔎' title_en='No users match' sub_en='Try a different search, or clear the role and plan filters.' %}
             </td>
           </tr>
           {% endfor %}

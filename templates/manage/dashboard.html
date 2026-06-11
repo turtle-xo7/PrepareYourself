@@ -275,10 +275,7 @@
         </div>
       </div>
       {% empty %}
-      <div class="py-12 text-center">
-        <p class="text-gray-400 text-sm font-semibold">No questions yet.</p>
-        <a href="{% url 'question_add' %}" class="mt-2 inline-block text-teal-600 text-sm font-bold hover:underline">Add the first one →</a>
-      </div>
+      {% url 'question_add' as qa_url %}{% include 'includes/empty_state.html' with icon='📝' compact=1 title_en='No questions yet' sub_en='Recently added questions show up here.' cta_url=qa_url cta_label_en='Add the first one' %}
       {% endfor %}
     </div>
   </div>

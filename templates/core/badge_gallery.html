@@ -80,7 +80,7 @@
         {% endfor %}
     </div>
     {% empty %}
-    <p class="text-center text-gray-500 py-12">No badges configured yet.</p>
+    {% include 'includes/empty_state.html' with icon='🎖️' tone='amber' title_en='No badges configured yet' title_bn='এখনো কোনো badge নেই' sub_en='Badges appear here once the contest team defines them.' sub_bn='Badge define করা হলে এখানে দেখা যাবে।' %}
     {% endfor %}
 
 </div>

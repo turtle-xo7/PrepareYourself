@@ -583,7 +583,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="10" class="px-5 py-12 text-center text-sm font-semibold text-gray-400">{% if LANG == 'en' %}No students found.{% else %}কোনো শিক্ষার্থী নেই।{% endif %}</td></tr>
+          <tr><td colspan="10">{% include 'includes/empty_state.html' with icon='🎓' title_en='No students found' title_bn='কোনো শিক্ষার্থী নেই' sub_en='Students appear here once they sign up and start practising.' sub_bn='শিক্ষার্থীরা sign up করে অনুশীলন শুরু করলে এখানে দেখা যাবে।' %}</td></tr>
           {% endfor %}
         </tbody>
       </table>
