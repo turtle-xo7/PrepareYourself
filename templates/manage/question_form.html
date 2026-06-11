@@ -31,7 +31,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Board</label>
-            <select name="board" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="board" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
               <option value="">— Select Board —</option>
               {% for b in boards %}
               <option value="{{ b.pk }}" {% if question.board.pk == b.pk %}selected{% endif %}>{{ b.name }}</option>
@@ -41,7 +41,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-            <select name="subject" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="subject" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
               <option value="">— Select Subject —</option>
               {% for s in subjects %}
               <option value="{{ s.pk }}" {% if question.subject.pk == s.pk %}selected{% endif %}>{{ s.name }}</option>
@@ -51,7 +51,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
-            <select name="class_obj" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="class_obj" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
               <option value="">— Select Class —</option>
               {% for c in classes %}
               <option value="{{ c.pk }}" {% if question.class_obj.pk == c.pk %}selected{% endif %}>{{ c.name }}</option>
@@ -61,7 +61,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
-            <select name="year" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="year" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
               <option value="">— Select Year —</option>
               {% for y in years %}
               <option value="{{ y }}" {% if question.year == y %}selected{% endif %}>{{ y }}</option>
@@ -71,7 +71,7 @@
 
           <div class="col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
-            <select name="question_type" id="q_type" onchange="toggleType()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="question_type" id="q_type" onchange="toggleType()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
               <option value="MCQ" {% if question.question_type == 'MCQ' %}selected{% endif %}>MCQ</option>
               <option value="WRITTEN" {% if question.question_type == 'WRITTEN' or not question %}selected{% endif %}>Written (CQ)</option>
             </select>
@@ -82,7 +82,7 @@
         <div id="cq_question_text_wrap">
           <label class="block text-sm font-medium text-gray-700 mb-1">{% if LANG == 'en' %}Stimulus / Question Text{% else %}উদ্দীপক / Question Text{% endif %} <span class="text-red-400" id="qt_star">*</span></label>
           <textarea name="question_text" id="cq_question_text" rows="3"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             placeholder="{% if LANG == 'en' %}Write the CQ stimulus (for MCQs, add each question separately below){% else %}CQ-র উদ্দীপক লিখুন (MCQ-র জন্য প্রতিটি প্রশ্ন আলাদা ভাবে নিচে যোগ করুন){% endif %}">{{ question.question_text }}</textarea>
         </div>
       </div>
@@ -167,7 +167,7 @@ Option D</pre>
             </h2>
             {% if action == 'Add' %}
             <button type="button" onclick="addMCQ()"
-                    class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition">
+                    class="text-sm bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg font-medium transition">
               + Add MCQ
             </button>
             {% endif %}
@@ -198,14 +198,14 @@ Option D</pre>
           </div>
           {% endif %}
           <input type="file" name="stimulus_image" accept="image/*,.pdf,.doc,.docx"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
         </div>
 
         <!-- Answer hint -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Answer Hint</label>
           <textarea name="answer_hint" rows="3"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             placeholder="{% if LANG == 'en' %}Write an answer hint...{% else %}উত্তরের hint লিখুন...{% endif %}">{{ question.answer_hint }}</textarea>
         </div>
 
@@ -228,12 +228,12 @@ Option D</pre>
           </div>
           {% endif %}
           <input type="file" name="solution_image" accept="image/*,.pdf,.doc,.docx"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
         </div>
       </div>
 
       <div class="flex gap-3">
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700">
+        <button type="submit" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-teal-700">
           {% if LANG == 'en' %}{{ action }}{% else %}{{ action }} করো{% endif %}
         </button>
         <a href="{% url 'manage_questions' %}" class="px-6 py-2.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50">
@@ -255,28 +255,28 @@ Option D</pre>
     <div class="mb-3">
       <label class="block text-xs font-medium text-gray-600 mb-1">{% if LANG == 'en' %}Question{% else %}প্রশ্ন{% endif %} <span class="text-red-400">*</span></label>
       <textarea name="mcq_question_text" rows="2" placeholder="{% if LANG == 'en' %}Write the MCQ question…{% else %}MCQ প্রশ্নটি লিখুন…{% endif %}"
-                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none bg-white"></textarea>
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 resize-none bg-white"></textarea>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">{% if LANG == 'en' %}a{% else %}ক{% endif %}</span>)</label>
         <input type="text" name="mcq_option1" placeholder="{% if LANG == 'en' %}a{% else %}ক{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="0">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="0">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">{% if LANG == 'en' %}b{% else %}খ{% endif %}</span>)</label>
         <input type="text" name="mcq_option2" placeholder="{% if LANG == 'en' %}b{% else %}খ{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="1">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="1">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">{% if LANG == 'en' %}c{% else %}গ{% endif %}</span>)</label>
         <input type="text" name="mcq_option3" placeholder="{% if LANG == 'en' %}c{% else %}গ{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="2">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="2">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">{% if LANG == 'en' %}d{% else %}ঘ{% endif %}</span>)</label>
         <input type="text" name="mcq_option4" placeholder="{% if LANG == 'en' %}d{% else %}ঘ{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="3">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="3">
       </div>
     </div>
     <div class="flex items-center gap-4 flex-wrap">

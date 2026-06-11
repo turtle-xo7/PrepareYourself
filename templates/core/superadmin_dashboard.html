@@ -2,6 +2,7 @@
 {% block title %}Super Admin — Prepare Yourself{% endblock %}
 {% block content %}
 <style>
+  .sa-page { background:#f0f2f5; }
   .sa-card { background:#fff; border-radius:18px; border:1px solid #e8edf2; box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04); }
   .sa-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
   .sa-num { font-size:2.25rem; font-weight:900; line-height:1; }
@@ -15,9 +16,44 @@
   .sa-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:7px; font-size:11px; font-weight:700; }
   tr.sa-tr { transition:background .12s; }
   tr.sa-tr:hover { background:#f9fafb; }
+  .sa-strip { border-bottom:1px solid #e8edf2; }
+  .sa-strip-blue   { background:linear-gradient(to right,#eff6ff,#fff); }
+  .sa-strip-purple { background:linear-gradient(to right,#faf5ff,#fff); }
+  .sa-strip-orange { background:linear-gradient(to right,#fff7ed,#fff); }
+  .sa-strip-slate  { background:linear-gradient(to right,#f8fafc,#fff); }
+  .sa-filterbar { border-bottom:1px solid #e8edf2; background:#fcfcfd; }
+  .sa-thead { background:#f8fafc; border-bottom:1px solid #e8edf2; }
+  .sa-foot { border-top:1px solid #e8edf2; }
+  .sa-tile { border-radius:1rem; border:1px solid; }
+  .sa-tile-slate  { background:#f8fafc; border-color:#e2e8f0; }
+  .sa-tile-blue   { background:#eff6ff; border-color:#bfdbfe; }
+  .sa-tile-purple { background:#faf5ff; border-color:#e9d5ff; }
+  .sa-tile-green  { background:#f0fdf4; border-color:#bbf7d0; }
+
+  /* ── Dark mode ── */
+  html.dark .sa-page { background:#0f172a; }
+  html.dark .sa-card { background:#1e293b; border-color:#334155; box-shadow:0 1px 2px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.3); }
+  html.dark .sa-label { color:#64748b; }
+  html.dark .sa-row { border-bottom-color:#283548; }
+  html.dark .op-btn:hover { background:#243044; }
+  html.dark .op-label { color:#cbd5e1; }
+  html.dark .op-btn:hover .op-label { color:#f1f5f9; }
+  html.dark tr.sa-tr:hover { background:#243044; }
+  html.dark .sa-strip { border-bottom-color:#334155; }
+  html.dark .sa-strip-blue   { background:linear-gradient(to right,rgba(59,130,246,.07),transparent); }
+  html.dark .sa-strip-purple { background:linear-gradient(to right,rgba(139,92,246,.07),transparent); }
+  html.dark .sa-strip-orange { background:linear-gradient(to right,rgba(249,115,22,.07),transparent); }
+  html.dark .sa-strip-slate  { background:linear-gradient(to right,rgba(148,163,184,.06),transparent); }
+  html.dark .sa-filterbar { border-bottom-color:#334155; background:#16202f; }
+  html.dark .sa-thead { background:#16202f; border-bottom-color:#334155; }
+  html.dark .sa-foot { border-top-color:#334155; }
+  html.dark .sa-tile-slate  { background:rgba(148,163,184,.08); border-color:#334155; }
+  html.dark .sa-tile-blue   { background:rgba(59,130,246,.10);  border-color:rgba(59,130,246,.3); }
+  html.dark .sa-tile-purple { background:rgba(139,92,246,.10);  border-color:rgba(139,92,246,.3); }
+  html.dark .sa-tile-green  { background:rgba(34,197,94,.10);   border-color:rgba(34,197,94,.3); }
 </style>
 
-<div style="background:#f0f2f5; min-height:calc(100vh - 64px);">
+<div class="sa-page" style="min-height:calc(100vh - 64px);">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
 
   <!-- ══════════════════════════════════
@@ -84,24 +120,24 @@
       <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
       </div>
-      <p class="sa-num" style="color:#047857;">{{ total_students }}</p>
-      <p class="sa-label mt-2" style="color:#93c5fd;">Students</p>
+      <p class="sa-num text-emerald-600">{{ total_students }}</p>
+      <p class="sa-label mt-2">Students</p>
     </div>
 
     <div class="sa-card p-5" style="border-left:3px solid #0d9488;">
       <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center mb-4">
         <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2"/></svg>
       </div>
-      <p class="sa-num" style="color:#0f766e;">{{ total_teachers }}</p>
-      <p class="sa-label mt-2" style="color:#c4b5fd;">Teachers</p>
+      <p class="sa-num text-teal-600">{{ total_teachers }}</p>
+      <p class="sa-label mt-2">Teachers</p>
     </div>
 
-    <div class="sa-card p-5" style="border-left:3px solid #10b981;background:linear-gradient(145deg,#f0fdf4,#fff);">
+    <div class="sa-card p-5" style="border-left:3px solid #10b981;">
       <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mb-4">
         <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </div>
-      <p class="sa-num" style="color:#065f46;">{{ paid_users }}</p>
-      <p class="sa-label mt-2" style="color:#6ee7b7;">Paid Users</p>
+      <p class="sa-num text-emerald-600">{{ paid_users }}</p>
+      <p class="sa-label mt-2">Paid Users</p>
     </div>
   </div>
 
@@ -125,17 +161,17 @@
       </div>
 
       <div class="grid grid-cols-3 gap-3 mb-5">
-        <div class="text-center p-4 rounded-2xl" style="background:#f8fafc;border:1px solid #e2e8f0;">
+        <div class="text-center p-4 sa-tile sa-tile-slate">
           <p class="text-3xl font-black text-gray-700 leading-none">{{ free_users }}</p>
           <p class="text-xs font-bold text-gray-400 mt-2">FREE</p>
           {% if total_users > 0 %}<p class="text-xs text-gray-400 mt-0.5 font-semibold">{% widthratio free_users total_users 100 %}%</p>{% endif %}
         </div>
-        <div class="text-center p-4 rounded-2xl" style="background:#eff6ff;border:1px solid #bfdbfe;">
+        <div class="text-center p-4 sa-tile sa-tile-blue">
           <p class="text-3xl font-black text-blue-600 leading-none">{{ basic_users }}</p>
           <p class="text-xs font-bold text-blue-400 mt-2">BASIC</p>
           {% if total_users > 0 %}<p class="text-xs text-blue-400 mt-0.5 font-semibold">{% widthratio basic_users total_users 100 %}%</p>{% endif %}
         </div>
-        <div class="text-center p-4 rounded-2xl" style="background:#faf5ff;border:1px solid #e9d5ff;">
+        <div class="text-center p-4 sa-tile sa-tile-purple">
           <p class="text-3xl font-black text-purple-600 leading-none">{{ premium_users }}</p>
           <p class="text-xs font-bold text-purple-400 mt-2">PREMIUM</p>
           {% if total_users > 0 %}<p class="text-xs text-purple-400 mt-0.5 font-semibold">{% widthratio premium_users total_users 100 %}%</p>{% endif %}
@@ -184,12 +220,12 @@
           <span class="text-xl font-black text-gray-900">{{ total_contests }}</span>
         </a>
       </div>
-      <div class="grid grid-cols-2 gap-2 mt-4 pt-4" style="border-top:1px solid #f1f5f9;">
-        <a href="{% url 'manage_boards' %}" class="flex flex-col items-center py-3 rounded-xl hover:bg-gray-50 transition" style="background:#f8fafc;">
+      <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-gray-100">
+        <a href="{% url 'manage_boards' %}" class="flex flex-col items-center py-3 rounded-xl bg-slate-50 hover:bg-gray-50 transition">
           <span class="text-xl font-black text-gray-700">{{ total_boards }}</span>
           <span class="sa-label mt-1">Boards</span>
         </a>
-        <a href="{% url 'manage_subjects' %}" class="flex flex-col items-center py-3 rounded-xl hover:bg-gray-50 transition" style="background:#f8fafc;">
+        <a href="{% url 'manage_subjects' %}" class="flex flex-col items-center py-3 rounded-xl bg-slate-50 hover:bg-gray-50 transition">
           <span class="text-xl font-black text-gray-700">{{ total_subjects }}</span>
           <span class="sa-label mt-1">Subjects</span>
         </a>
@@ -204,7 +240,7 @@
 
     <!-- 1. Content Creation -->
     <div class="sa-card overflow-hidden">
-      <div class="px-5 py-3.5" style="background:linear-gradient(to right,#eff6ff,#fff);border-bottom:1px solid #e8edf2;">
+      <div class="px-5 py-3.5 sa-strip sa-strip-blue">
         <p class="sa-label" style="color:#059669;">Content Creation</p>
       </div>
       <div class="p-3 flex flex-col gap-0.5">
@@ -237,7 +273,7 @@
 
     <!-- 2. Assessment & Curriculum -->
     <div class="sa-card overflow-hidden">
-      <div class="px-5 py-3.5" style="background:linear-gradient(to right,#faf5ff,#fff);border-bottom:1px solid #e8edf2;">
+      <div class="px-5 py-3.5 sa-strip sa-strip-purple">
         <p class="sa-label" style="color:#0f766e;">Assessment &amp; Curriculum</p>
       </div>
       <div class="p-3 flex flex-col gap-0.5">
@@ -272,7 +308,7 @@
 
     <!-- 3. Administration -->
     <div class="sa-card overflow-hidden">
-      <div class="px-5 py-3.5" style="background:linear-gradient(to right,#fff7ed,#fff);border-bottom:1px solid #e8edf2;">
+      <div class="px-5 py-3.5 sa-strip sa-strip-orange">
         <p class="sa-label" style="color:#d97706;">Administration</p>
       </div>
       <div class="p-3 flex flex-col gap-0.5">
@@ -314,11 +350,11 @@
     <div class="sa-card p-6 lg:col-span-2">
       <p class="sa-label mb-4">Revenue</p>
       <div class="grid grid-cols-2 gap-3">
-        <div class="text-center p-4 rounded-2xl" style="background:#f0fdf4;border:1px solid #bbf7d0;">
-          <p class="text-3xl font-black leading-none" style="color:#065f46;">৳{{ total_revenue }}</p>
-          <p class="text-xs font-bold mt-2" style="color:#34d399;">ALL TIME</p>
+        <div class="text-center p-4 sa-tile sa-tile-green">
+          <p class="text-3xl font-black leading-none text-emerald-600">৳{{ total_revenue }}</p>
+          <p class="text-xs font-bold mt-2 text-emerald-600">ALL TIME</p>
         </div>
-        <div class="text-center p-4 rounded-2xl" style="background:#eff6ff;border:1px solid #bfdbfe;">
+        <div class="text-center p-4 sa-tile sa-tile-blue">
           <p class="text-3xl font-black text-blue-600 leading-none">৳{{ month_revenue }}</p>
           <p class="text-xs font-bold text-blue-400 mt-2">THIS MONTH</p>
         </div>
@@ -348,7 +384,7 @@
        USER MANAGEMENT TABLE
   ══════════════════════════════════ -->
   <div class="sa-card overflow-hidden">
-    <div class="px-6 py-4 flex items-center justify-between flex-wrap gap-3" style="background:linear-gradient(to right,#f8fafc,#fff);border-bottom:1px solid #e8edf2;">
+    <div class="px-6 py-4 flex items-center justify-between flex-wrap gap-3 sa-strip sa-strip-slate">
       <div>
         <h2 class="font-bold text-gray-900" style="font-size:15px;">User Management</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ total_matched }} user{{ total_matched|pluralize }} matched — edit role &amp; plan inline without leaving this page</p>
@@ -358,7 +394,7 @@
         Export All
       </a>
     </div>
-    <form method="get" class="px-6 py-3 flex items-center flex-wrap gap-2" style="border-bottom:1px solid #e8edf2;background:#fcfcfd;">
+    <form method="get" class="px-6 py-3 flex items-center flex-wrap gap-2 sa-filterbar">
       <input type="text" name="q" value="{{ search }}" placeholder="Search username or email..."
              class="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold" style="outline:none;">
       <select name="role" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-lg px-2 py-2 bg-white font-semibold text-gray-600">
@@ -372,7 +408,7 @@
         <option value="BASIC" {% if sel_plan == 'BASIC' %}selected{% endif %}>Basic</option>
         <option value="PREMIUM" {% if sel_plan == 'PREMIUM' %}selected{% endif %}>Premium</option>
       </select>
-      <button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90" style="background:#1e293b;">Search</button>
+      <button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90" style="background:linear-gradient(135deg,#059669,#0d9488);">Search</button>
       {% if search or sel_role or sel_plan %}
       <a href="{% url 'superadmin_dashboard' %}" class="text-xs font-semibold text-gray-400 hover:text-gray-600 underline">Clear</a>
       {% endif %}
@@ -380,7 +416,7 @@
     <div class="overflow-x-auto">
       <table class="w-full" style="font-size:13px;">
         <thead>
-          <tr style="background:#f8fafc;border-bottom:1px solid #e8edf2;">
+          <tr class="sa-thead">
             <th class="sa-label text-left px-5 py-3">User</th>
             <th class="sa-label text-left px-4 py-3">Role</th>
             <th class="sa-label text-left px-4 py-3">Plan</th>
@@ -406,20 +442,20 @@
             </td>
             <td class="px-4 py-3.5">
               {% if profile.is_superadmin %}
-              <span class="sa-badge" style="background:#f3e8ff;color:#6d28d9;">👑 Admin</span>
+              <span class="sa-badge bg-purple-100 text-purple-700">👑 Admin</span>
               {% elif profile.role == 'ADMIN' %}
-              <span class="sa-badge" style="background:#ede9fe;color:#5b21b6;">Teacher</span>
+              <span class="sa-badge bg-indigo-100 text-indigo-700">Teacher</span>
               {% else %}
-              <span class="sa-badge" style="background:#dbeafe;color:#1d4ed8;">Student</span>
+              <span class="sa-badge bg-blue-100 text-blue-700">Student</span>
               {% endif %}
             </td>
             <td class="px-4 py-3.5">
               {% if profile.plan == 'PREMIUM' %}
-              <span class="sa-badge" style="background:#f3e8ff;color:#0f766e;">Premium</span>
+              <span class="sa-badge bg-teal-100 text-teal-600">Premium</span>
               {% elif profile.plan == 'BASIC' %}
-              <span class="sa-badge" style="background:#dbeafe;color:#1e40af;">Basic</span>
+              <span class="sa-badge bg-blue-100 text-blue-700">Basic</span>
               {% else %}
-              <span class="sa-badge" style="background:#f1f5f9;color:#64748b;">Free</span>
+              <span class="sa-badge bg-gray-100 text-gray-500">Free</span>
               {% endif %}
             </td>
             <td class="px-4 py-3.5 text-xs font-semibold text-gray-400">{{ profile.user.date_joined|date:"d M Y" }}</td>
@@ -449,7 +485,7 @@
                 <form method="post" action="{% url 'cancel_subscription' profile.pk %}">
                   {% csrf_token %}
                   <button type="submit" onclick="return confirm('Cancel subscription for {{ profile.user.username }}?')"
-                    class="text-xs font-bold px-2.5 py-1.5 rounded-lg transition hover:opacity-80" style="background:#fef3c7;color:#92400e;">
+                    class="text-xs font-bold px-2.5 py-1.5 rounded-lg transition hover:opacity-80 bg-amber-100 text-amber-800">
                     Cancel Sub
                   </button>
                 </form>
@@ -457,7 +493,7 @@
                 <form method="post" action="{% url 'delete_user' profile.pk %}">
                   {% csrf_token %}
                   <button type="submit" onclick="return confirm('Permanently delete {{ profile.user.username }}?')"
-                    class="text-xs font-bold px-2.5 py-1.5 rounded-lg transition hover:opacity-80" style="background:#fee2e2;color:#991b1b;">
+                    class="text-xs font-bold px-2.5 py-1.5 rounded-lg transition hover:opacity-80 bg-red-100 text-red-700">
                     Delete
                   </button>
                 </form>
@@ -476,15 +512,15 @@
       </table>
     </div>
     {% if page_obj.paginator.num_pages > 1 %}
-    <div class="flex items-center justify-center gap-3 py-4" style="border-top:1px solid #e8edf2;">
+    <div class="flex items-center justify-center gap-3 py-4 sa-foot">
       {% if page_obj.has_previous %}
       <a href="?{{ base_qs }}&amp;page={{ page_obj.previous_page_number }}"
-         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-blue-400 transition bg-white">← Previous</a>
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">← Previous</a>
       {% endif %}
       <span class="text-xs text-gray-400 font-semibold">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       {% if page_obj.has_next %}
       <a href="?{{ base_qs }}&amp;page={{ page_obj.next_page_number }}"
-         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-blue-400 transition bg-white">Next →</a>
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">Next →</a>
       {% endif %}
     </div>
     {% endif %}

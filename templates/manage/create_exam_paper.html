@@ -199,12 +199,12 @@ Option D</pre>
   <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
     <div class="flex items-center justify-between mb-5">
       <h2 class="font-bold text-gray-800 flex items-center gap-2">
-        <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold"{% if LANG == 'en' %}>2</span>{% else %}>২</span>{% endif %}
+        <span class="w-6 h-6 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold"{% if LANG == 'en' %}>2</span>{% else %}>২</span>{% endif %}
         {% if LANG == 'en' %}MCQ Questions{% else %}MCQ প্রশ্ন{% endif %} <span class="text-xs text-gray-400 font-normal">{% if LANG == 'en' %}(optional){% else %}(ঐচ্ছিক){% endif %}</span>
         <span id="mcq-count-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{% if LANG == "en" %}0{% else %}0টি{% endif %}</span>
       </h2>
       <button type="button" onclick="addMCQ()"
-              class="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition">
+              class="flex items-center gap-1.5 text-sm bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl font-medium transition">
         {% if LANG == 'en' %}+ Add MCQ{% else %}+ MCQ যোগ করুন{% endif %}
       </button>
     </div>
@@ -271,29 +271,29 @@ Option D</pre>
       <label class="block text-xs font-medium text-gray-600 mb-1">{% if LANG == 'en' %}Question{% else %}প্রশ্ন{% endif %} <span class="text-red-400">*</span></label>
       <textarea name="mcq_question_text" rows="2" required
                 placeholder="{% if LANG == 'en' %}Write the MCQ question…{% else %}MCQ প্রশ্নটি লিখুন…{% endif %}"
-                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none bg-white"></textarea>
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 resize-none bg-white"></textarea>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="0">{% if LANG == 'en' %}a{% else %}ক{% endif %}</span>)</label>
         <input type="text" name="mcq_option1" required placeholder="{% if LANG == 'en' %}a{% else %}ক{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="0">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="0">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="1">{% if LANG == 'en' %}b{% else %}খ{% endif %}</span>)</label>
         <input type="text" name="mcq_option2" required placeholder="{% if LANG == 'en' %}b{% else %}খ{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="1">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="1">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="2">{% if LANG == 'en' %}c{% else %}গ{% endif %}</span>)</label>
         <input type="text" name="mcq_option3" required placeholder="{% if LANG == 'en' %}c{% else %}গ{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="2">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="2">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">(<span class="mcq-lbl" data-i="3">{% if LANG == 'en' %}d{% else %}ঘ{% endif %}</span>)</label>
         <input type="text" name="mcq_option4" required placeholder="{% if LANG == 'en' %}d{% else %}ঘ{% endif %}"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white mcq-opt-ph" data-i="3">
+               class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white mcq-opt-ph" data-i="3">
       </div>
     </div>
 
@@ -319,7 +319,7 @@ Option D</pre>
       <div class="ml-auto">
         <label class="block text-xs font-medium text-gray-600 mb-1"{% if LANG == 'en' %}>Marks</label>{% else %}>নম্বর</label>{% endif %}
         <input type="number" name="mcq_marks" value="1" min="1" max="10"
-               class="w-16 border border-gray-300 rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+               class="w-16 border border-gray-300 rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-teal-300 bg-white">
       </div>
     </div>
   </div>

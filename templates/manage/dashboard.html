@@ -2,6 +2,7 @@
 {% block title %}Manage Panel{% endblock %}
 {% block content %}
 <style>
+  .mp-page { background:#f0f2f5; }
   .mp-card { background:#fff; border-radius:18px; border:1px solid #e8edf2; box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04); }
   .mp-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
   .mp-section-head { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
@@ -13,9 +14,32 @@
   .mp-action-icon { width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .mp-action-label { font-size:13px; font-weight:600; color:#374151; }
   .mp-action:hover .mp-action-label { color:#1e293b; }
+  .mp-strip { border-bottom:1px solid #e8edf2; }
+  .mp-strip-blue   { background:linear-gradient(to right,#eff6ff,#fff); }
+  .mp-strip-violet { background:linear-gradient(to right,#f5f3ff,#fff); }
+  .mp-strip-green  { background:linear-gradient(to right,#f0fdf4,#fff); }
+  .mp-strip-slate  { background:linear-gradient(to right,#f8fafc,#fff); }
+  .mp-strip-amber  { background:linear-gradient(to right,#fffbeb,#fff); }
+
+  /* ── Dark mode ── */
+  html.dark .mp-page { background:#0f172a; }
+  html.dark .mp-card { background:#1e293b; border-color:#334155; box-shadow:0 1px 2px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.3); }
+  html.dark .mp-label { color:#64748b; }
+  html.dark .mp-row { border-bottom-color:#283548; }
+  html.dark .mp-action:hover { background:#243044; }
+  html.dark .mp-action-label { color:#cbd5e1; }
+  html.dark .mp-action:hover .mp-action-label { color:#f1f5f9; }
+  html.dark .mp-strip { border-bottom-color:#334155; }
+  html.dark .mp-strip-blue   { background:linear-gradient(to right,rgba(59,130,246,.07),transparent); }
+  html.dark .mp-strip-violet { background:linear-gradient(to right,rgba(139,92,246,.07),transparent); }
+  html.dark .mp-strip-green  { background:linear-gradient(to right,rgba(34,197,94,.07),transparent); }
+  html.dark .mp-strip-slate  { background:linear-gradient(to right,rgba(148,163,184,.06),transparent); }
+  html.dark .mp-strip-amber  { background:linear-gradient(to right,rgba(245,158,11,.07),transparent); }
+  html.dark .hover\:bg-slate-50\/60:hover { background:#243044 !important; }
+  html.dark .hover\:bg-amber-50\/40:hover { background:rgba(245,158,11,.08) !important; }
 </style>
 
-<div style="background:#f0f2f5; min-height:calc(100vh - 64px);">
+<div class="mp-page" style="min-height:calc(100vh - 64px);">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
 
   <!-- ══════════════════════════════════
@@ -115,7 +139,7 @@
 
     <!-- Questions & Content -->
     <div class="mp-card overflow-hidden">
-      <div class="px-5 py-3.5" style="background:linear-gradient(to right,#eff6ff,#fff);border-bottom:1px solid #e8edf2;">
+      <div class="px-5 py-3.5 mp-strip mp-strip-blue">
         <p class="mp-section-head" style="color:#047857;">Questions &amp; Content</p>
       </div>
       <div class="p-3 flex flex-col gap-0.5">
@@ -148,7 +172,7 @@
 
     <!-- Exams & Assessment -->
     <div class="mp-card overflow-hidden">
-      <div class="px-5 py-3.5" style="background:linear-gradient(to right,#f5f3ff,#fff);border-bottom:1px solid #e8edf2;">
+      <div class="px-5 py-3.5 mp-strip mp-strip-violet">
         <p class="mp-section-head" style="color:#0d9488;">Exams &amp; Assessment</p>
       </div>
       <div class="p-3 flex flex-col gap-0.5">
@@ -185,7 +209,7 @@
 
     <!-- Catalogue & Requests -->
     <div class="mp-card overflow-hidden">
-      <div class="px-5 py-3.5" style="background:linear-gradient(to right,#f0fdf4,#fff);border-bottom:1px solid #e8edf2;">
+      <div class="px-5 py-3.5 mp-strip mp-strip-green">
         <p class="mp-section-head" style="color:#16a34a;">Catalogue &amp; Requests</p>
       </div>
       <div class="p-3 flex flex-col gap-0.5">
@@ -225,7 +249,7 @@
        RECENT QUESTIONS
   ══════════════════════════════════ -->
   <div class="mp-card overflow-hidden">
-    <div class="px-6 py-4 flex items-center justify-between" style="background:linear-gradient(to right,#f8fafc,#fff);border-bottom:1px solid #e8edf2;">
+    <div class="px-6 py-4 flex items-center justify-between mp-strip mp-strip-slate">
       <div>
         <h2 class="font-bold text-gray-900" style="font-size:15px;">Recent Questions</h2>
         <p class="text-xs text-gray-400 mt-0.5">Last 5 added — click Edit to modify</p>
@@ -247,7 +271,7 @@
         </div>
         <div class="flex items-center gap-2.5 flex-shrink-0">
           <span class="mp-badge {% if q.difficulty == 'Easy' %}bg-emerald-100 text-emerald-700{% elif q.difficulty == 'Medium' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %}">{{ q.difficulty }}</span>
-          <a href="{% url 'question_edit' q.pk %}" class="mp-badge" style="background:#f1f5f9;color:#374151;">Edit</a>
+          <a href="{% url 'question_edit' q.pk %}" class="mp-badge bg-slate-100 text-gray-700">Edit</a>
         </div>
       </div>
       {% empty %}
@@ -264,7 +288,7 @@
   ══════════════════════════════════ -->
   {% if pending_note_requests %}
   <div class="mp-card overflow-hidden">
-    <div class="px-6 py-4 flex items-center justify-between" style="background:linear-gradient(to right,#fffbeb,#fff);border-bottom:1px solid #e8edf2;">
+    <div class="px-6 py-4 flex items-center justify-between mp-strip mp-strip-amber">
       <div>
         <h2 class="font-bold text-gray-900" style="font-size:15px;">Pending Note Requests</h2>
         <p class="text-xs text-gray-400 mt-0.5">Students waiting for study notes</p>
@@ -283,7 +307,7 @@
             <p class="text-xs text-gray-500 truncate mt-0.5">"{{ req.topic }}"{% if req.subject %} &bull; {{ req.subject.name }}{% endif %}</p>
           </div>
         </div>
-        <a href="{% url 'manage_note_requests' %}" class="mp-badge flex-shrink-0" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">Fulfill →</a>
+        <a href="{% url 'manage_note_requests' %}" class="mp-badge flex-shrink-0 bg-amber-100 text-amber-800 border border-amber-200">Fulfill →</a>
       </div>
       {% endfor %}
     </div>
