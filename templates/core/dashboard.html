@@ -3,8 +3,9 @@
 
 {% block extra_head %}
 <style>
-    /* ── Student Dashboard: Deep Indigo theme ── */
+    /* ── Student Dashboard: brand teal theme ── */
     body { background: #f0f2f5; }
+    html.dark body { background: #0f172a; }
 
     /* Card base */
     .dash-card {
@@ -15,8 +16,8 @@
         transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease;
     }
     .dash-card:hover {
-        box-shadow: 0 8px 32px rgba(67,56,202,0.10);
-        border-color: rgba(67,56,202,0.16);
+        box-shadow: 0 8px 32px rgba(13,148,136,0.10);
+        border-color: rgba(13,148,136,0.16);
         transform: translateY(-2px);
     }
 
@@ -51,11 +52,11 @@
     .goal-bar-fill {
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #3730a3 0%, #4338ca 60%, #0d9488 100%);
+        background: linear-gradient(90deg, #047857 0%, #059669 60%, #14b8a6 100%);
         transition: width .8s cubic-bezier(.2,.7,.3,1);
     }
 
-    /* Heatmap — indigo palette */
+    /* Heatmap — emerald palette */
     .hm-cell {
         aspect-ratio: 1 / 1;
         border-radius: 4px;
@@ -63,10 +64,10 @@
     }
     .hm-cell:hover { transform: scale(1.25); }
     .hm-0 { background: #f1f5f9; }
-    .hm-1 { background: #c7d2fe; }
-    .hm-2 { background: #818cf8; }
-    .hm-3 { background: #4338ca; }
-    .hm-4 { background: #312e81; }
+    .hm-1 { background: #a7f3d0; }
+    .hm-2 { background: #34d399; }
+    .hm-3 { background: #059669; }
+    .hm-4 { background: #065f46; }
 
     /* Accordion */
     .acc-content {
@@ -83,7 +84,7 @@
     /* Mini accuracy ring (conic-gradient) */
     .ring {
         --p: 0;
-        --c: #4338ca;
+        --c: #0d9488;
         width: 56px; height: 56px;
         border-radius: 50%;
         background: conic-gradient(var(--c) calc(var(--p) * 1%), #e5e7eb 0);
@@ -123,7 +124,7 @@
         display: block;
         position: absolute;
         bottom: 0; left: 0; right: 0;
-        background: var(--c, #4338ca);
+        background: var(--c, #0d9488);
         border-radius: 2px;
         transition: height .6s cubic-bezier(.2,.7,.3,1);
     }
@@ -135,13 +136,13 @@
 
     /* Plan badge pills (hero) */
     .plan-badge-free    { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.30); }
-    .plan-badge-basic   { background: rgba(13,148,136,0.30);  border: 1px solid rgba(165,180,252,0.45); }
-    .plan-badge-premium { background: rgba(13,148,136,0.35);  border: 1px solid rgba(196,181,253,0.45); }
+    .plan-badge-basic   { background: rgba(13,148,136,0.30);  border: 1px solid rgba(110,231,183,0.45); }
+    .plan-badge-premium { background: rgba(13,148,136,0.35);  border: 1px solid rgba(94,234,212,0.55); }
 
     /* Quick link hover */
     .quick-link-card:hover {
-        box-shadow: 0 8px 32px rgba(67,56,202,0.13);
-        border-color: rgba(67,56,202,0.20);
+        box-shadow: 0 8px 32px rgba(13,148,136,0.13);
+        border-color: rgba(13,148,136,0.20);
         transform: translateY(-2px);
     }
 
@@ -149,18 +150,70 @@
     html.dark .dash-card { background: #1e293b; border-color: #334155; }
     html.dark .dash-card:hover { border-color: rgba(13,148,136,0.35); }
     html.dark .mini-bar { background: #334155; }
-    html.dark .hm-0 { background: #1e293b; }
+    html.dark .hm-0 { background: #283548; }
+    html.dark .hm-1 { background: rgba(16,185,129,0.30); }
+    html.dark .hm-2 { background: rgba(16,185,129,0.55); }
+    html.dark .hm-3 { background: #059669; }
+    html.dark .hm-4 { background: #34d399; }
     html.dark .sd-num { color: #f1f5f9; }
+    html.dark .sd-label { color: #64748b; }
+    html.dark .goal-bar-track { background: #334155; }
+    html.dark .quick-link-card { background: #1e293b !important; border-color: #334155 !important; }
+    /* Utility-class recolors scoped to this page */
+    html.dark .sd-page .text-gray-900,
+    html.dark .sd-page .text-gray-800,
+    html.dark .sd-page .text-gray-700 { color: #e2e8f0; }
+    html.dark .sd-page .text-gray-600 { color: #94a3b8; }
+    html.dark .sd-page .text-gray-500,
+    html.dark .sd-page .text-gray-400 { color: #7c8ba1; }
+    html.dark .sd-page .text-gray-300, html.dark .sd-page .text-gray-200 { color: #475569; }
+    html.dark .sd-page .bg-gray-50  { background: #16202f; }
+    html.dark .sd-page .bg-gray-100 { background: #283548; }
+    html.dark .sd-page .border-gray-100, html.dark .sd-page .border-gray-200 { border-color: #334155; }
+    html.dark .sd-page .divide-gray-100 > * + * { border-color: #283548; }
+    html.dark .sd-page .hover\:bg-gray-50:hover { background: #243044; }
+    html.dark .sd-page .bg-amber-50  { background: rgba(245,158,11,0.08); }
+    html.dark .sd-page .bg-amber-100 { background: rgba(245,158,11,0.16); }
+    html.dark .sd-page .border-amber-100 { border-color: rgba(245,158,11,0.25); }
+    html.dark .sd-page .text-amber-700, html.dark .sd-page .text-amber-600 { color: #fcd34d; }
+    html.dark .sd-page .bg-rose-50  { background: rgba(244,63,94,0.08); }
+    html.dark .sd-page .bg-rose-100 { background: rgba(244,63,94,0.16); }
+    html.dark .sd-page .border-rose-100 { border-color: rgba(244,63,94,0.25); }
+    html.dark .sd-page .text-rose-700, html.dark .sd-page .text-rose-600 { color: #fda4af; }
+    html.dark .sd-page .bg-emerald-100 { background: rgba(16,185,129,0.16); }
+    html.dark .sd-page .text-emerald-600 { color: #34d399; }
+    html.dark .sd-page .bg-purple-100 { background: rgba(20,184,166,0.16); }
+    html.dark .sd-page .text-purple-600 { color: #2dd4bf; }
+    html.dark .sd-page .bg-teal-100 { background: rgba(20,184,166,0.16); }
+    html.dark .sd-page .text-teal-700, html.dark .sd-page .text-teal-600 { color: #5eead4; }
+    html.dark .sd-page .hover\:text-teal-900:hover { color: #99f6e4; }
+    html.dark .sd-page .border-teal-200 { border-color: rgba(20,184,166,0.35); }
+    html.dark .sd-page .bg-teal-50\/40 { background: rgba(20,184,166,0.08); }
+    html.dark .sd-page .bg-green-50\/50 { background: rgba(34,197,94,0.08); }
+    html.dark .sd-page .border-green-100 { border-color: rgba(34,197,94,0.25); }
+    html.dark .sd-page .text-green-700 { color: #86efac; }
+    html.dark .sd-page .bg-red-50\/50 { background: rgba(239,68,68,0.08); }
+    html.dark .sd-page .border-red-100 { border-color: rgba(239,68,68,0.25); }
+    html.dark .sd-page .text-red-700 { color: #fca5a5; }
+    html.dark .sd-page .bg-purple-50\/50 { background: rgba(20,184,166,0.08); }
+    html.dark .sd-page .border-purple-100 { border-color: rgba(20,184,166,0.25); }
+    html.dark .sd-page .text-purple-700 { color: #5eead4; }
+    html.dark .sd-page .bg-blue-100 { background: rgba(59,130,246,0.16); }
+    html.dark .sd-page .text-blue-600 { color: #93c5fd; }
+    html.dark .sd-page .hover\:shadow-sm:hover { box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+    /* Keep white CTAs on the teal gradients white in dark mode — styles.css
+       globally repaints .bg-white to slate (!important), killing contrast here */
+    html.dark .sd-cta-light { background-color: #fff !important; color: #065f46 !important; }
 </style>
 {% endblock %}
 
 {% block content %}
 
 <!-- ════════════════════════════════════════════
-     HEADER — Deep Indigo compact gradient
+     HEADER — brand teal compact gradient
 ════════════════════════════════════════════ -->
 <div class="relative overflow-hidden"
-     style="background: linear-gradient(130deg, #1a0533 0%, #2e1065 40%, #3730a3 75%, #4338ca 100%);
+     style="background: linear-gradient(130deg, #022c22 0%, #064e3b 38%, #047857 72%, #0d9488 100%);
             padding: 40px 0 36px;">
 
     <!-- Dot grid texture -->
@@ -179,7 +232,7 @@
             <!-- LEFT: title chip + greeting + tagline -->
             <div class="flex-1 min-w-0">
                 <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20
-                            rounded-full px-3 py-1 text-xs font-semibold text-indigo-200 mb-3">
+                            rounded-full px-3 py-1 text-xs font-semibold text-emerald-200 mb-3">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -197,11 +250,11 @@
                 </h1>
                 {% endif %}
 
-                <p class="text-indigo-200 mt-1.5 text-sm italic">
+                <p class="text-emerald-200 mt-1.5 text-sm italic">
                     {% if LANG == 'en' %}"Small daily progress is the key to great success."
                     {% else %}"প্রতিদিনের ছোট ছোট অগ্রগতিই বড় সাফল্যের চাবিকাঠি।"{% endif %}
                 </p>
-                <p class="text-indigo-300/80 mt-0.5 text-xs">{{ streak_msg }}</p>
+                <p class="text-emerald-300/80 mt-0.5 text-xs">{{ streak_msg }}</p>
             </div>
 
             <!-- RIGHT: plan badge + action buttons -->
@@ -225,8 +278,8 @@
                         {% if LANG == 'en' %}Full history →{% else %}পূর্ণ ইতিহাস →{% endif %}
                     </a>
                     <a href="{% url 'question_bank' %}"
-                       class="bg-white text-indigo-800 px-4 py-2.5 rounded-xl text-sm font-bold
-                              hover:bg-indigo-50 transition shadow-md">
+                       class="sd-cta-light bg-white text-emerald-800 px-4 py-2.5 rounded-xl text-sm font-bold
+                              hover:bg-emerald-50 transition shadow-md">
                         {% if LANG == 'en' %}Practice now{% else %}এখনই অনুশীলন করো{% endif %}
                     </a>
                 </div>
@@ -246,12 +299,12 @@
                     </div>
                     <div>
                         <p class="text-xs font-bold text-white">{% if LANG == 'en' %}Today's Goal{% else %}আজকের লক্ষ্য{% endif %}</p>
-                        <p class="text-[11px] text-indigo-200">{{ today_count }} / {{ daily_goal }} {% if LANG == 'en' %}questions{% else %}প্রশ্ন{% endif %}</p>
+                        <p class="text-[11px] text-emerald-200">{{ today_count }} / {{ daily_goal }} {% if LANG == 'en' %}questions{% else %}প্রশ্ন{% endif %}</p>
                     </div>
                 </div>
                 <div class="flex-1 min-w-[120px]">
                     <div class="goal-bar-track" style="background:rgba(255,255,255,0.15);">
-                        <div class="goal-bar-fill" style="width: {{ goal_progress }}%; background:linear-gradient(90deg,#a5b4fc,#fff);"></div>
+                        <div class="goal-bar-fill" style="width: {{ goal_progress }}%; background:linear-gradient(90deg,#6ee7b7,#fff);"></div>
                     </div>
                 </div>
                 <div class="text-sm font-bold text-white flex-shrink-0">
@@ -267,12 +320,12 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+<div class="sd-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
     <!-- ═══════════════════════════════════
          QUICK STATS — 4 accent cards
     ═══════════════════════════════════ -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" data-aos="fade-up">
 
         <!-- Total Answered — Blue -->
         <div class="dash-card stat-card-blue p-5">
@@ -374,12 +427,12 @@
     <!-- ═══════════════════════════════════
          STREAK WIDGET  +  ACCURACY TREND
     ═══════════════════════════════════ -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-aos="fade-up">
 
         <!-- Streak + Heatmap -->
         <div class="dash-card p-6 lg:col-span-1">
             <div class="flex items-center gap-2 mb-4">
-                <div class="sd-section-icon" style="background:linear-gradient(135deg,#3730a3,#4338ca);">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#047857,#0d9488);">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
@@ -411,7 +464,7 @@
                     ✓ {% if LANG == 'en' %}Today's goal complete!{% else %}আজকের লক্ষ্য পূরণ হয়েছে!{% endif %}
                 </p>
                 {% else %}
-                <p class="text-xs text-indigo-600 mt-2 font-medium">{{ goal_progress }}% {% if LANG == 'en' %}done{% else %}সম্পন্ন{% endif %}</p>
+                <p class="text-xs text-teal-600 mt-2 font-medium">{{ goal_progress }}% {% if LANG == 'en' %}done{% else %}সম্পন্ন{% endif %}</p>
                 {% endif %}
             </div>
 
@@ -442,8 +495,8 @@
         <div class="dash-card p-6 lg:col-span-2">
             <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-2">
-                    <div class="sd-section-icon" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
-                        <svg class="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="sd-section-icon" style="background:linear-gradient(135deg,#ccfbf1,#99f6e4);">
+                        <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
@@ -454,7 +507,7 @@
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-2xl font-black" style="color:#4338ca;">{{ this_week_acc }}%</p>
+                    <p class="text-2xl font-black text-teal-600">{{ this_week_acc }}%</p>
                     <p class="text-xs text-gray-500">{% if LANG == 'en' %}this week{% else %}এই সপ্তাহে{% endif %}</p>
                 </div>
             </div>
@@ -530,12 +583,12 @@
     <!-- ═══════════════════════════════════
          WEEKLY BAR  +  SUBJECT PIE
     ═══════════════════════════════════ -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-aos="fade-up">
 
         <div class="dash-card p-6 lg:col-span-2">
             <div class="flex items-center gap-2 mb-4">
-                <div class="sd-section-icon" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
-                    <svg class="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#ccfbf1,#99f6e4);">
+                    <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
@@ -573,10 +626,10 @@
     <!-- ═══════════════════════════════════
          SUBJECT PROGRESS (collapsible accordion)
     ═══════════════════════════════════ -->
-    <div class="dash-card p-6">
+    <div class="dash-card p-6" data-aos="fade-up">
         <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-2">
-                <div class="sd-section-icon" style="background:linear-gradient(135deg,#3730a3,#4338ca);">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#047857,#0d9488);">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
@@ -715,8 +768,8 @@
         {% else %}
         <div class="text-center py-14">
             <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                 style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-                <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 style="background: linear-gradient(135deg, #ccfbf1, #99f6e4);">
+                <svg class="w-7 h-7 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
@@ -725,7 +778,7 @@
             <p class="text-gray-400 text-sm mb-4">{% if LANG == 'en' %}Start answering questions to track your progress.{% else %}অগ্রগতি দেখতে প্রশ্নের উত্তর দেওয়া শুরু করুন।{% endif %}</p>
             <a href="{% url 'question_bank' %}"
                class="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl text-white transition"
-               style="background: linear-gradient(135deg, #3730a3, #4338ca);">
+               style="background: linear-gradient(135deg, #047857, #0d9488);">
                 {% if LANG == 'en' %}Start practicing{% else %}অনুশীলন শুরু করো{% endif %}
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -738,11 +791,11 @@
     <!-- ═══════════════════════════════════
          TEACHER FEEDBACK
     ═══════════════════════════════════ -->
-    <div class="dash-card p-6">
+    <div class="dash-card p-6" data-aos="fade-up">
         <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-2.5">
-                <div class="sd-section-icon" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
-                    <svg class="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="sd-section-icon" style="background:linear-gradient(135deg,#ccfbf1,#99f6e4);">
+                    <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                     </svg>
@@ -750,13 +803,13 @@
                 <h2 class="text-sm font-bold text-gray-900">{% if LANG == 'en' %}Teacher Feedback{% else %}শিক্ষকের মতামত{% endif %}</h2>
                 {% if unread_count %}
                 <span class="text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style="background: linear-gradient(135deg, #3730a3, #4338ca);">
+                      style="background: linear-gradient(135deg, #047857, #0d9488);">
                     {{ unread_count }} {% if LANG == 'en' %}new{% else %}নতুন{% endif %}
                 </span>
                 {% endif %}
             </div>
             <a href="{% url 'notifications' %}"
-               class="text-xs font-semibold text-indigo-700 hover:text-indigo-900 transition">
+               class="text-xs font-semibold text-teal-700 hover:text-teal-900 transition">
                 {% if LANG == 'en' %}View all →{% else %}সব দেখুন →{% endif %}
             </a>
         </div>
@@ -764,11 +817,11 @@
         {% if feedbacks %}
         <div class="space-y-3">
             {% for f in feedbacks %}
-            <div class="rounded-xl border {% if not f.is_read %}border-indigo-200 bg-indigo-50/40{% else %}border-gray-100{% endif %} p-4 transition hover:shadow-sm">
+            <div class="rounded-xl border {% if not f.is_read %}border-teal-200 bg-teal-50/40{% else %}border-gray-100{% endif %} p-4 transition hover:shadow-sm">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-2.5 min-w-0">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                             style="background: linear-gradient(135deg, #3730a3, #4338ca);">
+                             style="background: linear-gradient(135deg, #047857, #0d9488);">
                             {{ f.teacher.username|slice:":1"|upper }}
                         </div>
                         <div class="min-w-0">
@@ -777,7 +830,7 @@
                         </div>
                     </div>
                     {% if f.progress.question.subject %}
-                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold flex-shrink-0">
+                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold flex-shrink-0">
                         {{ f.progress.question.subject.name }}
                     </span>
                     {% endif %}
@@ -789,8 +842,8 @@
         {% else %}
         <div class="text-center py-12">
             <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                 style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 style="background: linear-gradient(135deg, #ccfbf1, #99f6e4);">
+                <svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
@@ -803,7 +856,7 @@
     <!-- ═══════════════════════════════════
          EXAM RESULTS BY SUBJECT (collapsible)
     ═══════════════════════════════════ -->
-    <div class="dash-card p-6">
+    <div class="dash-card p-6" data-aos="fade-up">
         <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-2.5">
                 <div class="sd-section-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
@@ -816,7 +869,7 @@
                 <p class="text-xs text-gray-400 hidden sm:inline">{% if LANG == 'en' %}Click a subject to expand{% else %}বিস্তারিত দেখতে ক্লিক করুন{% endif %}</p>
             </div>
             <a href="{% url 'exam_paper_list' %}"
-               class="text-xs font-semibold text-indigo-700 hover:text-indigo-900 transition">
+               class="text-xs font-semibold text-teal-700 hover:text-teal-900 transition">
                 {% if LANG == 'en' %}All exams →{% else %}সব পরীক্ষা →{% endif %}
             </a>
         </div>
@@ -938,12 +991,12 @@
     <!-- ═══════════════════════════════════
          QUICK LINKS — 3 card row
     ═══════════════════════════════════ -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" data-aos="fade-up">
         <a href="{% url 'question_bank' %}"
            class="bg-white rounded-2xl border border-gray-100 p-6 group quick-link-card transition"
            style="box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                 style="background:linear-gradient(135deg,#3730a3,#4338ca);">
+                 style="background:linear-gradient(135deg,#047857,#0d9488);">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
@@ -982,27 +1035,27 @@
          PREMIUM UPSELL BANNER
     ═══════════════════════════════════ -->
     {% if not request.user.profile.is_premium %}
-    <div class="rounded-2xl p-8 text-white shadow-lg relative overflow-hidden"
-         style="background: linear-gradient(130deg, #1a0533 0%, #2e1065 45%, #3730a3 80%, #4338ca 100%);">
+    <div class="rounded-2xl p-8 text-white shadow-lg relative overflow-hidden" data-aos="fade-up"
+         style="background: linear-gradient(130deg, #022c22 0%, #064e3b 45%, #047857 80%, #0d9488 100%);">
         <div class="absolute inset-0 pointer-events-none"
              style="background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
                     background-size: 22px 22px; opacity: 0.5;"></div>
         <div class="absolute pointer-events-none"
              style="width:300px;height:200px;top:-60px;right:-40px;
-                    background:radial-gradient(ellipse,rgba(165,180,252,0.15) 0%,transparent 70%);"></div>
+                    background:radial-gradient(ellipse,rgba(110,231,183,0.15) 0%,transparent 70%);"></div>
         <div class="relative z-10 flex items-start justify-between flex-wrap gap-4">
             <div>
-                <div class="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-semibold text-indigo-200 mb-3">
+                <div class="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-semibold text-emerald-200 mb-3">
                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                     {% if LANG == 'en' %}Upgrade Available{% else %}আপগ্রেড উপলব্ধ{% endif %}
                 </div>
                 <h2 class="font-extrabold text-xl mb-1">{% if LANG == 'en' %}Unlock Premium{% else %}প্রিমিয়াম আনলক করুন{% endif %}</h2>
-                <p class="text-sm text-indigo-200 mb-0">{% if LANG == 'en' %}Access all questions, videos and study notes{% else %}সব questions, videos আর study notes access করো{% endif %}</p>
+                <p class="text-sm text-emerald-200 mb-0">{% if LANG == 'en' %}Access all questions, videos and study notes{% else %}সব questions, videos আর study notes access করো{% endif %}</p>
             </div>
             <a href="{% url 'pricing' %}"
-               class="flex-shrink-0 inline-block bg-white text-indigo-800 px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition self-center">
+               class="sd-cta-light flex-shrink-0 inline-block bg-white text-emerald-800 px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition self-center">
                 {% if LANG == 'en' %}See Plans →{% else %}প্ল্যান দেখুন →{% endif %}
             </a>
         </div>
@@ -1044,7 +1097,15 @@
         }
         requestAnimationFrame(tick);
     }
-    document.querySelectorAll('.counter').forEach(animateCounter);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('.counter').forEach(function (el) {
+            const target = parseFloat(el.dataset.target || '0');
+            const decimals = parseInt(el.dataset.decimals || '0', 10);
+            el.textContent = toBn(decimals ? target.toFixed(decimals) : Math.round(target));
+        });
+    } else {
+        document.querySelectorAll('.counter').forEach(animateCounter);
+    }
 
     /* ---------- Accordion ---------- */
     document.querySelectorAll('.acc-toggle').forEach(function (btn) {
@@ -1075,7 +1136,18 @@
     Chart.defaults.font.family = chartFontFamily;
     Chart.defaults.color = '#64748b';
 
-    // Accuracy trend (line, 30 days) — indigo palette
+    function chartPalette() {
+        const dark = document.documentElement.classList.contains('dark');
+        return {
+            grid:   dark ? 'rgba(148,163,184,0.12)' : '#f1f5f9',
+            ticks:  dark ? '#94a3b8' : '#6b7280',
+            legend: dark ? '#cbd5e1' : '#374151',
+            pieBorder: dark ? '#1e293b' : '#fff'
+        };
+    }
+    const pal = chartPalette();
+
+    // Accuracy trend (line, 30 days) — teal palette
     {% if LANG == 'bn' %}
     const trendLabels = [{% for d in accuracy_trend %}'{{ d.day }}',{% endfor %}].map(dateLabelBn);
     {% else %}
@@ -1083,25 +1155,26 @@
     {% endif %}
     const trendData = [{% for d in accuracy_trend %}{% if d.accuracy is None %}null{% else %}{{ d.accuracy }}{% endif %},{% endfor %}];
     const trendCtx = document.getElementById('accuracyTrendChart');
+    let trendChart = null, weeklyChart = null, pieChart = null;
     if (trendCtx) {
         const grad = trendCtx.getContext('2d').createLinearGradient(0, 0, 0, 220);
-        grad.addColorStop(0, 'rgba(67, 56, 202, 0.22)');
-        grad.addColorStop(1, 'rgba(67, 56, 202, 0)');
-        new Chart(trendCtx, {
+        grad.addColorStop(0, 'rgba(13, 148, 136, 0.22)');
+        grad.addColorStop(1, 'rgba(13, 148, 136, 0)');
+        trendChart = new Chart(trendCtx, {
             type: 'line',
             data: {
                 labels: trendLabels,
                 datasets: [{
                     label: '{% if LANG == "en" %}Accuracy %{% else %}নির্ভুলতা %{% endif %}',
                     data: trendData,
-                    borderColor: '#4338ca',
+                    borderColor: '#0d9488',
                     backgroundColor: grad,
                     fill: true,
                     tension: 0.35,
                     spanGaps: true,
                     pointRadius: 0,
                     pointHoverRadius: 5,
-                    pointBackgroundColor: '#4338ca',
+                    pointBackgroundColor: '#0d9488',
                     borderWidth: 2.5,
                 }]
             },
@@ -1111,7 +1184,7 @@
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#1e1b4b',
+                        backgroundColor: '#134e4a',
                         padding: 10,
                         callbacks: {
                             label: function (ctx) {
@@ -1123,23 +1196,23 @@
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { maxTicksLimit: 8, font: { size: 10 } }
+                        ticks: { maxTicksLimit: 8, font: { size: 10 }, color: pal.ticks }
                     },
                     y: {
                         beginAtZero: true,
                         max: 100,
-                        ticks: { stepSize: 25, font: { size: 10 }, callback: v => v + '%' },
-                        grid: { color: '#f1f5f9' }
+                        ticks: { stepSize: 25, font: { size: 10 }, callback: v => v + '%', color: pal.ticks },
+                        grid: { color: pal.grid }
                     }
                 }
             }
         });
     }
 
-    // Weekly bar chart — indigo palette
+    // Weekly bar chart — teal palette
     const weeklyCtx = document.getElementById('weeklyChart');
     if (weeklyCtx) {
-        new Chart(weeklyCtx, {
+        weeklyChart = new Chart(weeklyCtx, {
             type: 'bar',
             data: {
                 labels: [{% for d in daily_data %}'{{ d.day }}',{% endfor %}]{% if LANG == 'bn' %}.map(d => _dayMapBn[d] || d){% endif %},
@@ -1147,13 +1220,13 @@
                     {
                         label: '{% if LANG == "en" %}Total{% else %}মোট{% endif %}',
                         data: [{% for d in daily_data %}{{ d.count }},{% endfor %}],
-                        backgroundColor: '#c7d2fe',
+                        backgroundColor: '#99f6e4',
                         borderRadius: 6,
                     },
                     {
                         label: '{% if LANG == "en" %}Correct{% else %}সঠিক{% endif %}',
                         data: [{% for d in daily_data %}{{ d.correct }},{% endfor %}],
-                        backgroundColor: '#4338ca',
+                        backgroundColor: '#0d9488',
                         borderRadius: 6,
                     }
                 ]
@@ -1162,12 +1235,12 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
-                    tooltip: { backgroundColor: '#1e1b4b', padding: 10 }
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, color: pal.legend } },
+                    tooltip: { backgroundColor: '#134e4a', padding: 10 }
                 },
                 scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: '#f1f5f9' } }
+                    x: { grid: { display: false }, ticks: { color: pal.ticks } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0, color: pal.ticks }, grid: { color: pal.grid } }
                 }
             }
         });
@@ -1179,7 +1252,7 @@
         const labels = [{% for s in subjects_data %}'{{ s.name|escapejs }}',{% endfor %}];
         const data = [{% for s in subjects_data %}{{ s.total }},{% endfor %}];
         const colors = [{% for s in subjects_data %}'{{ s.hex }}',{% endfor %}];
-        new Chart(pieCtx, {
+        pieChart = new Chart(pieCtx, {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -1187,7 +1260,7 @@
                     data: data,
                     backgroundColor: colors,
                     borderWidth: 2,
-                    borderColor: '#fff',
+                    borderColor: pal.pieBorder,
                 }]
             },
             options: {
@@ -1195,12 +1268,35 @@
                 maintainAspectRatio: false,
                 cutout: '62%',
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 8 } },
-                    tooltip: { backgroundColor: '#1e1b4b', padding: 10 }
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 8, color: pal.legend } },
+                    tooltip: { backgroundColor: '#134e4a', padding: 10 }
                 }
             }
         });
     }
+
+    // Re-skin all charts live when the theme toggle flips html.dark
+    new MutationObserver(function () {
+        const p = chartPalette();
+        if (trendChart) {
+            trendChart.options.scales.x.ticks.color = p.ticks;
+            trendChart.options.scales.y.ticks.color = p.ticks;
+            trendChart.options.scales.y.grid.color = p.grid;
+            trendChart.update('none');
+        }
+        if (weeklyChart) {
+            weeklyChart.options.plugins.legend.labels.color = p.legend;
+            weeklyChart.options.scales.x.ticks.color = p.ticks;
+            weeklyChart.options.scales.y.ticks.color = p.ticks;
+            weeklyChart.options.scales.y.grid.color = p.grid;
+            weeklyChart.update('none');
+        }
+        if (pieChart) {
+            pieChart.data.datasets[0].borderColor = p.pieBorder;
+            pieChart.options.plugins.legend.labels.color = p.legend;
+            pieChart.update('none');
+        }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 })();
 </script>
 {% endblock %}
