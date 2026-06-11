@@ -298,8 +298,15 @@ PrepareYourself/
 │   └── teacher/
 ├── static/                  # CSS, JS, images
 ├── media/                   # User-uploaded files (gitignored)
-├── docs/screenshots/        # README screenshots
-├── diagrams/                # DFD, sequence & activity diagrams (PNG)
+├── docs/
+│   └── screenshots/         # README screenshots (light + dark captures)
+├── diagrams/                # Design documentation (2x PNG renders)
+│   ├── dfd_*.png            #   context, system & level-2 data-flow diagrams
+│   ├── seq_*.png            #   sequence diagrams (login, MCQ, grading, …)
+│   ├── activity_exam.png    #   exam attempt activity flow
+│   ├── tech_stack.png       #   layered tech stack
+│   ├── gantt_chart.png      #   sprint timeline
+│   └── src/                 #   HTML/SVG diagram sources + render guide
 ├── .github/workflows/ci.yml # CI: lint + checks + unit tests on every push/PR
 ├── .env.example             # Environment template (copy to .env)
 ├── Procfile                 # Production entrypoint (gunicorn)
