@@ -39,6 +39,8 @@
                         </form>
                     </td>
                 </tr>
+                {% empty %}
+                <tr><td colspan="4">{% include 'includes/empty_state.html' with icon='🎒' compact=1 title_en='No classes yet' title_bn='এখনো কোনো class নেই' sub_en='Add the first class with the form above — e.g. Class 9 or Intermediate 1st.' sub_bn='উপরের form দিয়ে প্রথম class যোগ করুন — যেমন Class 9 বা Intermediate 1st।' %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
