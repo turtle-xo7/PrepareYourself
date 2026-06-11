@@ -42,9 +42,17 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 |:---:|:---:|
 | ![Question bank in dark mode](docs/screenshots/question-bank-dark.jpeg) | ![Contest arena with rating and PrepCoins](docs/screenshots/contests.jpeg) |
 
+| Interactive Practical Lab | Contest Profile |
+|:---:|:---:|
+| ![Interactive molecule lab with live bond simulation](docs/screenshots/practical-lab.jpeg) | ![Contest profile with rating, PrepCoins and activity heatmap](docs/screenshots/contest-profile.jpeg) |
+
 | Teacher Dashboard (dark) | Super Admin Control Centre |
 |:---:|:---:|
 | ![Teacher dashboard in dark mode](docs/screenshots/teacher-dashboard-dark.jpeg) | ![Super admin dashboard with revenue and user management](docs/screenshots/superadmin.jpeg) |
+
+| Manage Panel (dark) | Login |
+|:---:|:---:|
+| ![Content management panel in dark mode](docs/screenshots/manage-panel-dark.jpeg) | ![Bilingual login with theme toggle](docs/screenshots/login.jpeg) |
 
 ---
 
