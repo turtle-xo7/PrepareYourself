@@ -1,0 +1,56 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:920px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">Sequence 2 — MCQ Practice &amp; Progress Recording</div>
+    <div class="subtitle">Filtered question serving, instant answer checking, and per-user progress tracking</div>
+  </div>
+
+  <div class="seq" id="seq"></div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>Actor</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>View</span>
+      <span class="leg"><span class="sw" style="background:#f0fdfa;border-color:#99f6e4"></span>Model</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Notifications</span>
+    </div>
+    <div class="credit">Prepare Yourself · SEQ 2 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => sequence(document.getElementById('seq'), {
+  actors: [
+    { id: 'st', label: 'Student',           sub: 'browser', tone: 'actor' },
+    { id: 'qv', label: 'question_bank',     sub: 'views/question_bank.py', tone: 'view' },
+    { id: 'qm', label: 'Question',          sub: 'model', tone: 'model' },
+    { id: 'up', label: 'UserProgress',      sub: 'model', tone: 'model' },
+    { id: 'nf', label: 'Notifications',     sub: 'teacher feedback', tone: 'store' },
+  ],
+  rowH: 56,
+  phases: [
+    { label: 'Browse', fromRow: 0, toRow: 3 },
+    { label: 'Answer', fromRow: 4.6, toRow: 8.6 },
+  ],
+  activations: [
+    { actor: 'qv', fromRow: 0, toRow: 3 },
+    { actor: 'qv', fromRow: 4.6, toRow: 8.6 },
+  ],
+  steps: [
+    { from: 'st', to: 'qv', label: 'GET /question-bank/?board=1&subject=2', code: true },
+    { from: 'qv', to: 'qm', label: 'filter(board, subject, type, difficulty)', code: true },
+    { from: 'qm', to: 'qv', label: 'paginated QuerySet<Question>', ret: true, code: true },
+    { from: 'qv', to: 'st', label: 'render question_bank.html', ret: true, gap: .6 },
+    { from: 'st', to: 'qv', label: 'POST /track-progress/ {question_id, is_correct}', code: true },
+    { from: 'qv', to: 'qm', label: 'get(pk=question_id)', code: true },
+    { from: 'qv', to: 'up', label: 'create(user, question, is_correct)', code: true },
+    { from: 'up', to: 'qv', label: 'saved ✓', ret: true },
+    { from: 'qv', to: 'st', label: 'instant result — green / red highlight', ret: true, gap: .6 },
+    { from: 'nf', to: 'st', label: 'teacher feedback notification (async)', ret: true },
+  ],
+});
+</script>
+</body></html>

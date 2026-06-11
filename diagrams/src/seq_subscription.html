@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:960px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">Sequence 3 — Subscription Purchase via SSLCommerz</div>
+    <div class="subtitle">Hosted checkout with server-side IPN signature verification before activation</div>
+  </div>
+
+  <div class="seq" id="seq"></div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>Actor</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>View</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-color:#ddd6fe"></span>External gateway</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Model / store</span>
+    </div>
+    <div class="credit">Prepare Yourself · SEQ 3 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => sequence(document.getElementById('seq'), {
+  actors: [
+    { id: 'st', label: 'Student',        sub: 'browser', tone: 'actor' },
+    { id: 'pv', label: 'pricing_view',   sub: 'views/payments.py', tone: 'view' },
+    { id: 'gw', label: 'SSLCommerz',     sub: 'hosted gateway', tone: 'ext' },
+    { id: 'ipn', label: 'ipn_handler',   sub: 'views/payments.py', tone: 'view' },
+    { id: 'sub', label: 'Payment',       sub: 'model', tone: 'store' },
+  ],
+  rowH: 56,
+  phases: [
+    { label: 'Checkout', fromRow: 0, toRow: 3 },
+    { label: 'Verify & activate', fromRow: 4.6, toRow: 9.6 },
+  ],
+  activations: [
+    { actor: 'pv', fromRow: 0, toRow: 2 },
+    { actor: 'ipn', fromRow: 4.6, toRow: 8.6 },
+  ],
+  steps: [
+    { from: 'st',  to: 'pv',  label: 'POST /subscribe/{plan_id}/', code: true },
+    { from: 'pv',  to: 'gw',  label: 'init transaction {amount, callback_url}', code: true },
+    { from: 'gw',  to: 'pv',  label: 'GatewayPageURL + sessionkey', ret: true, code: true },
+    { from: 'pv',  to: 'st',  label: '302 → hosted payment page', ret: true, gap: .6 },
+    { from: 'st',  to: 'gw',  label: 'completes payment (card / bKash / Nagad)' },
+    { from: 'gw',  to: 'ipn', label: 'POST /ipn/ {val_id, status, signature}', code: true },
+    { from: 'ipn', to: 'gw',  label: 'GET /validator/v3/ {val_id}', code: true },
+    { from: 'gw',  to: 'ipn', label: 'signed payload — VALID', ret: true },
+    { from: 'ipn', to: 'sub', label: 'create(user, plan, amount, expiry)', code: true },
+    { from: 'sub', to: 'ipn', label: 'payment.pk', ret: true, code: true },
+    { from: 'ipn', to: 'st',  label: 'toast — “Premium active 🎉”', ret: true },
+  ],
+});
+</script>
+</body></html>

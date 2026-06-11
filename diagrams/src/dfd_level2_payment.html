@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:1000px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">DFD Level 2 — P6 · Subscription &amp; Payment</div>
+    <div class="subtitle">Plan selection through gateway checkout, IPN verification, and premium activation</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="node entity" id="student" style="left:40px;top:330px;width:175px">Student</div>
+    <div class="node ext" id="gateway" style="left:1280px;top:120px;width:200px">SSLCommerz<br>Gateway</div>
+    <div class="node store" id="db" data-id="D1" style="left:1280px;top:640px">Subscription DB<small>payments · plan status · expiry</small></div>
+
+    <div class="node process" id="p61" style="left:360px;top:40px;width:240px">
+      <span class="pno">P6.1</span><div class="pname">View Plans &amp; Pricing</div>
+      <div class="pdesc">Free · Basic ৳99 · Premium ৳199</div>
+    </div>
+    <div class="node process" id="p64" style="left:820px;top:40px;width:240px">
+      <span class="pno">P6.4</span><div class="pname">Redirect to Gateway</div>
+      <div class="pdesc">Hosted checkout via sessionkey</div>
+    </div>
+    <div class="node process" id="p62" style="left:360px;top:330px;width:240px">
+      <span class="pno">P6.2</span><div class="pname">Initiate Checkout</div>
+      <div class="pdesc">Create transaction · amount · callback URL</div>
+    </div>
+    <div class="node process" id="p65" style="left:820px;top:330px;width:240px">
+      <span class="pno">P6.5</span><div class="pname">Receive IPN Callback</div>
+      <div class="pdesc">val_id · status · signature</div>
+    </div>
+    <div class="node process" id="p63" style="left:360px;top:620px;width:240px">
+      <span class="pno">P6.3</span><div class="pname">Verify IPN Signature</div>
+      <div class="pdesc">Server-side validator check</div>
+    </div>
+    <div class="node process" id="p66" style="left:820px;top:620px;width:240px">
+      <span class="pno">P6.6</span><div class="pname">Activate Premium Plan</div>
+      <div class="pdesc">Plan flag · expiry date · notification</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>External entity</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>Process</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Data store</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-color:#ddd6fe"></span>External system</span>
+    </div>
+    <div class="credit">Prepare Yourself · DFD L2 · P6 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => {
+  const s = document.getElementById('stage');
+  edges(s, [
+    { from: 'student', to: 'p61', fromSide: 'top', fromFrac: .5, toSide: 'left', toFrac: .6, label: 'GET /pricing/', at: .55, bend: 90, chipClass: 'code' },
+    { from: 'p61', to: 'student', fromSide: 'bottom', fromFrac: .15, toSide: 'right', toFrac: .2, label: 'plan list', at: .5, dashed: true, bend: 70 },
+    { from: 'student', to: 'p62', label: 'click “Buy”', at: .5, fromFrac: .5 },
+    { from: 'p62', to: 'p64', fromSide: 'top', fromFrac: .7, toSide: 'bottom', toFrac: .3, label: 'init transaction', at: .5 },
+    { from: 'p64', to: 'gateway', label: 'redirect + sessionkey', at: .5, fromFrac: .4, toFrac: .4 },
+    { from: 'gateway', to: 'p65', fromSide: 'bottom', fromFrac: .4, toSide: 'right', toFrac: .25, label: 'IPN POST', at: .5, bend: 80, chipClass: 'code' },
+    { from: 'p65', to: 'p63', fromSide: 'bottom', fromFrac: .3, toSide: 'top', toFrac: .7, label: 'callback payload', at: .5 },
+    { from: 'p63', to: 'p66', label: 'verified ✓', at: .5 },
+    { from: 'p66', to: 'db', fromSide: 'right', fromFrac: .5, toSide: 'left', toFrac: .5, label: 'save subscription', at: .5 },
+    { from: 'p66', to: 'student', fromSide: 'bottom', fromFrac: .25, toSide: 'bottom', toFrac: .6, label: 'premium active 🎉', at: .55, dashed: true, bend: 110 },
+  ]);
+};
+</script>
+</body></html>

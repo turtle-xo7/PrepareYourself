@@ -1,0 +1,97 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:1190px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">System Overview — DFD Level 1</div>
+    <div class="subtitle">Seven core processes, four data stores, and the actors that drive them</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <!-- actors -->
+    <div class="node entity" id="student"    style="left:30px;top:120px;width:170px">Student</div>
+    <div class="node entity" id="teacher"    style="left:30px;top:420px;width:170px">Teacher</div>
+    <div class="node entity" id="superadmin" style="left:30px;top:710px;width:170px">Superadmin</div>
+    <div class="node ext"    id="gateway"    style="left:1265px;top:560px;width:185px">SSLCommerz<br>Gateway</div>
+
+    <!-- processes -->
+    <div class="node process" id="p1" style="left:330px;top:30px;width:235px">
+      <span class="pno">P1</span><div class="pname">User Management &amp; Authentication</div>
+      <div class="pdesc">Signup · login · roles · teacher verification</div>
+    </div>
+    <div class="node process" id="p2" style="left:720px;top:30px;width:235px">
+      <span class="pno">P2</span><div class="pname">Question Management</div>
+      <div class="pdesc">MCQ / CQ bank · filters · progress</div>
+    </div>
+    <div class="node process" id="p3" style="left:330px;top:260px;width:235px">
+      <span class="pno">P3</span><div class="pname">Contest Management</div>
+      <div class="pdesc">Scheduling · scoring · leaderboards · ratings</div>
+    </div>
+    <div class="node process" id="p4" style="left:720px;top:260px;width:235px">
+      <span class="pno">P4</span><div class="pname">Study Notes &amp; Syllabus</div>
+      <div class="pdesc">Notes · bookmarks · read progress · comments</div>
+    </div>
+    <div class="node process" id="p5" style="left:330px;top:490px;width:235px">
+      <span class="pno">P5</span><div class="pname">Exam Papers &amp; Grading</div>
+      <div class="pdesc">MCQ phase · CQ uploads · teacher marking</div>
+    </div>
+    <div class="node process" id="p6" style="left:720px;top:490px;width:235px">
+      <span class="pno">P6</span><div class="pname">Subscription &amp; Payment</div>
+      <div class="pdesc">Plans · checkout · IPN verification · activation</div>
+    </div>
+    <div class="node process" id="p7" style="left:1020px;top:700px;width:235px">
+      <span class="pno">P7</span><div class="pname">Superadmin Analytics</div>
+      <div class="pdesc">User management · revenue · exports</div>
+    </div>
+
+    <!-- data stores -->
+    <div class="node store" id="d1" data-id="D1" style="left:255px;top:925px">User DB</div>
+    <div class="node store" id="d2" data-id="D2" style="left:530px;top:925px">Question DB</div>
+    <div class="node store" id="d3" data-id="D3" style="left:835px;top:925px">Contest DB</div>
+    <div class="node store" id="d4" data-id="D4" style="left:1110px;top:925px">Notes / Exam DB</div>
+  </div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>External entity</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>Process</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Data store</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-color:#ddd6fe"></span>External system</span>
+    </div>
+    <div class="credit">Prepare Yourself · DFD L1 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => {
+  const s = document.getElementById('stage');
+  edges(s, [
+    /* student */
+    { from: 'student', to: 'p1', fromSide: 'right', fromFrac: .2, toSide: 'left', toFrac: .45, label: 'login / register', at: .5 },
+    { from: 'student', to: 'p2', fromSide: 'right', fromFrac: .05, toSide: 'left', toFrac: .55, label: 'filters · answers', at: .72, bend: 90 },
+    { from: 'student', to: 'p3', fromSide: 'right', fromFrac: .75, toSide: 'left', toFrac: .35, label: 'join · submit', at: .5 },
+    /* teacher */
+    { from: 'teacher', to: 'p3', fromSide: 'right', fromFrac: .15, toSide: 'left', toFrac: .8, label: 'schedule contest', at: .38 },
+    { from: 'teacher', to: 'p5', fromSide: 'right', fromFrac: .6, toSide: 'left', toFrac: .3, label: 'create papers · grade CQ', at: .32 },
+    { from: 'teacher', to: 'p4', fromSide: 'bottom', fromFrac: .55, toSide: 'left', toFrac: .85, label: 'publish notes', at: .4, bend: 120 },
+    /* student down to exams/subs */
+    { from: 'student', to: 'p5', fromSide: 'bottom', fromFrac: .4, toSide: 'left', toFrac: .12, label: 'exam attempts', at: .55, bend: 110 },
+    { from: 'p6', to: 'student', fromSide: 'left', fromFrac: .8, toSide: 'bottom', toFrac: .75, label: 'premium access', at: .78, dashed: true, bend: 130 },
+    /* superadmin */
+    { from: 'superadmin', to: 'p7', fromSide: 'right', fromFrac: .5, toSide: 'left', toFrac: .5, label: 'commands ⇄ reports', at: .45, bend: 60 },
+    /* gateway */
+    { from: 'p6', to: 'gateway', fromSide: 'right', fromFrac: .35, toSide: 'left', toFrac: .3, label: 'initiate payment', at: .5 },
+    { from: 'gateway', to: 'p6', fromSide: 'left', toFrac: .75, toSide: 'right', label: 'IPN callback', at: .5, dashed: true, fromFrac: .75 },
+    /* stores */
+    { from: 'p1', to: 'd1', fromSide: 'bottom', fromFrac: .15, toSide: 'top', toFrac: .25, label: 'profiles', at: .8, bend: 70 },
+    { from: 'p2', to: 'd2', fromSide: 'bottom', fromFrac: .12, toSide: 'top', toFrac: .6, label: 'questions · progress', at: .82, bend: 70 },
+    { from: 'p3', to: 'd3', fromSide: 'bottom', fromFrac: .35, toSide: 'top', toFrac: .3, label: 'scores · ratings', at: .72, bend: 70 },
+    { from: 'p4', to: 'd4', fromSide: 'bottom', fromFrac: .85, toSide: 'top', toFrac: .55, label: 'notes', at: .22, bend: 60 },
+    { from: 'p5', to: 'd4', fromSide: 'bottom', fromFrac: .5, toSide: 'top', toFrac: .2, label: 'attempts · grades', at: .6, bend: 80 },
+    { from: 'p6', to: 'd1', fromSide: 'bottom', fromFrac: .35, toSide: 'top', toFrac: .8, label: 'plan status', at: .62, bend: 90 },
+    { from: 'p7', to: 'd4', fromSide: 'bottom', fromFrac: .5, toSide: 'top', toFrac: .8, label: 'reads all stores', at: .6, dashed: true, bend: 50 },
+  ]);
+};
+</script>
+</body></html>

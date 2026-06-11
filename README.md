@@ -116,7 +116,10 @@ erDiagram
 
 ### Design diagrams
 
-Detailed design documentation lives in [`diagrams/`](diagrams/):
+![Context diagram — the platform and its four external actors](diagrams/dfd_level0.png)
+
+Detailed design documentation lives in [`diagrams/`](diagrams/) — all rendered
+from hand-crafted HTML/SVG sources in [`diagrams/src/`](diagrams/src/):
 
 | Diagram | File |
 |---------|------|

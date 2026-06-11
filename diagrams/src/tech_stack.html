@@ -1,0 +1,104 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script>
+<style>
+  .layers { display: flex; flex-direction: column; gap: 0; padding: 4px 44px 6px; flex: 1; }
+  .layer {
+    display: grid; grid-template-columns: 250px 1fr; gap: 20px; align-items: center;
+    background: #fff; border: 1.5px solid var(--border); border-radius: 18px;
+    padding: 18px 24px; box-shadow: 0 2px 5px rgba(15,23,42,.05), 0 12px 26px rgba(15,23,42,.06);
+    border-left: 6px solid var(--c, var(--teal));
+  }
+  .layer h3 { font-size: 15.5px; font-weight: 800; letter-spacing: -.01em; }
+  .layer h3 small { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; letter-spacing: .02em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .tchip {
+    background: var(--bgc, #f0fdfa); color: var(--fgc, #0f766e);
+    border: 1px solid var(--bdc, #99f6e4);
+    border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .joint { display: flex; justify-content: center; padding: 2px 0; }
+  .joint svg { display: block; }
+</style></head>
+<body>
+<div id="frame" style="width:1560px;height:1130px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">Technology Stack — Layered Architecture</div>
+    <div class="subtitle">Every layer of the platform, from the browser down to CI</div>
+  </div>
+
+  <div class="layers" id="layers">
+    <div class="layer" style="--c:#0d9488">
+      <h3>Presentation<small>What students &amp; teachers see</small></h3>
+      <div class="chips">
+        <span class="tchip">Tailwind CSS</span><span class="tchip">GSAP + Lenis</span>
+        <span class="tchip">Three.js hero</span><span class="tchip">Chart.js</span>
+        <span class="tchip">KaTeX math</span><span class="tchip">Bilingual বাংলা / EN</span>
+        <span class="tchip">Dark mode</span><span class="tchip">Toasts + skeletons</span>
+      </div>
+    </div>
+    <div class="joint"></div>
+    <div class="layer" style="--c:#16324f">
+      <h3>Application — Django 6<small>Routing, auth &amp; request handling</small></h3>
+      <div class="chips" style="--bgc:#eff6ff;--fgc:#1e40af;--bdc:#bfdbfe">
+        <span class="tchip">views/ split by domain</span><span class="tchip">urls.py router</span>
+        <span class="tchip">@premium_required</span><span class="tchip">@admin_required</span>
+        <span class="tchip">language middleware</span><span class="tchip">Django auth + sessions</span>
+      </div>
+    </div>
+    <div class="joint"></div>
+    <div class="layer" style="--c:#7c3aed">
+      <h3>Business Logic<small>core/services/</small></h3>
+      <div class="chips" style="--bgc:#f5f3ff;--fgc:#6d28d9;--bdc:#ddd6fe">
+        <span class="tchip">rating engine (Elo-style)</span><span class="tchip">PrepCoins ledger</span>
+        <span class="tchip">badge engine</span><span class="tchip">exam state machine</span>
+        <span class="tchip">CQ grading workflow</span><span class="tchip">plan gates</span>
+      </div>
+    </div>
+    <div class="joint"></div>
+    <div class="layer" style="--c:#d97706">
+      <h3>Integrations<small>External services</small></h3>
+      <div class="chips" style="--bgc:#fffbeb;--fgc:#b45309;--bdc:#fde68a">
+        <span class="tchip">Anthropic API — notes · MCQ · summaries</span>
+        <span class="tchip">Gemini — OCR</span>
+        <span class="tchip">SSLCommerz gateway</span>
+        <span class="tchip">Gmail SMTP</span>
+        <span class="tchip">YouTube embeds</span>
+      </div>
+    </div>
+    <div class="joint"></div>
+    <div class="layer" style="--c:#059669">
+      <h3>Data<small>ORM &amp; storage</small></h3>
+      <div class="chips">
+        <span class="tchip">Django ORM — 33 models</span><span class="tchip">SQLite (dev)</span>
+        <span class="tchip">PostgreSQL (prod)</span><span class="tchip">openpyxl / xlsxwriter exports</span>
+        <span class="tchip">Pillow media</span>
+      </div>
+    </div>
+    <div class="joint"></div>
+    <div class="layer" style="--c:#475569">
+      <h3>Infrastructure<small>Delivery &amp; quality</small></h3>
+      <div class="chips" style="--bgc:#f8fafc;--fgc:#334155;--bdc:#e2e8f0">
+        <span class="tchip">GitHub Actions CI — ruff · checks · unit tests</span>
+        <span class="tchip">Selenium E2E (190+)</span>
+        <span class="tchip">Gunicorn + WhiteNoise</span>
+        <span class="tchip">python-dotenv config</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="legend"><span class="leg">Requests flow down · data flows back up</span></div>
+    <div class="credit">Prepare Yourself · Stack · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => {
+  document.querySelectorAll('.joint').forEach(j => {
+    j.innerHTML = '<svg width="26" height="26" viewBox="0 0 26 26">' +
+      '<path d="M13 2 v16 M6 12 l7 8 7-8" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  });
+};
+</script>
+</body></html>

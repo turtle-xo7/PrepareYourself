@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:1000px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">DFD Level 2 — P2 · Question Management</div>
+    <div class="subtitle">How questions are authored, served, answered, and graded</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="node entity" id="teacher" style="left:40px;top:80px;width:175px">Teacher</div>
+    <div class="node entity" id="student" style="left:40px;top:520px;width:175px">Student</div>
+    <div class="node store"  id="db" data-id="D2" style="left:1280px;top:330px">Question DB<small>questions · progress · CQ solves</small></div>
+
+    <div class="node process" id="p21" style="left:360px;top:40px;width:240px">
+      <span class="pno">P2.1</span><div class="pname">Create / Edit Question</div>
+      <div class="pdesc">MCQ + CQ forms · bulk import</div>
+    </div>
+    <div class="node process" id="p22" style="left:820px;top:40px;width:240px">
+      <span class="pno">P2.2</span><div class="pname">Validate &amp; Store</div>
+      <div class="pdesc">Field validation · upload checks</div>
+    </div>
+    <div class="node process" id="p23" style="left:360px;top:330px;width:240px">
+      <span class="pno">P2.3</span><div class="pname">Filter &amp; Serve Bank</div>
+      <div class="pdesc">Board · class · subject · year · difficulty</div>
+    </div>
+    <div class="node process" id="p26" style="left:820px;top:330px;width:240px">
+      <span class="pno">P2.6</span><div class="pname">Record Progress</div>
+      <div class="pdesc">Correct / wrong tracking per user</div>
+    </div>
+    <div class="node process" id="p24" style="left:360px;top:620px;width:240px">
+      <span class="pno">P2.4</span><div class="pname">Receive CQ Submission</div>
+      <div class="pdesc">Photo answers per part (ক/খ/গ/ঘ)</div>
+    </div>
+    <div class="node process" id="p25" style="left:820px;top:620px;width:240px">
+      <span class="pno">P2.5</span><div class="pname">Grade CQ &amp; Send Feedback</div>
+      <div class="pdesc">Teacher marks + comments → notification</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>External entity</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>Process</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Data store</span>
+    </div>
+    <div class="credit">Prepare Yourself · DFD L2 · P2 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => {
+  const s = document.getElementById('stage');
+  edges(s, [
+    { from: 'teacher', to: 'p21', label: 'form data', at: .5, fromFrac: .4, toFrac: .5 },
+    { from: 'p21', to: 'p22', label: 'validated payload', at: .5 },
+    { from: 'p22', to: 'db', fromSide: 'right', toSide: 'top', toFrac: .4, label: 'write question', at: .55, bend: 90 },
+
+    { from: 'student', to: 'p23', label: 'query filters', at: .5, fromFrac: .3 },
+    { from: 'db', to: 'p23', fromSide: 'left', fromFrac: .35, toSide: 'top', toFrac: .8, label: 'db read', at: .35, dashed: true, bend: 90 },
+    { from: 'p23', to: 'student', fromSide: 'left', fromFrac: .85, toSide: 'right', toFrac: .8, label: 'question list', at: .5, dashed: true },
+    { from: 'p23', to: 'p26', label: 'answer events', at: .5 },
+    { from: 'p26', to: 'db', fromSide: 'right', fromFrac: .5, toSide: 'left', toFrac: .65, label: 'save progress', at: .5 },
+
+    { from: 'student', to: 'p24', fromSide: 'bottom', fromFrac: .5, toSide: 'left', toFrac: .4, label: 'CQ photo upload', at: .6, bend: 80 },
+    { from: 'p24', to: 'p25', label: 'grade request', at: .5 },
+    { from: 'teacher', to: 'p25', fromSide: 'bottom', fromFrac: .8, toSide: 'top', toFrac: .15, label: 'marks + comments', at: .8, bend: 140 },
+    { from: 'p25', to: 'db', fromSide: 'right', fromFrac: .4, toSide: 'bottom', toFrac: .5, label: 'store grade', at: .55, bend: 90 },
+    { from: 'p25', to: 'student', fromSide: 'bottom', fromFrac: .25, toSide: 'bottom', toFrac: .85, label: 'feedback notification', at: .55, dashed: true, bend: 110 },
+  ]);
+};
+</script>
+</body></html>

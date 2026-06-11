@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:960px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">Sequence 5 — CQ Submission &amp; Teacher Grading</div>
+    <div class="subtitle">Photo answers per part (ক/খ/গ/ঘ), graded by a verified teacher, delivered as a notification</div>
+  </div>
+
+  <div class="seq" id="seq"></div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>Actors</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>Views</span>
+      <span class="leg"><span class="sw" style="background:#f0fdfa;border-color:#99f6e4"></span>Models</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Notification</span>
+    </div>
+    <div class="credit">Prepare Yourself · SEQ 5 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => sequence(document.getElementById('seq'), {
+  actors: [
+    { id: 'st', label: 'Student',          sub: 'browser', tone: 'actor' },
+    { id: 'wv', label: 'written_practice', sub: 'views', tone: 'view' },
+    { id: 'ws', label: 'WrittenSolve',     sub: 'Submission model', tone: 'model' },
+    { id: 'tv', label: 'grade_cq',         sub: 'teacher view', tone: 'view' },
+    { id: 'tf', label: 'TeacherFeedback',  sub: 'model', tone: 'model' },
+    { id: 'nf', label: 'Notification',     sub: 'model', tone: 'store' },
+  ],
+  rowH: 56,
+  phases: [
+    { label: 'Student submits', fromRow: 0, toRow: 3 },
+    { label: 'Teacher grades', fromRow: 4.6, toRow: 9.6 },
+  ],
+  activations: [
+    { actor: 'wv', fromRow: 0, toRow: 3 },
+    { actor: 'tv', fromRow: 4.6, toRow: 9.6 },
+  ],
+  steps: [
+    { from: 'st', to: 'wv', label: 'POST /written-question/{id}/ + photos', code: true },
+    { from: 'wv', to: 'ws', label: 'create(student, question, photo ক/খ/গ/ঘ)', code: true },
+    { from: 'ws', to: 'wv', label: 'submission.pk', ret: true, code: true },
+    { from: 'wv', to: 'st', label: '201 — “Submitted for review”', ret: true, gap: .6 },
+    { from: 'tv', to: 'ws', label: 'grade queue — pending submissions', code: true },
+    { from: 'ws', to: 'tv', label: 'photos + student context', ret: true },
+    { from: 'tv', to: 'tf', label: 'save marks per part + comment', code: true },
+    { from: 'tf', to: 'nf', label: 'Notification.objects.create(student, msg)', code: true },
+    { from: 'nf', to: 'st', label: 'bell badge +1 → feedback view', ret: true },
+    { from: 'tf', to: 'tv', label: '200 — grade saved ✓', ret: true },
+  ],
+});
+</script>
+</body></html>

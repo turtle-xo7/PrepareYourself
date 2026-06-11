@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:1000px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">DFD Level 2 — P3 · Contest Management</div>
+    <div class="subtitle">From scheduling to live scoring, leaderboards, and rating updates</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="node entity" id="teacher" style="left:40px;top:80px;width:175px">Teacher</div>
+    <div class="node entity" id="student" style="left:40px;top:620px;width:175px">Student</div>
+    <div class="node store"  id="db" data-id="D3" style="left:1280px;top:330px">Contest DB<small>contests · submissions · ratings</small></div>
+
+    <div class="node process" id="p31" style="left:360px;top:40px;width:240px">
+      <span class="pno">P3.1</span><div class="pname">Create / Schedule Contest</div>
+      <div class="pdesc">Rated or unrated · entry rules · prizes</div>
+    </div>
+    <div class="node process" id="p34" style="left:820px;top:40px;width:240px">
+      <span class="pno">P3.4</span><div class="pname">Contest Activation</div>
+      <div class="pdesc">Start / end windows · registration close</div>
+    </div>
+    <div class="node process" id="p32" style="left:360px;top:330px;width:240px">
+      <span class="pno">P3.2</span><div class="pname">Assign Questions</div>
+      <div class="pdesc">MCQ + creative items with marks</div>
+    </div>
+    <div class="node process" id="p35" style="left:820px;top:330px;width:240px">
+      <span class="pno">P3.5</span><div class="pname">Score Calculation</div>
+      <div class="pdesc">Auto-mark MCQ · totals · duration</div>
+    </div>
+    <div class="node process" id="p33" style="left:360px;top:620px;width:240px">
+      <span class="pno">P3.3</span><div class="pname">Contest Participation</div>
+      <div class="pdesc">Join · answer · submit within timer</div>
+    </div>
+    <div class="node process" id="p36" style="left:820px;top:620px;width:240px">
+      <span class="pno">P3.6</span><div class="pname">Leaderboard &amp; Ratings</div>
+      <div class="pdesc">Ranks · percentiles · Elo-style deltas · coins</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>External entity</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>Process</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Data store</span>
+    </div>
+    <div class="credit">Prepare Yourself · DFD L2 · P3 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => {
+  const s = document.getElementById('stage');
+  edges(s, [
+    { from: 'teacher', to: 'p31', label: 'contest details', at: .5, fromFrac: .4 },
+    { from: 'p31', to: 'p34', label: 'contest id', at: .5 },
+    { from: 'p31', to: 'p32', fromSide: 'bottom', toSide: 'top', label: 'contest ref', at: .5 },
+    { from: 'p34', to: 'p35', fromSide: 'bottom', toSide: 'top', label: 'activate signal', at: .5 },
+    { from: 'p32', to: 'p33', fromSide: 'bottom', toSide: 'top', label: 'active question set', at: .5 },
+    { from: 'student', to: 'p33', label: 'join · answers', at: .5, fromFrac: .3 },
+    { from: 'p33', to: 'p35', fromSide: 'right', fromFrac: .25, toSide: 'bottom', toFrac: .3, label: 'submission', at: .55, bend: 80 },
+    { from: 'p35', to: 'db', fromSide: 'right', fromFrac: .5, toSide: 'left', toFrac: .45, label: 'write scores ⇄ read', at: .5 },
+    { from: 'p35', to: 'p36', fromSide: 'bottom', fromFrac: .7, toSide: 'top', toFrac: .7, label: 'updated totals', at: .5 },
+    { from: 'p36', to: 'db', fromSide: 'right', fromFrac: .5, toSide: 'bottom', toFrac: .5, label: 'rating history · coins', at: .55, bend: 90 },
+    { from: 'p36', to: 'p33', label: 'live standings', at: .5, fromSide: 'left', toSide: 'right', dashed: true },
+    { from: 'p33', to: 'student', fromSide: 'bottom', fromFrac: .3, toSide: 'bottom', toFrac: .7, label: 'rank · score · rating Δ', at: .6, dashed: true, bend: 90 },
+  ]);
+};
+</script>
+</body></html>

@@ -1,0 +1,114 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script>
+<style>
+  .act {
+    background: #fff; border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 13px 22px; text-align: center; font-weight: 700; font-size: 13.5px;
+    box-shadow: 0 2px 5px rgba(15,23,42,.05), 0 10px 24px rgba(15,23,42,.07);
+    color: var(--ink);
+  }
+  .state {
+    border-radius: 999px; padding: 10px 26px; text-align: center;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 12.5px;
+    letter-spacing: .06em; color: #fff;
+    box-shadow: 0 10px 24px rgba(15,23,42,.16);
+  }
+  .state.teal   { background: linear-gradient(135deg, #059669, #0d9488); }
+  .state.amber  { background: linear-gradient(135deg, #d97706, #b45309); }
+  .state.green  { background: linear-gradient(135deg, #16a34a, #059669); }
+  .dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--ink); box-shadow: 0 6px 14px rgba(15,23,42,.3);
+  }
+  .dot.end { outline: 3.5px solid var(--ink); outline-offset: 3.5px; background: var(--ink); }
+  .decision {
+    width: 132px; height: 132px; display: flex; align-items: center; justify-content: center;
+    text-align: center; font-weight: 800; font-size: 12px; line-height: 1.35; color: #92400e;
+  }
+  .decision::before {
+    content: ''; position: absolute; inset: 12px; transform: rotate(45deg);
+    background: #fffbeb; border: 2px solid #f59e0b; border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(245,158,11,.2);
+  }
+  .decision span { position: relative; z-index: 1; width: 90px; }
+  .side-note {
+    background: #fffdf7; border: 1.5px dashed #fcd34d; border-radius: 12px;
+    padding: 11px 16px; font-size: 12px; font-weight: 700; color: var(--amber);
+    text-align: center; line-height: 1.45;
+  }
+  .off {
+    background: #f8fafc; border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 12px 20px; text-align: center; font-weight: 700; font-size: 13px; color: var(--muted);
+  }
+</style></head>
+<body>
+<div id="frame" style="width:1040px;height:1860px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">Activity — Student Exam Attempt</div>
+    <div class="subtitle">The full exam lifecycle, from login to a graded result, with state checkpoints</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="node dot"  id="start" style="left:447px;top:6px"></div>
+    <div class="node act"  id="a1" style="left:340px;top:84px;width:240px">Student logs in</div>
+    <div class="node act"  id="a2" style="left:340px;top:196px;width:240px">Browse exam papers</div>
+    <div class="node decision" id="dec" style="left:394px;top:300px"><span>Premium subscription?</span></div>
+    <div class="node off"  id="redirect" style="left:60px;top:344px;width:215px">Redirect to pricing page</div>
+    <div class="node dot end" id="end1" style="left:148px;top:470px"></div>
+    <div class="node act"  id="a3" style="left:340px;top:486px;width:240px">Click “Start Exam”</div>
+
+    <div class="node state teal" id="s1" style="left:368px;top:600px">[ MCQ_PHASE ]</div>
+    <div class="node act"  id="a4" style="left:340px;top:706px;width:240px">Answer all MCQ questions<br><small style="color:#94a3b8;font-weight:600">timed · auto-submit on expiry</small></div>
+    <div class="node act"  id="a5" style="left:340px;top:836px;width:240px">Submit MCQ phase</div>
+
+    <div class="node state teal" id="s2" style="left:374px;top:948px">[ CQ_PHASE ]</div>
+    <div class="node act"  id="a6" style="left:340px;top:1054px;width:240px">Upload CQ photo solutions<br><small style="color:#94a3b8;font-weight:600">per part — ক · খ · গ · ঘ</small></div>
+    <div class="node act"  id="a7" style="left:340px;top:1184px;width:240px">Submit CQ phase</div>
+
+    <div class="node state amber" id="s3" style="left:358px;top:1296px">[ CQ_PENDING ]</div>
+    <div class="node side-note" id="note" style="left:700px;top:1290px;width:225px">Verified teacher reviews photos and grades each part</div>
+
+    <div class="node state green" id="s4" style="left:380px;top:1408px">[ GRADED ]</div>
+    <div class="node act" id="a8" style="left:340px;top:1512px;width:240px">View marks, grade &amp; feedback</div>
+    <div class="node dot end" id="end2" style="left:447px;top:1638px"></div>
+  </div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#fff"></span>Action</span>
+      <span class="leg"><span class="sw" style="background:#fffbeb;border-color:#f59e0b;transform:rotate(45deg)"></span>Decision</span>
+      <span class="leg"><span class="sw" style="background:linear-gradient(135deg,#059669,#0d9488);border-color:#0d9488;border-radius:999px"></span>Exam state</span>
+    </div>
+    <div class="credit">Prepare Yourself · Activity · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => {
+  const s = document.getElementById('stage');
+  const down = (from, to, label, opts={}) =>
+    ({ from, to, fromSide: 'bottom', toSide: 'top', label, at: .5, bend: 26, ...opts });
+  edges(s, [
+    down('start', 'a1'),
+    down('a1', 'a2'),
+    down('a2', 'dec'),
+    { from: 'dec', to: 'redirect', fromSide: 'left', toSide: 'right', label: 'No', at: .45, tone: 'red', bend: 40 },
+    down('redirect', 'end1', null, { toSide: 'top' }),
+    down('dec', 'a3', 'Yes', { tone: 'teal' }),
+    down('a3', 's1'),
+    down('s1', 'a4'),
+    down('a4', 'a5'),
+    down('a5', 's2'),
+    down('s2', 'a6'),
+    down('a6', 'a7'),
+    down('a7', 's3'),
+    { from: 's3', to: 'note', fromSide: 'right', toSide: 'left', label: null, dashed: true, bend: 40 },
+    { from: 'note', to: 's4', fromSide: 'bottom', toSide: 'right', label: 'grade saved', at: .5, dashed: true, bend: 60 },
+    down('s3', 's4'),
+    down('s4', 'a8'),
+    down('a8', 'end2'),
+  ]);
+};
+</script>
+</body></html>

@@ -1,0 +1,176 @@
+/* ════════════════════════════════════════════════════════════
+   Prepare Yourself — Design Diagram Theme
+   Shared by every diagram in diagrams/src/. Rendered to PNG
+   with Playwright (see diagrams/src/README.md).
+   ════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+
+:root {
+  --ink: #0f172a;
+  --muted: #64748b;
+  --faint: #94a3b8;
+  --line: #64748b;
+  --border: #e2e8f0;
+  --paper: #ffffff;
+  --bg: #fbfcfe;
+  --teal: #0d9488;
+  --teal-deep: #047857;
+  --navy: #16324f;
+  --amber: #b45309;
+  --violet: #6d28d9;
+  --red: #dc2626;
+  --green: #059669;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: #fff;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The exported frame */
+#frame {
+  position: relative;
+  background:
+    radial-gradient(circle, #e8edf3 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(180deg, #fdfefe 0%, var(--bg) 100%);
+  border: 1px solid #eef2f7;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.head { padding: 30px 44px 18px; }
+.kicker {
+  font-size: 11px; font-weight: 800; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--teal);
+  display: flex; align-items: center; gap: 10px;
+}
+.kicker::before {
+  content: ''; width: 26px; height: 4px; border-radius: 4px;
+  background: linear-gradient(90deg, #059669, #0d9488);
+}
+.title { font-size: 27px; font-weight: 800; letter-spacing: -.02em; margin-top: 8px; }
+.subtitle { font-size: 13.5px; color: var(--muted); margin-top: 5px; font-weight: 600; }
+
+/* ── Stage (diagram canvas) ── */
+.stage { position: relative; flex: 1; margin: 6px 44px 10px; }
+.stage svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* ── Footer / legend ── */
+.foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 44px 20px; gap: 16px;
+}
+.legend { display: flex; gap: 18px; flex-wrap: wrap; }
+.leg { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.leg .sw { width: 14px; height: 14px; border-radius: 5px; border: 1.5px solid var(--border); }
+.credit { font-size: 11px; font-weight: 700; color: var(--faint); letter-spacing: .06em; text-transform: uppercase; }
+
+/* ── Nodes ── */
+.node { position: absolute; }
+
+/* External entity (actor) — filled navy card */
+.entity {
+  background: linear-gradient(150deg, #1d3a57, #16324f);
+  color: #fff; border-radius: 14px;
+  padding: 14px 20px; text-align: center;
+  font-weight: 800; font-size: 14.5px; line-height: 1.3;
+  box-shadow: 0 10px 24px rgba(22, 50, 79, .28), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.entity small { display: block; font-size: 10.5px; font-weight: 700; color: #9fc1dd; letter-spacing: .08em; text-transform: uppercase; margin-top: 3px; }
+
+/* External system — violet-tinted card */
+.ext {
+  background: #fff; border: 1.5px solid #ddd6fe; border-radius: 14px;
+  padding: 13px 18px; text-align: center;
+  font-weight: 800; font-size: 13.5px; color: var(--violet); line-height: 1.3;
+  box-shadow: 0 8px 20px rgba(109, 40, 217, .10);
+}
+.ext small { display: block; font-size: 10.5px; font-weight: 700; color: #a78bfa; letter-spacing: .08em; text-transform: uppercase; margin-top: 3px; }
+
+/* Process — white card, teal accent, numbered chip */
+.process {
+  background: var(--paper); border: 1.5px solid var(--border); border-radius: 16px;
+  padding: 13px 18px 14px; text-align: left;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, .05), 0 12px 28px rgba(15, 23, 42, .07);
+  border-top: 4px solid var(--teal);
+}
+.process .pno {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #059669, #0d9488); color: #fff;
+  font-size: 10.5px; font-weight: 800; letter-spacing: .04em;
+  border-radius: 7px; padding: 3px 8px; margin-bottom: 7px;
+}
+.process .pname { font-size: 13.5px; font-weight: 800; line-height: 1.32; }
+.process .pdesc { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* Data store — open-sided card, amber double bar (Gane–Sarson) */
+.store {
+  background: #fffdf7; border: 1.5px solid #fde68a; border-right: none;
+  border-radius: 12px 0 0 12px;
+  padding: 11px 22px 11px 16px;
+  font-weight: 800; font-size: 13px; color: var(--amber);
+  box-shadow: 0 8px 20px rgba(180, 83, 9, .10);
+  display: flex; align-items: center; gap: 10px;
+}
+.store::before {
+  content: attr(data-id);
+  background: #f59e0b; color: #fff; font-size: 10px; font-weight: 800;
+  border-radius: 6px; padding: 3px 7px; letter-spacing: .04em;
+}
+.store small { font-weight: 700; color: #d97706; font-size: 10.5px; display: block; }
+
+/* ── Edge label chips ── */
+.chip {
+  position: absolute; transform: translate(-50%, -50%);
+  background: #fff; border: 1px solid var(--border); border-radius: 999px;
+  padding: 4px 11px; font-size: 11px; font-weight: 700; color: #334155;
+  white-space: nowrap; box-shadow: 0 3px 10px rgba(15, 23, 42, .08);
+  z-index: 5; line-height: 1.35; text-align: center;
+}
+.chip.code { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; }
+.chip.ret { color: var(--muted); border-style: dashed; }
+
+/* ════════ Sequence diagrams ════════ */
+.seq { position: relative; flex: 1; margin: 10px 44px 8px; }
+.seq .lane-head {
+  position: absolute; top: 0; transform: translateX(-50%);
+  border-radius: 13px; padding: 11px 18px; text-align: center;
+  font-weight: 800; font-size: 13.5px; line-height: 1.3; min-width: 132px;
+}
+.seq .lane-head small { display: block; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; opacity: .75; }
+.tone-actor  { background: linear-gradient(150deg, #1d3a57, #16324f); color: #fff; box-shadow: 0 8px 20px rgba(22,50,79,.25); }
+.tone-view   { background: #fff; border: 1.5px solid var(--border); border-top: 4px solid var(--teal); color: var(--ink); box-shadow: 0 8px 20px rgba(15,23,42,.07); }
+.tone-model  { background: #f0fdfa; border: 1.5px solid #99f6e4; color: #0f766e; box-shadow: 0 8px 20px rgba(13,148,136,.10); }
+.tone-store  { background: #fffdf7; border: 1.5px solid #fde68a; color: var(--amber); box-shadow: 0 8px 20px rgba(180,83,9,.10); }
+.tone-ext    { background: #fff; border: 1.5px solid #ddd6fe; color: var(--violet); box-shadow: 0 8px 20px rgba(109,40,217,.10); }
+
+.seq .lifeline { position: absolute; width: 0; border-left: 2px dashed #cbd5e1; }
+.seq .activation {
+  position: absolute; width: 10px; transform: translateX(-50%);
+  background: linear-gradient(180deg, #ccfbf1, #99f6e4);
+  border: 1.5px solid #2dd4bf; border-radius: 6px;
+}
+.seq svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.seq .msg {
+  position: absolute; transform: translate(-50%, -100%);
+  background: #fff; border: 1px solid var(--border); border-radius: 999px;
+  padding: 3.5px 11px; font-size: 11px; font-weight: 700; color: #334155;
+  white-space: nowrap; box-shadow: 0 3px 10px rgba(15,23,42,.07); z-index: 5;
+}
+.seq .msg.code { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 600; }
+.seq .msg.ret { color: var(--muted); border-style: dashed; }
+.seq .phase {
+  position: absolute; left: 0; right: 0; border-radius: 12px;
+  background: rgba(13, 148, 136, .045); border: 1.5px dashed rgba(13, 148, 136, .25);
+}
+.seq .phase b {
+  position: absolute; top: -9px; left: 14px; background: #f0fdfa;
+  border: 1px solid #99f6e4; color: #0f766e; border-radius: 999px;
+  font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 10px;
+}

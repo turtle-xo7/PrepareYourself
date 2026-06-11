@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script>
+<style>
+  .hub {
+    position: absolute; text-align: center;
+    background: linear-gradient(150deg, #047857, #0d9488);
+    color: #fff; border-radius: 28px; padding: 34px 44px;
+    box-shadow: 0 24px 60px rgba(13, 148, 136, .35), inset 0 1px 0 rgba(255,255,255,.2);
+  }
+  .hub .pno { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25); color: #fff;
+    display: inline-block; font-size: 11px; font-weight: 800; border-radius: 8px; padding: 4px 12px; letter-spacing: .1em; }
+  .hub h2 { font-size: 24px; font-weight: 800; margin-top: 10px; letter-spacing: -.01em; }
+  .hub p { font-size: 12.5px; font-weight: 700; color: #a7f3d0; margin-top: 5px; }
+</style></head>
+<body>
+<div id="frame" style="width:1560px;height:980px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">Context Diagram — DFD Level 0</div>
+    <div class="subtitle">The platform as a single process exchanging data with its four external actors</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="node entity" id="student" style="left:80px;top:60px;width:215px">Student<small>External entity</small></div>
+    <div class="node entity" id="teacher" style="left:1170px;top:60px;width:215px">Teacher / Admin<small>External entity</small></div>
+    <div class="node ext" id="gateway" style="left:80px;top:520px;width:215px">SSLCommerz<br>Payment Gateway<small>External system</small></div>
+    <div class="node entity" id="superadmin" style="left:1170px;top:520px;width:215px">Superadmin<small>External entity</small></div>
+
+    <div class="hub" id="hub" style="left:558px;top:230px;width:350px">
+      <span class="pno">PROCESS 0</span>
+      <h2>Prepare Yourself</h2>
+      <p>Exam preparation platform for SSC &amp; HSC</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>External entity</span>
+      <span class="leg"><span class="sw" style="background:linear-gradient(135deg,#047857,#0d9488);border-color:#0d9488"></span>System process</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-color:#ddd6fe"></span>External system</span>
+    </div>
+    <div class="credit">Prepare Yourself · DFD L0 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => {
+  const s = document.getElementById('stage');
+  edges(s, [
+    { from: 'student', to: 'hub', fromSide: 'right', toSide: 'top', toFrac: .22,
+      label: 'Login · MCQ answers · CQ uploads', at: .45 },
+    { from: 'hub', to: 'student', fromSide: 'left', fromFrac: .25, toSide: 'bottom',
+      label: 'Question bank · progress · feedback', at: .55, dashed: true },
+
+    { from: 'teacher', to: 'hub', fromSide: 'left', toSide: 'top', toFrac: .78,
+      label: 'Questions · contests · notes · grades', at: .45 },
+    { from: 'hub', to: 'teacher', fromSide: 'right', fromFrac: .25, toSide: 'bottom',
+      label: 'Student submissions · dashboards', at: .55, dashed: true },
+
+    { from: 'gateway', to: 'hub', fromSide: 'right', toSide: 'bottom', toFrac: .22,
+      label: 'IPN status · validation', at: .45 },
+    { from: 'hub', to: 'gateway', fromSide: 'left', fromFrac: .75, toSide: 'top',
+      label: 'Payment initiation', at: .55, dashed: true },
+
+    { from: 'superadmin', to: 'hub', fromSide: 'left', toSide: 'bottom', toFrac: .78,
+      label: 'Admin commands · role &amp; plan changes', at: .45 },
+    { from: 'hub', to: 'superadmin', fromSide: 'right', fromFrac: .75, toSide: 'top',
+      label: 'User data · revenue · Excel exports', at: .55, dashed: true },
+  ]);
+};
+</script>
+</body></html>

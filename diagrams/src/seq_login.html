@@ -1,0 +1,56 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="theme.css"><script src="engine.js"></script></head>
+<body>
+<div id="frame" style="width:1560px;height:880px">
+  <div class="head">
+    <div class="kicker">Prepare Yourself · Design Documentation</div>
+    <div class="title">Sequence 1 — User Login</div>
+    <div class="subtitle">Credential check through Django’s auth backend, with both success and failure paths</div>
+  </div>
+
+  <div class="seq" id="seq"></div>
+
+  <div class="foot">
+    <div class="legend">
+      <span class="leg"><span class="sw" style="background:#16324f;border-color:#16324f"></span>Actor</span>
+      <span class="leg"><span class="sw" style="background:#fff;border-top:4px solid #0d9488"></span>View</span>
+      <span class="leg"><span class="sw" style="background:#f0fdfa;border-color:#99f6e4"></span>Framework / model</span>
+      <span class="leg"><span class="sw" style="background:#fffdf7;border-color:#fde68a"></span>Database</span>
+      <span class="leg">⟶ call &nbsp;·&nbsp; ⤏ return</span>
+    </div>
+    <div class="credit">Prepare Yourself · SEQ 1 · 2026</div>
+  </div>
+</div>
+
+<script>
+window.draw = () => sequence(document.getElementById('seq'), {
+  actors: [
+    { id: 'br',  label: 'Browser',      sub: 'student',    tone: 'actor' },
+    { id: 'lv',  label: 'login_view',   sub: 'views/auth.py', tone: 'view' },
+    { id: 'ab',  label: 'AuthBackend',  sub: 'django.contrib.auth', tone: 'model' },
+    { id: 'db',  label: 'Database',     sub: 'SQLite / PostgreSQL', tone: 'store' },
+  ],
+  rowH: 56,
+  phases: [
+    { label: 'Happy path', fromRow: 0, toRow: 5 },
+    { label: 'Wrong password', fromRow: 6.6, toRow: 8 },
+  ],
+  activations: [
+    { actor: 'lv', fromRow: 0, toRow: 5 },
+    { actor: 'ab', fromRow: 1, toRow: 3 },
+    { actor: 'lv', fromRow: 6.6, toRow: 8 },
+  ],
+  steps: [
+    { from: 'br', to: 'lv', label: 'POST /login/  {username, password}', code: true },
+    { from: 'lv', to: 'ab', label: 'authenticate(username, password)', code: true },
+    { from: 'ab', to: 'db', label: 'SELECT user + profile', code: true },
+    { from: 'db', to: 'ab', label: 'UserProfile + hashed password', ret: true },
+    { from: 'ab', to: 'lv', label: 'User object', ret: true },
+    { from: 'lv', to: 'br', label: '302 → dashboard + session cookie', ret: true, gap: .6 },
+    { from: 'br', to: 'lv', label: 'POST /login/  (wrong password)', code: true },
+    { from: 'lv', to: 'lv', label: 'authenticate() → None' },
+    { from: 'lv', to: 'br', label: 'error toast — “Invalid credentials”', ret: true },
+  ],
+});
+</script>
+</body></html>
