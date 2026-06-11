@@ -2,155 +2,29 @@
 {% load bn_filters %}
 {% block title %}{% if LANG == 'en' %}Teacher Dashboard{% else %}শিক্ষক ড্যাশবোর্ড{% endif %}{% endblock %}
 {% block content %}
-<style>
-  .td-page { background:#f0f2f5; }
-  .td-card { background:#fff; border-radius:18px; border:1px solid #e8edf2; box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04); transition:transform .25s ease, box-shadow .25s ease; }
-  .td-stat:hover { transform:translateY(-3px); box-shadow:0 2px 4px rgba(0,0,0,0.05),0 10px 28px rgba(13,148,136,0.10); }
-  .td-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
-  .td-section-head { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-  .td-row { border-bottom:1px solid #f1f5f9; }
-  .td-row:last-child { border-bottom:none; }
-  .td-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:7px; font-size:11px; font-weight:700; }
-  .td-badge-red    { background:#fee2e2; color:#991b1b; }
-  .td-badge-green  { background:#dcfce7; color:#166534; }
-  .td-badge-blue   { background:#dbeafe; color:#1e40af; }
-  .td-badge-sky    { background:#e0f2fe; color:#0369a1; }
-  .td-badge-amber  { background:#fef3c7; color:#92400e; }
-  .td-badge-violet { background:#ede9fe; color:#4c1d95; }
-  .td-badge-teal   { background:#ccfbf1; color:#0f766e; }
-  .td-badge-slate  { background:#f1f5f9; color:#475569; }
-  .td-badge-muted  { background:#f1f5f9; color:#94a3b8; }
-  .td-strip { border-bottom:1px solid #e8edf2; }
-  .td-strip-red    { background:linear-gradient(to right,#fff5f5,#fff); }
-  .td-strip-green  { background:linear-gradient(to right,#f0fdf4,#fff); }
-  .td-strip-violet { background:linear-gradient(to right,#f5f3ff,#fff); }
-  .td-strip-amber  { background:linear-gradient(to right,#fff7ed,#fff); }
-  .td-strip-slate  { background:linear-gradient(to right,#f8fafc,#fff); }
-  .td-insight { background:#fffbeb; border:1px solid #fde68a; }
-  .td-thead { background:#f8fafc; border-bottom:1px solid #e8edf2; }
-  .td-foot { border-top:1px solid #e8edf2; background:#f8fafc; }
-  .td-input { border:1px solid #e2e8f0; background:#fff; color:#0f172a; outline:none; min-width:200px; }
-  tr.td-tr { transition:background .12s; }
-  tr.td-tr:hover { background:#f9fafb; }
-
-  /* ── Dark mode ─────────────────────────────── */
-  html.dark .td-page { background:#0f172a; }
-  html.dark .td-card { background:#1e293b; border-color:#334155; box-shadow:0 1px 2px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.3); }
-  html.dark .td-stat:hover { box-shadow:0 2px 4px rgba(0,0,0,.4),0 10px 28px rgba(13,148,136,.18); }
-  html.dark .td-label { color:#64748b; }
-  html.dark .td-row { border-bottom-color:#283548; }
-  html.dark tr.td-tr:hover { background:#243044; }
-  html.dark .td-badge-red    { background:rgba(239,68,68,.14);   color:#fca5a5; }
-  html.dark .td-badge-green  { background:rgba(34,197,94,.14);   color:#86efac; }
-  html.dark .td-badge-blue   { background:rgba(59,130,246,.14);  color:#93c5fd; }
-  html.dark .td-badge-sky    { background:rgba(14,165,233,.14);  color:#7dd3fc; }
-  html.dark .td-badge-amber  { background:rgba(245,158,11,.14);  color:#fcd34d; }
-  html.dark .td-badge-violet { background:rgba(139,92,246,.14);  color:#c4b5fd; }
-  html.dark .td-badge-teal   { background:rgba(20,184,166,.14);  color:#5eead4; }
-  html.dark .td-badge-slate  { background:rgba(148,163,184,.12); color:#94a3b8; }
-  html.dark .td-badge-muted  { background:rgba(148,163,184,.08); color:#64748b; }
-  html.dark .td-strip { border-bottom-color:#334155; }
-  html.dark .td-strip-red    { background:linear-gradient(to right,rgba(239,68,68,.07),transparent); }
-  html.dark .td-strip-green  { background:linear-gradient(to right,rgba(34,197,94,.07),transparent); }
-  html.dark .td-strip-violet { background:linear-gradient(to right,rgba(139,92,246,.07),transparent); }
-  html.dark .td-strip-amber  { background:linear-gradient(to right,rgba(245,158,11,.07),transparent); }
-  html.dark .td-strip-slate  { background:linear-gradient(to right,rgba(148,163,184,.06),transparent); }
-  html.dark .td-insight { background:rgba(245,158,11,.08); border-color:rgba(245,158,11,.25); }
-  html.dark .td-insight p { color:#fcd34d !important; }
-  html.dark .td-thead { background:#16202f; border-bottom-color:#334155; }
-  html.dark .td-foot { border-top-color:#334155; background:#16202f; }
-  html.dark .td-input { background:#0f172a; border-color:#334155; color:#e2e8f0; }
-  html.dark .td-input::placeholder { color:#64748b; }
-  /* Utility-class recolors scoped to this page */
-  html.dark .td-page .text-gray-900,
-  html.dark .td-page .text-gray-800,
-  html.dark .td-page .text-gray-700 { color:#e2e8f0; }
-  html.dark .td-page .text-gray-600 { color:#94a3b8; }
-  html.dark .td-page .text-gray-500,
-  html.dark .td-page .text-gray-400 { color:#7c8ba1; }
-  html.dark .td-page .text-gray-300 { color:#475569; }
-  html.dark .td-page .bg-gray-100 { background:#283548; }
-  html.dark .td-page .bg-slate-100   { background:rgba(148,163,184,.12); }
-  html.dark .td-page .bg-emerald-100 { background:rgba(16,185,129,.14); }
-  html.dark .td-page .bg-blue-50, html.dark .td-page .bg-blue-100 { background:rgba(16,185,129,.14); }
-  html.dark .td-page .bg-red-50  { background:rgba(239,68,68,.08); }
-  html.dark .td-page .bg-red-100 { background:rgba(239,68,68,.14); }
-  html.dark .td-page .bg-purple-50 { background:rgba(20,184,166,.14); }
-  html.dark .td-page .bg-amber-100  { background:rgba(245,158,11,.14); }
-  html.dark .td-page .bg-yellow-100 { background:rgba(234,179,8,.14); }
-  html.dark .td-page .bg-orange-100 { background:rgba(249,115,22,.14); }
-  html.dark .td-page .bg-green-100  { background:rgba(34,197,94,.14); }
-  html.dark .td-page .bg-sky-100    { background:rgba(14,165,233,.14); }
-  html.dark .td-page .hover\:bg-gray-50:hover { background:#243044; }
-  html.dark .td-page .text-green-700, html.dark .td-page .text-green-600 { color:#86efac; }
-  html.dark .td-page .text-blue-700, html.dark .td-page .text-blue-600 { color:#6ee7b7; }
-  html.dark .td-page .text-sky-700 { color:#7dd3fc; }
-  html.dark .td-page .text-yellow-700, html.dark .td-page .text-yellow-600 { color:#fde047; }
-  html.dark .td-page .text-orange-700 { color:#fdba74; }
-  html.dark .td-page .text-red-700, html.dark .td-page .text-red-600 { color:#fca5a5; }
-  html.dark .td-page .text-amber-700 { color:#fcd34d; }
-  html.dark .td-page .text-emerald-600 { color:#34d399; }
-  html.dark .td-page .text-slate-500, html.dark .td-page .text-slate-600 { color:#94a3b8; }
-  html.dark .td-page .text-purple-600 { color:#2dd4bf; }
-</style>
+{% include 'teacher/tt_theme.html' %}
 
 <div class="td-page" style="min-height:calc(100vh - 64px);">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
 
-  <!-- ══════════════════════════════════
-       HEADER
-  ══════════════════════════════════ -->
-  <div class="relative overflow-hidden rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 px-7 py-6"
-       style="background:linear-gradient(130deg,#022c22 0%,#064e3b 38%,#047857 72%,#0d9488 100%);box-shadow:0 10px 40px rgba(13,148,136,.35);">
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="opacity:.05;" xmlns="http://www.w3.org/2000/svg">
-      <defs><pattern id="tgrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width=".5"/></pattern></defs>
-      <rect width="100%" height="100%" fill="url(#tgrid)"/>
-    </svg>
-    <div class="absolute top-0 right-0 w-72 h-72 pointer-events-none" style="background:radial-gradient(circle,rgba(110,231,183,.18) 0%,transparent 70%);transform:translate(30%,-40%);"></div>
-
-    <div class="relative flex items-center gap-4">
-      <div class="flex items-center justify-center text-2xl flex-shrink-0" style="width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);">🎓</div>
-      <div>
-        <p style="font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(167,243,208,.75);text-transform:uppercase;margin-bottom:4px;">Teacher Dashboard</p>
-        <h1 class="font-black text-white" style="font-size:1.35rem;letter-spacing:-.02em;line-height:1.1;">
-          {% if LANG == 'en' %}Welcome back, {{ request.user.username }}{% else %}স্বাগতম, {{ request.user.username }}{% endif %}
-        </h1>
-        <p style="font-size:12px;color:rgba(167,243,208,.65);margin-top:3px;">
-          {{ student_data|length }} {% if LANG == 'en' %}students enrolled{% else %}জন শিক্ষার্থী নিবন্ধিত{% endif %}
-        </p>
-      </div>
-    </div>
-
-    <div class="relative flex items-center flex-wrap gap-2">
-      {% if pending_cq_count > 0 %}
-      <a href="{% url 'manage_grade_list' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-bold hover:opacity-90 transition" style="font-size:13px;background:#ef4444;color:#fff;">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-        {{ pending_cq_count }} {% if LANG == 'en' %}To Grade{% else %}মূল্যায়ন বাকি{% endif %}
-      </a>
-      {% endif %}
-      <a href="{% url 'create_exam_paper' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition hover:bg-white/20" style="font-size:13px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-        {% if LANG == 'en' %}New Exam Paper{% else %}নতুন পরীক্ষা{% endif %}
-      </a>
-      <a href="{% url 'contest_create' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition hover:bg-white/20" style="font-size:13px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-        {% if LANG == 'en' %}New Contest{% else %}নতুন প্রতিযোগিতা{% endif %}
-      </a>
-    </div>
-  </div>
+  {% if LANG == 'en' %}
+  {% include 'teacher/tt_nav.html' with tt_title='Welcome back, '|add:request.user.username tt_sub='Class health at a glance' tt_active='overview' %}
+  {% else %}
+  {% include 'teacher/tt_nav.html' with tt_title='স্বাগতম, '|add:request.user.username tt_sub='এক নজরে ক্লাসের অবস্থা' tt_active='overview' %}
+  {% endif %}
 
   <!-- ══════════════════════════════════
        STAT CARDS — 6 metrics
   ══════════════════════════════════ -->
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" data-aos="fade-up">
 
-    <div class="td-card td-stat p-5" style="border-left:3px solid #94a3b8;">
+    <a href="{% url 'teacher_students' %}" class="td-card td-stat p-5 block" style="border-left:3px solid #94a3b8;">
       <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
         <svg class="w-5 h-5 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z"/></svg>
       </div>
-      <p class="font-black text-gray-900 leading-none td-count" style="font-size:2rem;">{% if LANG == 'bn' %}{{ student_data|length|bn_num }}{% else %}{{ student_data|length }}{% endif %}</p>
+      <p class="font-black text-gray-900 leading-none td-count" style="font-size:2rem;">{% if LANG == 'bn' %}{{ student_count|bn_num }}{% else %}{{ student_count }}{% endif %}</p>
       <p class="td-label mt-2">{% if LANG == 'en' %}Total Students{% else %}মোট শিক্ষার্থী{% endif %}</p>
-    </div>
+    </a>
 
     <div class="td-card td-stat p-5" style="border-left:3px solid #10b981;">
       <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mb-4">
@@ -168,13 +42,13 @@
       <p class="td-label mt-2">{% if LANG == 'en' %}Class Avg{% else %}গড় নির্ভুলতা{% endif %}</p>
     </div>
 
-    <div class="td-card td-stat p-5" style="border-left:3px solid #ef4444;">
+    <a href="{% url 'teacher_students' %}?status=at_risk" class="td-card td-stat p-5 block" style="border-left:3px solid #ef4444;">
       <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mb-4">
         <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
       </div>
       <p class="font-black leading-none td-count text-red-600" style="font-size:2rem;">{% if LANG == 'bn' %}{{ at_risk_count|bn_num }}{% else %}{{ at_risk_count }}{% endif %}</p>
       <p class="td-label mt-2">{% if LANG == 'en' %}At-Risk{% else %}দুর্বল{% endif %}</p>
-    </div>
+    </a>
 
     <div class="td-card td-stat p-5" style="border-left:3px solid #14b8a6;">
       <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center mb-4">
@@ -192,7 +66,78 @@
       <p class="td-label mt-2">{% if LANG == 'en' %}Pending CQ{% else %}অমীমাংসিত CQ{% endif %}</p>
       {% if urgent_cq_count %}<p class="text-xs text-red-400 font-semibold mt-1">{{ urgent_cq_count }} {% if LANG == 'en' %}urgent{% else %}জরুরি{% endif %}</p>{% endif %}
     </a>
+  </div>
 
+  <!-- ══════════════════════════════════
+       NEEDS ATTENTION + WEEKLY CHART
+  ══════════════════════════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" data-aos="fade-up">
+
+    <div class="td-card p-6 lg:col-span-1">
+      <p class="td-section-head mb-4" style="color:#d97706;">{% if LANG == 'en' %}Needs Attention{% else %}নজর দিন{% endif %}</p>
+      {% if pending_cq_count or note_request_count or at_risk_count %}
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        {% if pending_cq_count %}
+        <a href="{% url 'manage_grade_list' %}" class="td-attn {% if urgent_cq_count %}td-attn-red{% else %}td-attn-amber{% endif %}">
+          <div class="td-attn-icon {% if urgent_cq_count %}bg-red-100{% else %}bg-amber-100{% endif %}">
+            <svg class="w-3.5 h-3.5 {% if urgent_cq_count %}text-red-600{% else %}text-amber-700{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-gray-800">{% if LANG == 'en' %}CQ to grade{% else %}CQ মূল্যায়ন বাকি{% endif %}</p>
+            <p class="text-xs text-gray-400">{% if urgent_cq_count %}{{ urgent_cq_count }} {% if LANG == 'en' %}older than 24h{% else %}২৪ ঘণ্টার বেশি পুরনো{% endif %}{% else %}{% if LANG == 'en' %}all recent{% else %}সব সাম্প্রতিক{% endif %}{% endif %}</p>
+          </div>
+          <span class="td-attn-count {% if urgent_cq_count %}text-red-600{% else %}text-amber-600{% endif %}">{{ pending_cq_count }}</span>
+        </a>
+        {% endif %}
+        {% if note_request_count %}
+        <a href="{% url 'manage_note_requests' %}" class="td-attn td-attn-sky">
+          <div class="td-attn-icon bg-sky-100">
+            <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-gray-800">{% if LANG == 'en' %}Note requests{% else %}নোট অনুরোধ{% endif %}</p>
+            <p class="text-xs text-gray-400">{% if LANG == 'en' %}students waiting for notes{% else %}শিক্ষার্থীরা অপেক্ষায়{% endif %}</p>
+          </div>
+          <span class="td-attn-count text-sky-600">{{ note_request_count }}</span>
+        </a>
+        {% endif %}
+        {% if at_risk_count %}
+        <a href="{% url 'teacher_students' %}?status=at_risk" class="td-attn td-attn-red">
+          <div class="td-attn-icon bg-red-100">
+            <svg class="w-3.5 h-3.5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-gray-800">{% if LANG == 'en' %}At-risk students{% else %}দুর্বল শিক্ষার্থী{% endif %}</p>
+            <p class="text-xs text-gray-400">{% if LANG == 'en' %}below 50% this week{% else %}এই সপ্তাহে ৫০%-এর নিচে{% endif %}</p>
+          </div>
+          <span class="td-attn-count text-red-600">{{ at_risk_count }}</span>
+        </a>
+        {% endif %}
+      </div>
+      {% else %}
+      {% include 'includes/empty_state.html' with icon='✅' compact=1 title_en='All clear' title_bn='সব ঠিকঠাক' sub_en='No grading, requests, or at-risk students right now.' sub_bn='এই মুহূর্তে কোনো মূল্যায়ন, অনুরোধ বা দুর্বল শিক্ষার্থী নেই।' %}
+      {% endif %}
+
+      {% if recent_exam_pending %}
+      <p class="td-label mt-5 mb-2">{% if LANG == 'en' %}Oldest in queue{% else %}সবচেয়ে পুরনো{% endif %}</p>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        {% for attempt in recent_exam_pending %}
+        <div class="td-row flex items-center justify-between py-2.5">
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-gray-800 truncate">{{ attempt.student.username }}</p>
+            <p class="text-xs text-gray-400 truncate">{{ attempt.exam_paper.title }} · {{ attempt.cq_submitted_at|date:"d M, g:i A" }}</p>
+          </div>
+          <a href="{% url 'grade_cq_submission' attempt.id %}" class="td-badge td-badge-amber flex-shrink-0">{% if LANG == 'en' %}Grade →{% else %}মূল্যায়ন →{% endif %}</a>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="td-card p-6 lg:col-span-2">
+      <p class="td-section-head mb-4" style="color:#059669;">{% if LANG == 'en' %}Weekly Activity{% else %}সাপ্তাহিক কার্যক্রম{% endif %}</p>
+      <div style="height:240px;"><canvas id="classActivityChart"></canvas></div>
+    </div>
   </div>
 
   <!-- ══════════════════════════════════
@@ -274,7 +219,7 @@
   </div>
 
   <!-- ══════════════════════════════════
-       SUBJECT PERFORMANCE + WEEKLY CHART
+       SUBJECT PERFORMANCE + INSIGHTS
   ══════════════════════════════════ -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4" data-aos="fade-up">
 
@@ -300,24 +245,12 @@
         {% endfor %}
       </div>
       {% else %}
-      <div class="py-8 text-center"><p class="text-sm text-gray-400 font-semibold">{% if LANG == 'en' %}No data available.{% else %}কোনো তথ্য নেই।{% endif %}</p></div>
+      {% include 'includes/empty_state.html' with icon='📊' compact=1 title_en='No subject data yet' title_bn='এখনো কোনো তথ্য নেই' sub_en='Appears once students start answering questions.' sub_bn='শিক্ষার্থীরা উত্তর দেওয়া শুরু করলে দেখা যাবে।' %}
       {% endif %}
     </div>
 
     <div class="td-card p-6">
-      <p class="td-section-head mb-4" style="color:#059669;">{% if LANG == 'en' %}Weekly Activity{% else %}সাপ্তাহিক কার্যক্রম{% endif %}</p>
-      <canvas id="classActivityChart" height="175"></canvas>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════
-       INSIGHTS + RECENT FEEDBACK
-  ══════════════════════════════════ -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4" data-aos="fade-up">
-
-    <div class="td-card p-6">
       <p class="td-section-head mb-4" style="color:#f59e0b;">{% if LANG == 'en' %}Actionable Insights{% else %}গুরুত্বপূর্ণ পরামর্শ{% endif %}</p>
-      {% if insights %}
       <div style="display:flex;flex-direction:column;gap:8px;">
         {% for insight in insights %}
         <div class="td-insight flex gap-3 rounded-xl px-4 py-3">
@@ -326,10 +259,13 @@
         </div>
         {% endfor %}
       </div>
-      {% else %}
-      <div class="py-8 text-center"><p class="text-sm text-gray-400 font-semibold">{% if LANG == 'en' %}No insights yet.{% else %}এখনো কোনো পরামর্শ নেই।{% endif %}</p></div>
-      {% endif %}
     </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       RECENT FEEDBACK + ACTIVITY HEATMAP
+  ══════════════════════════════════ -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4" data-aos="fade-up">
 
     <div class="td-card p-6">
       <p class="td-section-head mb-4" style="color:#059669;">{% if LANG == 'en' %}Recent Feedback{% else %}সম্প্রতি পাঠানো মতামত{% endif %}</p>
@@ -350,243 +286,31 @@
         {% endfor %}
       </div>
       {% else %}
-      <div class="py-8 text-center"><p class="text-sm text-gray-400 font-semibold">{% if LANG == 'en' %}No feedback yet.{% else %}এখনো কোনো মতামত নেই।{% endif %}</p></div>
+      {% include 'includes/empty_state.html' with icon='💬' compact=1 title_en='No feedback sent yet' title_bn='এখনো কোনো মতামত পাঠানো হয়নি' sub_en='Feedback you write from student pages shows up here.' sub_bn='শিক্ষার্থীর পেজ থেকে পাঠানো মতামত এখানে থাকবে।' %}
       {% endif %}
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════
-       ACTIVITY HEATMAP — 30 DAYS
-  ══════════════════════════════════ -->
-  <div class="td-card p-6" data-aos="fade-up">
-    <div class="flex items-center justify-between mb-5">
-      <p class="td-section-head" style="color:#16a34a;">{% if LANG == 'en' %}Class Activity — Last 30 Days{% else %}ক্লাস কার্যক্রম — গত ৩০ দিন{% endif %}</p>
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-gray-400 font-semibold">{% if LANG == 'en' %}Less{% else %}কম{% endif %}</span>
-        <div class="w-4 h-4 rounded-md bg-gray-100"></div>
-        <div class="w-4 h-4 rounded-md bg-emerald-200"></div>
-        <div class="w-4 h-4 rounded-md bg-emerald-400"></div>
-        <div class="w-4 h-4 rounded-md bg-emerald-500"></div>
-        <div class="w-4 h-4 rounded-md bg-emerald-700"></div>
-        <span class="text-xs text-gray-400 font-semibold">{% if LANG == 'en' %}More{% else %}বেশি{% endif %}</span>
+    <div class="td-card p-6">
+      <div class="flex items-center justify-between mb-5">
+        <p class="td-section-head" style="color:#16a34a;">{% if LANG == 'en' %}Class Activity — 30 Days{% else %}ক্লাস কার্যক্রম — ৩০ দিন{% endif %}</p>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400 font-semibold">{% if LANG == 'en' %}Less{% else %}কম{% endif %}</span>
+          <div class="w-4 h-4 rounded-md bg-gray-100"></div>
+          <div class="w-4 h-4 rounded-md bg-emerald-200"></div>
+          <div class="w-4 h-4 rounded-md bg-emerald-400"></div>
+          <div class="w-4 h-4 rounded-md bg-emerald-500"></div>
+          <div class="w-4 h-4 rounded-md bg-emerald-700"></div>
+          <span class="text-xs text-gray-400 font-semibold">{% if LANG == 'en' %}More{% else %}বেশি{% endif %}</span>
+        </div>
       </div>
-    </div>
-    <div class="flex gap-1.5 flex-wrap">
-      {% for day in heatmap_days %}
-      <div class="w-7 h-7 rounded-lg group relative cursor-default hover:scale-110 transition
-        {% if day.count == 0 %}bg-gray-100{% elif day.count <= 5 %}bg-emerald-200{% elif day.count <= 15 %}bg-emerald-400{% elif day.count <= 30 %}bg-emerald-500{% else %}bg-emerald-700{% endif %}">
-        <span class="absolute bottom-9 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded-lg px-2 py-1 opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">{{ day.date }}: {{ day.count }}</span>
+      <div class="flex gap-1.5 flex-wrap">
+        {% for day in heatmap_days %}
+        <div class="w-7 h-7 rounded-lg group relative cursor-default hover:scale-110 transition
+          {% if day.count == 0 %}bg-gray-100{% elif day.count <= 5 %}bg-emerald-200{% elif day.count <= 15 %}bg-emerald-400{% elif day.count <= 30 %}bg-emerald-500{% else %}bg-emerald-700{% endif %}">
+          <span class="absolute bottom-9 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded-lg px-2 py-1 opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">{{ day.date }}: {{ day.count }}</span>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════
-       EXAM MODE — papers + submissions
-  ══════════════════════════════════ -->
-  <div data-aos="fade-up">
-    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-      <div>
-        <p class="td-label" style="color:#0d9488;margin-bottom:4px;">Exam Mode</p>
-        <h2 class="font-bold text-gray-900" style="font-size:16px;">{% if LANG == 'en' %}Exam Papers & Submissions{% else %}পরীক্ষার পেপার ও জমা{% endif %}</h2>
-      </div>
-      <div class="flex gap-2">
-        <a href="{% url 'manage_grade_list' %}" class="relative flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition text-sm hover:opacity-90" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
-          {% if LANG == 'en' %}Grade Queue{% else %}মূল্যায়ন তালিকা{% endif %}
-          {% if pending_cq_count > 0 %}<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">{{ pending_cq_count }}</span>{% endif %}
-        </a>
-        <a href="{% url 'create_exam_paper' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition text-sm hover:opacity-90" style="background:linear-gradient(135deg,#059669,#0d9488);">
-          + {% if LANG == 'en' %}New Exam Paper{% else %}নতুন পরীক্ষার পেপার{% endif %}
-        </a>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-      <!-- Exam Papers List -->
-      <div class="td-card overflow-hidden">
-        <div class="px-5 py-3.5 flex items-center justify-between td-strip td-strip-violet">
-          <p class="td-section-head" style="color:#0d9488;">{% if LANG == 'en' %}Exam Papers{% else %}পরীক্ষার পেপার{% endif %}</p>
-          <span class="td-badge td-badge-violet">{{ exam_paper_data|length }} {% if LANG == 'en' %}active{% else %}সক্রিয়{% endif %}</span>
-        </div>
-        {% if exam_paper_data %}
-        <div>
-          {% for ep in exam_paper_data %}
-          <div class="td-row px-5 py-4 hover:bg-gray-50 transition">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <p class="font-bold text-gray-800 text-sm truncate">{{ ep.paper.title }}</p>
-                <p class="text-xs text-gray-400 mt-0.5">{{ ep.paper.subject.name }} &bull; {{ ep.paper.class_obj.name }} &bull; {{ ep.paper.year }}</p>
-                <div class="flex flex-wrap gap-3 mt-2">
-                  <span class="td-badge td-badge-slate">MCQ: {{ ep.mcq_count }}</span>
-                  <span class="td-badge td-badge-slate">CQ: {{ ep.cq_count }}</span>
-                  <span class="td-badge td-badge-blue">{{ ep.total }} {% if LANG == 'en' %}attempts{% else %}প্রচেষ্টা{% endif %}</span>
-                  {% if ep.pending > 0 %}<span class="td-badge td-badge-amber">{{ ep.pending }} {% if LANG == 'en' %}pending{% else %}অমীমাংসিত{% endif %}</span>{% endif %}
-                  {% if ep.graded > 0 %}<span class="td-badge td-badge-green">{{ ep.graded }} {% if LANG == 'en' %}graded{% else %}মূল্যায়িত{% endif %}</span>{% endif %}
-                </div>
-              </div>
-              <div class="flex gap-1.5 flex-shrink-0">
-                <a href="{% url 'edit_exam_paper' ep.paper.pk %}" class="td-badge td-badge-slate">{% if LANG == 'en' %}Edit{% else %}সম্পাদনা{% endif %}</a>
-                <a href="{% url 'start_exam' ep.paper.pk %}" class="td-badge td-badge-violet">{% if LANG == 'en' %}Preview{% else %}প্রিভিউ{% endif %}</a>
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="py-12 text-center">
-          <p class="text-4xl mb-3">📄</p>
-          <p class="text-sm font-semibold text-gray-400">{% if LANG == 'en' %}No exam papers yet.{% else %}কোনো পরীক্ষার পেপার নেই।{% endif %}</p>
-          <a href="{% url 'create_exam_paper' %}" class="mt-3 inline-block text-indigo-500 text-sm font-bold hover:underline">{% if LANG == 'en' %}Create your first →{% else %}প্রথমটি তৈরি করুন →{% endif %}</a>
-        </div>
-        {% endif %}
-      </div>
-
-      <!-- Pending Submissions + Recently Graded -->
-      <div class="td-card overflow-hidden">
-        <div class="px-5 py-3.5 flex items-center justify-between td-strip td-strip-amber">
-          <p class="td-section-head" style="color:#d97706;">{% if LANG == 'en' %}Pending Submissions{% else %}অমীমাংসিত জমা{% endif %}</p>
-          {% if pending_cq_count > 0 %}<a href="{% url 'manage_grade_list' %}" class="text-xs font-bold text-amber-600 hover:underline">{% if LANG == 'en' %}View all →{% else %}সব দেখুন →{% endif %}</a>{% endif %}
-        </div>
-        {% if recent_exam_pending %}
-        <div>
-          {% for attempt in recent_exam_pending %}
-          <div class="td-row px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition {% if attempt.is_urgent %}bg-red-50{% endif %}">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-black text-xs flex-shrink-0">{{ attempt.student.username|first|upper }}</div>
-              <div class="min-w-0">
-                <p class="text-sm font-bold text-gray-800 truncate">{{ attempt.student.username }}</p>
-                <p class="text-xs text-gray-400 truncate">{{ attempt.exam_paper.title }}</p>
-                <p class="text-xs text-gray-400">MCQ: {{ attempt.mcq_score }} &bull; {{ attempt.cq_submitted_at|date:"d M, g:i A" }}</p>
-              </div>
-            </div>
-            <a href="{% url 'grade_cq_submission' attempt.id %}" class="flex-shrink-0 text-xs font-black text-white px-3 py-1.5 rounded-xl hover:opacity-90 transition" style="background:linear-gradient(135deg,#059669,#0d9488);">
-              {% if LANG == 'en' %}Grade →{% else %}মূল্যায়ন →{% endif %}
-            </a>
-          </div>
-          {% endfor %}
-        </div>
-        {% if recent_exam_pending|length >= 6 %}
-        <div class="px-5 py-3 text-center" style="border-top:1px solid #f1f5f9;">
-          <a href="{% url 'manage_grade_list' %}" class="text-sm font-bold text-amber-600 hover:underline">{% if LANG == 'en' %}View all pending →{% else %}সব অমীমাংসিত দেখুন →{% endif %}</a>
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="py-10 text-center">
-          <p class="text-3xl mb-2">✅</p>
-          <p class="text-sm font-semibold text-gray-400">{% if LANG == 'en' %}No pending submissions.{% else %}কোনো অমীমাংসিত জমা নেই।{% endif %}</p>
-        </div>
-        {% endif %}
-
-        {% if recent_exam_graded %}
-        <div class="px-5 py-4 td-foot">
-          <p class="td-label mb-3">{% if LANG == 'en' %}Recently Graded{% else %}সম্প্রতি মূল্যায়িত{% endif %}</p>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            {% for attempt in recent_exam_graded %}
-            <div class="flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="font-bold text-gray-700 truncate">{{ attempt.student.username }}</span>
-                <span class="text-gray-400 truncate hidden sm:block">— {{ attempt.exam_paper.title|truncatechars:22 }}</span>
-              </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <span class="font-black text-gray-700">{{ attempt.total_score }}/100</span>
-                <span class="td-badge {% if attempt.grade == 'A+' %}td-badge-green{% elif attempt.grade == 'A' %}td-badge-blue{% elif attempt.grade == 'A-' %}td-badge-sky{% elif attempt.grade == 'B' %}td-badge-amber{% elif attempt.grade == 'C' %}td-badge-amber{% else %}td-badge-red{% endif %}">{{ attempt.grade }}</span>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════
-       STUDENT TABLE
-  ══════════════════════════════════ -->
-  <div class="td-card overflow-hidden" data-aos="fade-up">
-    <div class="px-6 py-4 flex items-center justify-between gap-4 flex-wrap td-strip td-strip-slate">
-      <div>
-        <h2 class="font-bold text-gray-900" style="font-size:15px;">{% if LANG == 'en' %}All Students{% else %}সকল শিক্ষার্থী{% endif %}</h2>
-        <p class="text-xs text-gray-400 mt-0.5">{{ student_data|length }} {% if LANG == 'en' %}enrolled — click any row for details{% else %}নিবন্ধিত{% endif %}</p>
-      </div>
-      <input type="text" id="searchInput" placeholder="{% if LANG == 'en' %}Search...{% else %}খুঁজুন...{% endif %}"
-             onkeyup="filterTable()"
-             class="td-input rounded-xl px-4 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-300 transition">
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full" style="font-size:13px;" id="studentTable">
-        <thead>
-          <tr class="td-thead">
-            <th class="td-label text-left px-5 py-3">{% if LANG == 'en' %}Student{% else %}শিক্ষার্থী{% endif %}</th>
-            <th class="td-label text-left px-4 py-3">Plan</th>
-            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</th>
-            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Correct{% else %}সঠিক{% endif %}</th>
-            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Wrong{% else %}ভুল{% endif %}</th>
-            <th class="td-label text-left px-4 py-3">Accuracy</th>
-            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}This Week{% else %}এই সপ্তাহ{% endif %}</th>
-            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Today{% else %}আজ{% endif %}</th>
-            <th class="td-label text-left px-4 py-3">Exam</th>
-            <th class="td-label text-left px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for s in student_data %}
-          <tr class="td-tr td-row">
-            <td class="px-5 py-3">
-              <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0"
-                     style="background:linear-gradient(135deg,#059669,#0d9488);">{{ s.profile.user.username|first|upper }}</div>
-                <div>
-                  <p class="font-bold text-gray-900 leading-tight">{{ s.profile.user.username }}</p>
-                  {% if s.week_total >= 3 and s.week_accuracy < 50 %}<span class="td-badge td-badge-red mt-0.5">At-Risk</span>{% endif %}
-                </div>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              {% if s.profile.plan == 'PREMIUM' %}<span class="td-badge td-badge-teal">Premium</span>
-              {% elif s.profile.plan == 'BASIC' %}<span class="td-badge td-badge-blue">Basic</span>
-              {% else %}<span class="td-badge td-badge-slate">Free</span>{% endif %}
-            </td>
-            <td class="px-4 py-3 font-bold text-gray-700">{{ s.total }}</td>
-            <td class="px-4 py-3 font-black text-green-600">{{ s.correct }}</td>
-            <td class="px-4 py-3 font-black text-red-600">{{ s.wrong }}</td>
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2">
-                <div class="rounded-full bg-gray-100 overflow-hidden" style="width:56px;height:6px;">
-                  <div class="h-full rounded-full {% if s.accuracy >= 70 %}bg-emerald-500{% elif s.accuracy >= 40 %}bg-yellow-500{% else %}bg-red-500{% endif %}" style="width:{{ s.accuracy }}%;"></div>
-                </div>
-                <span class="text-xs font-bold text-gray-600 w-9">{{ s.accuracy }}%</span>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              {% if s.week_total > 0 %}<span class="font-black text-xs {% if s.week_accuracy >= 60 %}text-emerald-600{% else %}text-red-500{% endif %}">{{ s.week_accuracy }}%</span>
-              {% else %}<span class="text-xs text-gray-300">—</span>{% endif %}
-            </td>
-            <td class="px-4 py-3">
-              {% if s.today_count > 0 %}<span class="td-badge td-badge-green">✓ {{ s.today_count }}</span>
-              {% else %}<span class="td-badge td-badge-muted">—</span>{% endif %}
-            </td>
-            <td class="px-4 py-3">
-              {% if s.exam_attempt %}{% with a=s.exam_attempt %}
-                {% if a.status == 'GRADED' %}<span class="td-badge {% if a.grade == 'A+' %}td-badge-green{% elif a.grade == 'A' %}td-badge-blue{% elif a.grade == 'A-' %}td-badge-sky{% elif a.grade == 'B' or a.grade == 'C' %}td-badge-amber{% else %}td-badge-red{% endif %}">{{ a.grade }} ({{ a.total_score }})</span>
-                {% elif a.status == 'CQ_PENDING' %}<a href="{% url 'grade_cq_submission' a.id %}" class="td-badge td-badge-amber">{% if LANG == 'en' %}Grade{% else %}মূল্যায়ন{% endif %}</a>
-                {% elif a.status == 'CQ_PHASE' %}<span class="td-badge td-badge-teal">CQ</span>
-                {% elif a.status == 'MCQ_PHASE' %}<span class="td-badge td-badge-blue">MCQ</span>
-                {% else %}<span class="text-xs text-gray-400">{{ a.status }}</span>{% endif %}
-              {% endwith %}{% else %}<span class="text-xs text-gray-300">—</span>{% endif %}
-            </td>
-            <td class="px-4 py-3">
-              <a href="{% url 'student_detail' s.profile.pk %}" class="text-xs font-bold text-white px-3 py-1.5 rounded-xl hover:opacity-90 transition" style="background:linear-gradient(135deg,#059669,#0d9488);">
-                {% if LANG == 'en' %}View{% else %}দেখুন{% endif %}
-              </a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="10">{% include 'includes/empty_state.html' with icon='🎓' title_en='No students found' title_bn='কোনো শিক্ষার্থী নেই' sub_en='Students appear here once they sign up and start practising.' sub_bn='শিক্ষার্থীরা sign up করে অনুশীলন শুরু করলে এখানে দেখা যাবে।' %}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
     </div>
   </div>
 
@@ -627,6 +351,7 @@
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, color: p.legend } } },
       scales: {
         y: { beginAtZero: true, ticks: { stepSize: 1, color: p.ticks }, grid: { color: p.grid } },
@@ -667,12 +392,5 @@
     requestAnimationFrame(step);
   });
 })();
-
-function filterTable() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  document.querySelectorAll('#studentTable tbody tr').forEach(row => {
-    row.style.display = row.cells[0]?.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-}
 </script>
 {% endblock %}

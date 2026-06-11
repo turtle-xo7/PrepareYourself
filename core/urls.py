@@ -89,6 +89,7 @@ urlpatterns = [
     path('superadmin/teacher/<int:pk>/assign-subjects/', views.assign_teacher_subjects, name='assign_teacher_subjects'),
 
     # Teacher
+    path('teacher/students/', views.teacher_students, name='teacher_students'),
     path('teacher/pending/', views.teacher_pending, name='teacher_pending'),
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
     path('teacher/student/<int:pk>/', views.student_detail, name='student_detail'),

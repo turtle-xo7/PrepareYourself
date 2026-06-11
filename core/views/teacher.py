@@ -23,14 +23,16 @@ from .base import (
     _is_exam_staff, _notify_all_students,
 )
 
-@admin_required
-def teacher_dashboard(request):
-    from ..models import UserProgress, TeacherFeedback, Contest, ExamPaper, ExamAttempt
+def _teacher_student_stats():
+    """Per-student practice stats shared by the teacher Overview and the
+    Students page. Returns (student_data, total_answered_all, active_today,
+    avg_accuracy)."""
+    from ..models import UserProgress
     from datetime import timedelta
     from django.utils import timezone
     from django.db.models import Count, Q
 
-    today = timezone.localdate()  # local calendar day - now().date() is the UTC date
+    today = timezone.localdate()
     week_ago = today - timedelta(days=7)
 
     students = UserProfile.objects.filter(
@@ -82,6 +84,27 @@ def teacher_dashboard(request):
         })
 
     avg_accuracy = round(sum(accuracy_list) / len(accuracy_list), 1) if accuracy_list else 0
+    return student_data, total_answered_all, active_today, avg_accuracy
+
+
+@admin_required
+def teacher_dashboard(request):
+    """Overview only: KPIs, attention items, charts, insights, feedback.
+    The full student table lives on /teacher/students/."""
+    from ..models import UserProgress, TeacherFeedback, Contest, ExamPaper, ExamAttempt, NoteRequest
+    from datetime import timedelta
+    from django.utils import timezone
+    from django.db.models import Count, Q
+
+    today = timezone.localdate()  # local calendar day - now().date() is the UTC date
+    week_ago = today - timedelta(days=7)
+
+    all_progress = UserProgress.objects.filter(
+        user__profile__role='STUDENT',
+        user__profile__is_superadmin=False
+    )
+
+    student_data, total_answered_all, active_today, avg_accuracy = _teacher_student_stats()
 
     at_risk = sorted(
         [s for s in student_data if s['week_total'] >= 3 and s['week_accuracy'] < 50],
@@ -151,31 +174,12 @@ def teacher_dashboard(request):
             insights.append(_L(request, f"📚 Class average accuracy in {weakest['name']} is only {weakest['accuracy']}% — revision needed.", f"📚 {weakest['name']}-এ class-এর গড় accuracy মাত্র {weakest['accuracy']}% — revision দরকার।"))
     if at_risk:
         insights.append(_L(request, f"🔴 {len(at_risk)} students are below 50% this week — talk to them.", f"🔴 {len(at_risk)} জন student এই সপ্তাহে ৫০%-এর নিচে — তাদের সাথে কথা বলুন।"))
-    if len(students) > 0 and active_today < len(students) * 0.3:
+    if len(student_data) > 0 and active_today < len(student_data) * 0.3:
         insights.append(_L(request, f"📉 Only {active_today} active today — engagement needs a boost.", f"📉 আজ মাত্র {active_today} জন active — engagement বাড়ানো দরকার।"))
     if not insights:
         insights.append(_L(request, "✅ All good. The class is performing well!", "✅ সব ঠিকঠাক আছে। Class ভালো perform করছে!"))
 
-    # ---- Exam Mode data ----
-    exam_papers = ExamPaper.objects.filter(is_active=True).select_related(
-        'subject', 'class_obj'
-    ).annotate(
-        attempt_total=Count('attempts', distinct=True),
-        attempt_pending=Count('attempts', filter=Q(attempts__status='CQ_PENDING'), distinct=True),
-        attempt_graded=Count('attempts', filter=Q(attempts__status='GRADED'), distinct=True),
-        n_mcqs=Count('mcqs', distinct=True),
-        n_cqs=Count('cqs', distinct=True),
-    ).order_by('-created_at')
-
-    exam_paper_data = [{
-        'paper': paper,
-        'total': paper.attempt_total,
-        'pending': paper.attempt_pending,
-        'graded': paper.attempt_graded,
-        'mcq_count': paper.n_mcqs,
-        'cq_count': paper.n_cqs,
-    } for paper in exam_papers]
-
+    # ---- Grading workload ----
     pending_cq_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
 
     urgent_cutoff = timezone.now() - timedelta(hours=24)
@@ -185,29 +189,15 @@ def teacher_dashboard(request):
 
     recent_exam_pending = ExamAttempt.objects.filter(
         status='CQ_PENDING'
-    ).select_related('student', 'exam_paper').order_by('cq_submitted_at')[:6]
+    ).select_related('student', 'exam_paper').order_by('cq_submitted_at')[:5]
 
-    recent_exam_graded = ExamAttempt.objects.filter(
-        status='GRADED'
-    ).select_related('student', 'exam_paper').order_by('-graded_at')[:5]
-
-    # Latest exam attempt per student (for student table column)
-    all_student_ids = [s['profile'].user.id for s in student_data]
-    latest_attempt_map = {}
-    for attempt in ExamAttempt.objects.filter(
-        student_id__in=all_student_ids
-    ).select_related('exam_paper').order_by('-started_at'):
-        if attempt.student_id not in latest_attempt_map:
-            latest_attempt_map[attempt.student_id] = attempt
-
-    for s in student_data:
-        s['exam_attempt'] = latest_attempt_map.get(s['profile'].user.id)
+    note_request_count = NoteRequest.objects.filter(status='PENDING').count()
 
     if pending_cq_count:
         insights.append(_L(request, f"📝 {pending_cq_count} CQ submissions are still ungraded.", f"📝 {pending_cq_count}টি CQ submission এখনো grade করা হয়নি।"))
 
     return render(request, 'teacher/dashboard.html', {
-        'student_data': student_data,
+        'student_count': len(student_data),
         'total_answered_all': total_answered_all,
         'active_today': active_today,
         'avg_accuracy': avg_accuracy,
@@ -222,11 +212,67 @@ def teacher_dashboard(request):
         'heatmap_days': heatmap_days,
         'max_heatmap': max_count,
         'insights': insights,
-        'exam_paper_data': exam_paper_data,
         'pending_cq_count': pending_cq_count,
         'urgent_cq_count': urgent_cq_count,
         'recent_exam_pending': recent_exam_pending,
-        'recent_exam_graded': recent_exam_graded,
+        'note_request_count': note_request_count,
+        'tt_active': 'overview',
+    })
+
+
+@admin_required
+def teacher_students(request):
+    """Full student roster: server-side search, plan/status filters,
+    pagination, and the latest exam attempt per visible row."""
+    from ..models import ExamAttempt
+    from django.core.paginator import Paginator
+
+    student_data, _total, active_today, _avg = _teacher_student_stats()
+
+    search = (request.GET.get('q') or '').strip().lower()
+    sel_plan = request.GET.get('plan', '')
+    sel_status = request.GET.get('status', '')
+
+    rows = student_data
+    if search:
+        rows = [s for s in rows
+                if search in s['profile'].user.username.lower()
+                or search in (s['profile'].user.email or '').lower()]
+    if sel_plan in ('FREE', 'BASIC', 'PREMIUM'):
+        rows = [s for s in rows if s['profile'].plan == sel_plan]
+    if sel_status == 'at_risk':
+        rows = [s for s in rows if s['week_total'] >= 3 and s['week_accuracy'] < 50]
+    elif sel_status == 'inactive':
+        rows = [s for s in rows if s['week_total'] == 0]
+    elif sel_status == 'active_today':
+        rows = [s for s in rows if s['today_count'] > 0]
+
+    total_matched = len(rows)
+    params = request.GET.copy()
+    params.pop('page', None)
+    page_obj = Paginator(rows, 20).get_page(request.GET.get('page'))
+
+    # Latest exam attempt — only for the rows on this page
+    page_ids = [s['profile'].user.id for s in page_obj.object_list]
+    latest_attempt_map = {}
+    for attempt in ExamAttempt.objects.filter(
+        student_id__in=page_ids
+    ).select_related('exam_paper').order_by('-started_at'):
+        if attempt.student_id not in latest_attempt_map:
+            latest_attempt_map[attempt.student_id] = attempt
+    for s in page_obj.object_list:
+        s['exam_attempt'] = latest_attempt_map.get(s['profile'].user.id)
+
+    return render(request, 'teacher/students.html', {
+        'page_obj': page_obj,
+        'base_qs': params.urlencode(),
+        'total_matched': total_matched,
+        'student_count': len(student_data),
+        'active_today': active_today,
+        'search': request.GET.get('q', ''),
+        'sel_plan': sel_plan,
+        'sel_status': sel_status,
+        'tt_active': 'students',
     })
 
 

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load bn_filters %}
+{% block title %}{% if LANG == 'en' %}Students{% else %}শিক্ষার্থী{% endif %} — Teacher{% endblock %}
+{% block content %}
+{% include 'teacher/tt_theme.html' %}
+
+<div class="td-page" style="min-height:calc(100vh - 64px);">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
+
+  {% if LANG == 'en' %}
+  {% include 'teacher/tt_nav.html' with tt_title='Students' tt_sub='Roster, progress, and per-student drill-down' tt_active='students' %}
+  {% else %}
+  {% include 'teacher/tt_nav.html' with tt_title='শিক্ষার্থী' tt_sub='তালিকা, অগ্রগতি ও বিস্তারিত' tt_active='students' %}
+  {% endif %}
+
+  <!-- ══════════════════════════════════
+       STUDENT TABLE
+  ══════════════════════════════════ -->
+  <div class="td-card overflow-hidden" data-aos="fade-up">
+    <div class="px-6 py-4 flex items-center justify-between gap-4 flex-wrap td-strip td-strip-slate">
+      <div>
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">{% if LANG == 'en' %}All Students{% else %}সকল শিক্ষার্থী{% endif %}</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{{ total_matched }} {% if LANG == 'en' %}of {{ student_count }} enrolled — click any row for details{% else %}/ {{ student_count }} নিবন্ধিত{% endif %}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="td-badge td-badge-green">{{ active_today }} {% if LANG == 'en' %}active today{% else %}আজ সক্রিয়{% endif %}</span>
+      </div>
+    </div>
+
+    <form method="get" class="px-6 py-3 flex items-center flex-wrap gap-2 td-filterbar">
+      <input type="text" name="q" value="{{ search }}"
+             placeholder="{% if LANG == 'en' %}Search username or email...{% else %}নাম বা email খুঁজুন...{% endif %}"
+             class="td-input flex-1 rounded-xl px-4 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-300 transition">
+      <select name="plan" onchange="this.form.submit()" class="td-input text-xs rounded-lg px-2 py-2 font-semibold" style="min-width:110px;">
+        <option value="">{% if LANG == 'en' %}All plans{% else %}সব প্ল্যান{% endif %}</option>
+        <option value="FREE" {% if sel_plan == 'FREE' %}selected{% endif %}>Free</option>
+        <option value="BASIC" {% if sel_plan == 'BASIC' %}selected{% endif %}>Basic</option>
+        <option value="PREMIUM" {% if sel_plan == 'PREMIUM' %}selected{% endif %}>Premium</option>
+      </select>
+      <select name="status" onchange="this.form.submit()" class="td-input text-xs rounded-lg px-2 py-2 font-semibold" style="min-width:130px;">
+        <option value="">{% if LANG == 'en' %}Any status{% else %}যেকোনো অবস্থা{% endif %}</option>
+        <option value="active_today" {% if sel_status == 'active_today' %}selected{% endif %}>{% if LANG == 'en' %}Active today{% else %}আজ সক্রিয়{% endif %}</option>
+        <option value="at_risk" {% if sel_status == 'at_risk' %}selected{% endif %}>{% if LANG == 'en' %}At-risk{% else %}দুর্বল{% endif %}</option>
+        <option value="inactive" {% if sel_status == 'inactive' %}selected{% endif %}>{% if LANG == 'en' %}Inactive this week{% else %}এই সপ্তাহে নিষ্ক্রিয়{% endif %}</option>
+      </select>
+      <button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90" style="background:linear-gradient(135deg,#047857,#0d9488);">{% if LANG == 'en' %}Search{% else %}খুঁজুন{% endif %}</button>
+      {% if search or sel_plan or sel_status %}
+      <a href="{% url 'teacher_students' %}" class="text-xs font-semibold text-gray-400 hover:text-gray-600 underline">{% if LANG == 'en' %}Clear{% else %}মুছুন{% endif %}</a>
+      {% endif %}
+    </form>
+
+    <div class="overflow-x-auto">
+      <table class="w-full" style="font-size:13px;">
+        <thead>
+          <tr class="td-thead">
+            <th class="td-label text-left px-5 py-3">{% if LANG == 'en' %}Student{% else %}শিক্ষার্থী{% endif %}</th>
+            <th class="td-label text-left px-4 py-3">Plan</th>
+            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Total{% else %}মোট{% endif %}</th>
+            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Correct{% else %}সঠিক{% endif %}</th>
+            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Wrong{% else %}ভুল{% endif %}</th>
+            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Accuracy{% else %}নির্ভুলতা{% endif %}</th>
+            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}This Week{% else %}এই সপ্তাহ{% endif %}</th>
+            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Today{% else %}আজ{% endif %}</th>
+            <th class="td-label text-left px-4 py-3">{% if LANG == 'en' %}Exam{% else %}পরীক্ষা{% endif %}</th>
+            <th class="td-label text-left px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in page_obj.object_list %}
+          <tr class="td-tr td-row">
+            <td class="px-5 py-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0"
+                     style="background:linear-gradient(135deg,#059669,#0d9488);">{{ s.profile.user.username|first|upper }}</div>
+                <div>
+                  <p class="font-bold text-gray-900 leading-tight">{{ s.profile.user.username }}</p>
+                  {% if s.week_total >= 3 and s.week_accuracy < 50 %}<span class="td-badge td-badge-red mt-0.5">At-Risk</span>{% endif %}
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              {% if s.profile.plan == 'PREMIUM' %}<span class="td-badge td-badge-teal">Premium</span>
+              {% elif s.profile.plan == 'BASIC' %}<span class="td-badge td-badge-blue">Basic</span>
+              {% else %}<span class="td-badge td-badge-slate">Free</span>{% endif %}
+            </td>
+            <td class="px-4 py-3 font-bold text-gray-700">{{ s.total }}</td>
+            <td class="px-4 py-3 font-black text-green-600">{{ s.correct }}</td>
+            <td class="px-4 py-3 font-black text-red-600">{{ s.wrong }}</td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <div class="rounded-full bg-gray-100 overflow-hidden" style="width:56px;height:6px;">
+                  <div class="h-full rounded-full {% if s.accuracy >= 70 %}bg-emerald-500{% elif s.accuracy >= 50 %}bg-yellow-400{% else %}bg-red-400{% endif %}" style="width:{{ s.accuracy }}%;"></div>
+                </div>
+                <span class="font-bold text-gray-600 text-xs">{{ s.accuracy }}%</span>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              {% if s.week_total > 0 %}<span class="text-xs font-bold text-gray-600">{{ s.week_total }} q · {{ s.week_accuracy }}%</span>
+              {% else %}<span class="text-xs text-gray-300">—</span>{% endif %}
+            </td>
+            <td class="px-4 py-3">
+              {% if s.today_count > 0 %}<span class="td-badge td-badge-green">✓ {{ s.today_count }}</span>
+              {% else %}<span class="td-badge td-badge-muted">—</span>{% endif %}
+            </td>
+            <td class="px-4 py-3">
+              {% if s.exam_attempt %}{% with a=s.exam_attempt %}
+                {% if a.status == 'GRADED' %}<span class="td-badge {% if a.grade == 'A+' %}td-badge-green{% elif a.grade == 'A' %}td-badge-blue{% elif a.grade == 'A-' %}td-badge-sky{% elif a.grade == 'B' or a.grade == 'C' %}td-badge-amber{% else %}td-badge-red{% endif %}">{{ a.grade }} ({{ a.total_score }})</span>
+                {% elif a.status == 'CQ_PENDING' %}<a href="{% url 'grade_cq_submission' a.id %}" class="td-badge td-badge-amber">{% if LANG == 'en' %}Grade{% else %}মূল্যায়ন{% endif %}</a>
+                {% elif a.status == 'CQ_PHASE' %}<span class="td-badge td-badge-teal">CQ</span>
+                {% elif a.status == 'MCQ_PHASE' %}<span class="td-badge td-badge-blue">MCQ</span>
+                {% else %}<span class="text-xs text-gray-400">{{ a.status }}</span>{% endif %}
+              {% endwith %}{% else %}<span class="text-xs text-gray-300">—</span>{% endif %}
+            </td>
+            <td class="px-4 py-3">
+              <a href="{% url 'student_detail' s.profile.pk %}" class="td-badge td-badge-teal">{% if LANG == 'en' %}View →{% else %}দেখুন →{% endif %}</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10">
+              {% if search or sel_plan or sel_status %}
+              {% include 'includes/empty_state.html' with icon='🔎' title_en='No students match' title_bn='কোনো শিক্ষার্থী মেলেনি' sub_en='Try a different search, or clear the plan and status filters.' sub_bn='অন্যভাবে খুঁজুন, বা filter মুছে দেখুন।' %}
+              {% else %}
+              {% include 'includes/empty_state.html' with icon='🎓' title_en='No students yet' title_bn='এখনো কোনো শিক্ষার্থী নেই' sub_en='Students appear here once they sign up and start practising.' sub_bn='শিক্ষার্থীরা sign up করে অনুশীলন শুরু করলে এখানে দেখা যাবে।' %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-center gap-3 py-4 td-foot">
+      {% if page_obj.has_previous %}
+      <a href="?{{ base_qs }}&amp;page={{ page_obj.previous_page_number }}"
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">← {% if LANG == 'en' %}Previous{% else %}আগের{% endif %}</a>
+      {% endif %}
+      <span class="text-xs text-gray-400 font-semibold">{% if LANG == 'en' %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% else %}পৃষ্ঠা {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}{% endif %}</span>
+      {% if page_obj.has_next %}
+      <a href="?{{ base_qs }}&amp;page={{ page_obj.next_page_number }}"
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">{% if LANG == 'en' %}Next{% else %}পরের{% endif %} →</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+</div>
+{% endblock %}
