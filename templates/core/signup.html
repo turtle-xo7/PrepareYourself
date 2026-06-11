@@ -27,7 +27,7 @@
       color: #111827;
     }
     .input-field:focus {
-      border-color: #93c5fd;
+      border-color: #5eead4;
       box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
     }
     .role-card {
@@ -37,10 +37,10 @@
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
-    .role-card:hover { border-color: #93c5fd; }
+    .role-card:hover { border-color: #5eead4; }
     .role-card.selected {
       border-color: #059669;
-      background: #eff6ff;
+      background: #f0fdfa;
       box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
     }
     .plan-row {
@@ -49,11 +49,11 @@
       transition: border-color 0.2s, background 0.2s;
       cursor: pointer;
     }
-    .plan-row:hover { border-color: #93c5fd; }
-    .plan-row.selected { border-color: #059669; background: #eff6ff; }
+    .plan-row:hover { border-color: #5eead4; }
+    .plan-row.selected { border-color: #059669; background: #f0fdfa; }
 
     /* Dark mode */
-    .dark body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%) !important; }
+    .dark body { background: linear-gradient(135deg, #0f172a 0%, #042f2e 100%) !important; }
     .dark .card-box { background: #1e293b !important; border-color: #334155 !important; }
     .dark .input-field { background: #0f172a; border-color: #334155; color: #f1f5f9; }
     .dark .input-field::placeholder { color: #64748b; }
@@ -71,11 +71,13 @@
     .dark .label-text { color: #cbd5e1 !important; }
     .dark .muted { color: #94a3b8 !important; }
     .dark .footer-text { color: #475569; }
-    .dark .ctrl-btn { background: rgba(13,148,136,0.2) !important; color: #a5b4fc !important; }
+    .dark .ctrl-btn { background: rgba(13,148,136,0.2) !important; color: #5eead4 !important; }
+    .dark .link-clr { color: #2dd4bf !important; }
+    .dark #teacher-fields { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.3); }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-8"
-      style="background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);">
+      style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 100%);">
 
   <div class="w-full max-w-md mx-auto" data-aos="fade-up" data-aos-duration="500">
     <div class="card-box bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-10">
@@ -85,12 +87,12 @@
 
         <div class="absolute right-0 top-0 flex items-center gap-1.5">
           <a href="{% url 'toggle_language' %}"
-             class="ctrl-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-indigo-600 transition hover:scale-105"
+             class="ctrl-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-teal-700 transition hover:scale-105"
              style="background: rgba(13,148,136,0.1);">
             {% if LANG == 'en' %}বাং{% else %}EN{% endif %}
           </a>
           <button id="theme-btn" onclick="toggleTheme()"
-            class="ctrl-btn w-9 h-9 rounded-xl flex items-center justify-center transition hover:scale-110 text-indigo-600"
+            class="ctrl-btn w-9 h-9 rounded-xl flex items-center justify-center transition hover:scale-110 text-teal-700"
             style="background: rgba(13,148,136,0.1);">
             <span id="theme-icon">🌙</span>
           </button>
@@ -204,7 +206,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <span class="plan-price text-sm font-bold text-gray-700">৳0</span>
-                <input type="radio" name="plan" value="FREE" checked class="accent-blue-500">
+                <input type="radio" name="plan" value="FREE" checked class="accent-teal-600">
               </div>
             </label>
             <label class="plan-row flex items-center justify-between px-4 py-3" data-group="plan-group">
@@ -214,7 +216,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <span class="plan-price text-sm font-bold text-gray-700">৳99/mo</span>
-                <input type="radio" name="plan" value="BASIC" class="accent-blue-500">
+                <input type="radio" name="plan" value="BASIC" class="accent-teal-600">
               </div>
             </label>
             <label class="plan-row flex items-center justify-between px-4 py-3" data-group="plan-group">
@@ -224,7 +226,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <span class="plan-price text-sm font-bold text-gray-700">৳199/mo</span>
-                <input type="radio" name="plan" value="PREMIUM" class="accent-blue-500">
+                <input type="radio" name="plan" value="PREMIUM" class="accent-teal-600">
               </div>
             </label>
           </div>
@@ -242,9 +244,9 @@
         }
       </script>
 
-      <p class="text-center text-sm text-gray-400 mt-5">
+      <p class="muted text-center text-sm text-gray-400 mt-5">
         {% if LANG == 'en' %}Already have an account?{% else %}ইতোমধ্যে account আছে?{% endif %}
-        <a href="{% url 'login' %}" class="text-blue-500 hover:text-blue-700 font-medium transition">
+        <a href="{% url 'login' %}" class="link-clr text-teal-600 hover:text-teal-800 font-medium transition">
           {% if LANG == 'en' %}Log In{% else %}লগইন করো{% endif %}
         </a>
       </p>
@@ -260,8 +262,8 @@
     function applyTheme(dark) {
       document.documentElement.classList.toggle('dark', dark);
       document.body.style.background = dark
-        ? 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)'
-        : 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%)';
+        ? 'linear-gradient(135deg, #0f172a 0%, #042f2e 100%)'
+        : 'linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 100%)';
       const icon = document.getElementById('theme-icon');
       if (icon) icon.textContent = dark ? '☀️' : '🌙';
       localStorage.setItem('py-theme', dark ? 'dark' : 'light');
