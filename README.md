@@ -48,7 +48,11 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 
 | Teacher Dashboard (dark) | Super Admin Control Centre |
 |:---:|:---:|
-| ![Teacher dashboard in dark mode](docs/screenshots/teacher-dashboard-dark.jpeg) | ![Super admin dashboard with revenue and user management](docs/screenshots/superadmin.jpeg) |
+| ![Teacher dashboard in dark mode](docs/screenshots/teacher-dashboard-dark.jpeg) | ![Super admin overview with KPIs, attention card and signups trend](docs/screenshots/superadmin.jpeg) |
+
+| Super Admin · User Management (dark) | Super Admin · Revenue |
+|:---:|:---:|
+| ![User management with inline role and plan editing](docs/screenshots/superadmin-users-dark.jpeg) | ![Revenue analytics with plan distribution and payment ledger](docs/screenshots/superadmin-revenue.jpeg) |
 
 | Manage Panel (dark) | Login |
 |:---:|:---:|
