@@ -1267,3 +1267,91 @@ html.dark .notif-icon-badge {
 html.dark .notif-card.read-card .notif-teacher-name {
   color: #94a3b8 !important;
 }
+
+/* ════════════════════════════════════════════
+   TOASTS (Django messages + window.showToast)
+   ════════════════════════════════════════════ */
+#toast-stack {
+  position: fixed; top: 5rem; right: 1rem; z-index: 120;
+  display: flex; flex-direction: column; gap: 10px;
+  width: min(360px, calc(100vw - 2rem));
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px 14px; border-radius: 14px;
+  background: #fff; border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+  font-size: 13.5px; font-weight: 600; color: #1f2937;
+  position: relative; overflow: hidden;
+  transform: translateX(calc(100% + 1.5rem)); opacity: 0;
+  transition: transform .35s cubic-bezier(.21,1.02,.73,1), opacity .35s ease;
+}
+.toast.show { transform: none; opacity: 1; }
+.toast-icon {
+  width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 13px; font-weight: 800;
+}
+.toast-success .toast-icon { background: #d1fae5; color: #059669; }
+.toast-error   .toast-icon { background: #fee2e2; color: #dc2626; }
+.toast-warning .toast-icon { background: #fef3c7; color: #d97706; }
+.toast-info    .toast-icon { background: #ccfbf1; color: #0d9488; }
+.toast-msg { flex: 1; line-height: 1.45; padding-top: 3px; min-width: 0; overflow-wrap: break-word; }
+.toast-close {
+  flex-shrink: 0; background: none; border: none; cursor: pointer;
+  color: #9ca3af; font-size: 16px; line-height: 1; padding: 2px;
+}
+.toast-close:hover { color: #4b5563; }
+.toast-bar { position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 3px 3px 0; }
+.toast-success .toast-bar { background: #10b981; }
+.toast-error   .toast-bar { background: #ef4444; }
+.toast-warning .toast-bar { background: #f59e0b; }
+.toast-info    .toast-bar { background: #14b8a6; }
+@keyframes toastBar { from { width: 100%; } to { width: 0%; } }
+html.dark .toast { background: #1e293b; border-color: #334155; color: #e2e8f0; box-shadow: 0 8px 30px rgba(0,0,0,.45); }
+html.dark .toast-success .toast-icon { background: rgba(16,185,129,.18); color: #6ee7b7; }
+html.dark .toast-error   .toast-icon { background: rgba(239,68,68,.18);  color: #fca5a5; }
+html.dark .toast-warning .toast-icon { background: rgba(245,158,11,.18); color: #fcd34d; }
+html.dark .toast-info    .toast-icon { background: rgba(20,184,166,.18); color: #5eead4; }
+html.dark .toast-close { color: #64748b; }
+html.dark .toast-close:hover { color: #cbd5e1; }
+@media (prefers-reduced-motion: reduce) {
+  .toast { transition: opacity .2s ease; transform: none; }
+  .toast-bar { animation: none !important; }
+}
+
+/* ════════════════════════════════════════════
+   SKELETON LOADERS
+   ════════════════════════════════════════════ */
+.skeleton {
+  position: relative; overflow: hidden;
+  background: #e2e8f0; border-radius: 8px;
+}
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  transform: translateX(-100%);
+  animation: skeletonShimmer 1.4s infinite;
+}
+@keyframes skeletonShimmer { 100% { transform: translateX(100%); } }
+html.dark .skeleton { background: #283548; }
+html.dark .skeleton::after { background: linear-gradient(90deg, transparent, rgba(148,163,184,.14), transparent); }
+@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; } }
+
+/* Search modal: rows shown while the fetch is in flight */
+.search-skel { display: flex; flex-direction: column; gap: 8px; padding: .5rem .75rem; }
+
+/* Lazy images: shimmer until loaded (class removed by base.html JS on load) */
+img.img-skeleton {
+  background: #e2e8f0 linear-gradient(90deg, #e2e8f0 25%, #eef2f7 45%, #e2e8f0 65%);
+  background-size: 200% 100%;
+  animation: imgShimmer 1.4s infinite;
+}
+@keyframes imgShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+html.dark img.img-skeleton {
+  background: #283548 linear-gradient(90deg, #283548 25%, #303d54 45%, #283548 65%);
+  background-size: 200% 100%;
+}
+@media (prefers-reduced-motion: reduce) { img.img-skeleton { animation: none; } }

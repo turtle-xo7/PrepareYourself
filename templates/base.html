@@ -102,7 +102,74 @@
         </svg>
     </button>
 
+    <!-- Toast notifications (Django messages render here; window.showToast for JS) -->
+    <div id="toast-stack" aria-live="polite"></div>
+    {% if messages %}
+    <script id="dj-messages" type="application/json">[{% for m in messages %}{"level":"{{ m.level_tag|escapejs }}","text":"{{ m|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+    {% endif %}
+
     <script>
+    /* ─── Toasts ────────────────────────────────────── */
+    (function () {
+        var stack = document.getElementById('toast-stack');
+        if (!stack) return;
+        var ICONS = { success: '✓', error: '✕', warning: '!', info: 'i' };
+        window.showToast = function (msg, type, duration) {
+            type = ICONS[type] ? type : 'info';
+            duration = duration || 4500;
+            var t = document.createElement('div');
+            t.className = 'toast toast-' + type;
+            t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+            t.innerHTML =
+                '<div class="toast-icon">' + ICONS[type] + '</div>' +
+                '<div class="toast-msg"></div>' +
+                '<button type="button" class="toast-close" aria-label="Dismiss">&times;</button>' +
+                '<div class="toast-bar" style="animation:toastBar ' + duration + 'ms linear forwards;"></div>';
+            t.querySelector('.toast-msg').textContent = msg;
+            stack.appendChild(t);
+            requestAnimationFrame(function () { requestAnimationFrame(function () { t.classList.add('show'); }); });
+            var timer = setTimeout(dismiss, duration);
+            function dismiss() {
+                clearTimeout(timer);
+                t.classList.remove('show');
+                setTimeout(function () { t.remove(); }, 380);
+            }
+            t.querySelector('.toast-close').addEventListener('click', dismiss);
+            t.addEventListener('mouseenter', function () {
+                clearTimeout(timer);
+                var b = t.querySelector('.toast-bar');
+                if (b) b.style.animationPlayState = 'paused';
+            });
+            t.addEventListener('mouseleave', function () {
+                timer = setTimeout(dismiss, 1800);
+                var b = t.querySelector('.toast-bar');
+                if (b) b.style.animationPlayState = 'running';
+            });
+            return dismiss;
+        };
+        var el = document.getElementById('dj-messages');
+        if (el) {
+            try {
+                JSON.parse(el.textContent).forEach(function (m, i) {
+                    setTimeout(function () {
+                        window.showToast(m.text, m.level === 'debug' ? 'info' : m.level);
+                    }, i * 160);
+                });
+            } catch (e) { /* malformed message payload — never break the page */ }
+        }
+    })();
+
+    /* ─── Lazy-image skeletons ──────────────────────── */
+    (function () {
+        document.querySelectorAll('img[loading="lazy"]').forEach(function (img) {
+            if (img.complete) return;
+            img.classList.add('img-skeleton');
+            var done = function () { img.classList.remove('img-skeleton'); };
+            img.addEventListener('load', done, { once: true });
+            img.addEventListener('error', done, { once: true });
+        });
+    })();
+
     /* ─── KaTeX ─────────────────────────────────────── */
     (function () {
         var KATEX_OPTS = {
@@ -294,10 +361,20 @@
             }
             debounceTimer = setTimeout(function () {
                 lastQuery = q;
+                /* Skeleton rows while the fetch is in flight */
+                results.innerHTML = '<div class="search-skel">' +
+                    '<div class="skeleton" style="height:38px;"></div>' +
+                    '<div class="skeleton" style="height:38px;width:85%;"></div>' +
+                    '<div class="skeleton" style="height:38px;width:70%;"></div>' +
+                    '</div>';
                 fetch('{% url "search_api" %}?q=' + encodeURIComponent(q))
                     .then(function (r) { return r.json(); })
                     .then(function (data) { if (input.value.trim() === lastQuery) render(data); })
-                    .catch(function () {});
+                    .catch(function () {
+                        if (input.value.trim() === lastQuery) {
+                            results.innerHTML = '<div class="search-empty">' + ({% if LANG == 'en' %}'Search failed — try again.'{% else %}'Search ব্যর্থ — আবার চেষ্টা করো।'{% endif %}) + '</div>';
+                        }
+                    });
             }, 220);
         });
 
