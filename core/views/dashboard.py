@@ -59,7 +59,12 @@ def _longest_streak(active_dates):
 @login_required
 def dashboard(request):
     try:
-        if request.user.profile.role == 'ADMIN' and not request.user.profile.is_superadmin:
+        profile = request.user.profile
+        # Staff land on their own dashboards — the student dashboard (and its
+        # premium gate below) is for students only.
+        if profile.is_superadmin:
+            return redirect('superadmin_dashboard')
+        if profile.role == 'ADMIN':
             return redirect('teacher_dashboard')
     except:
         pass
@@ -390,7 +395,12 @@ def dashboard(request):
 @login_required
 def progress_history(request):
     try:
-        if request.user.profile.role == 'ADMIN' and not request.user.profile.is_superadmin:
+        profile = request.user.profile
+        # Staff have no student progress — route them to their dashboards
+        # instead of tripping the premium gate below.
+        if profile.is_superadmin:
+            return redirect('superadmin_dashboard')
+        if profile.role == 'ADMIN':
             return redirect('teacher_dashboard')
     except:
         pass
