@@ -1,69 +1,83 @@
 {% extends 'base.html' %}
 {% block title %}Manage Subjects{% endblock %}
 {% block content %}
+{% include 'manage/mn_theme.html' %}
 
-<div class="min-h-screen bg-gray-50">
-  <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
-    <a href="{% url 'manage_dashboard' %}" class="text-gray-400 hover:text-gray-600 text-sm">← Dashboard</a>
-    <span class="text-gray-300">/</span>
-    <span class="text-sm font-medium text-gray-700">Subjects</span>
-  </div>
+<div class="mp-page" style="min-height:calc(100vh - 64px);">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
 
-  <div class="max-w-3xl mx-auto px-6 py-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Subjects</h1>
+  {% if LANG == 'en' %}
+  {% include 'manage/mn_nav.html' with mn_title='Subjects' mn_sub='Subjects available across the platform' mn_active='subjects' %}
+  {% else %}
+  {% include 'manage/mn_nav.html' with mn_title='বিষয়' mn_sub='প্ল্যাটফর্মের সব বিষয়' mn_active='subjects' %}
+  {% endif %}
 
-    <form method="post" action="{% url 'subject_add' %}" class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-      {% csrf_token %}
-      <p class="text-sm font-medium text-gray-700 mb-3">{% if LANG == 'en' %}Add a new subject{% else %}নতুন Subject যোগ করো{% endif %}</p>
-      <div class="flex gap-3">
-        <input type="text" name="name" placeholder="Subject name (e.g. Physics)" required
-          class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-        <input type="text" name="icon" placeholder="Icon e.g. ⚡"
-          class="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm text-center">
-        <input type="text" name="color" placeholder="Color e.g. blue"
-          class="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-        <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700">Add</button>
+  <div class="max-w-3xl w-full mx-auto" style="display:flex;flex-direction:column;gap:18px;">
+
+    <!-- Add subject -->
+    <div class="mp-card overflow-hidden" data-aos="fade-up">
+      <div class="px-6 py-4 mp-strip mp-strip-green">
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">{% if LANG == 'en' %}Add a new subject{% else %}নতুন Subject যোগ করো{% endif %}</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{% if LANG == 'en' %}Name, an emoji icon, and a theme color{% else %}নাম, একটি emoji icon ও theme color{% endif %}</p>
       </div>
-    </form>
-
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-gray-200">
-          <tr>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Name</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Icon</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Color</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Questions</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Action</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          {% for s in subjects %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-3 font-medium text-gray-800">{{ s.name }}</td>
-            <td class="px-4 py-3 text-xl">{{ s.icon }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ s.color }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ s.question_count }}</td>
-            <td class="px-4 py-3">
-              <span class="px-2 py-0.5 rounded text-xs {% if s.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
-                {% if s.is_active %}Active{% else %}Inactive{% endif %}
-              </span>
-            </td>
-            <td class="px-4 py-3">
-              <form method="post" action="{% url 'subject_delete' s.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete subject {{ s.name|escapejs }}?{% if s.question_count %} WARNING: its {{ s.question_count }} question(s) will also be deleted permanently!{% endif %}{% else %}{{ s.name|escapejs }} subject delete করবে?{% if s.question_count %} সাবধান: এর {{ s.question_count }}টি question-ও স্থায়ীভাবে মুছে যাবে!{% endif %}{% endif %}')">
-                {% csrf_token %}
-                <button type="submit" class="text-red-500 hover:underline text-sm">Delete</button>
-              </form>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="6">{% include 'includes/empty_state.html' with icon='📚' compact=1 title_en='No subjects yet' title_bn='এখনো কোনো subject নেই' sub_en='Add the first subject with the form above.' sub_bn='উপরের form দিয়ে প্রথম subject যোগ করুন।' %}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <form method="post" action="{% url 'subject_add' %}" class="p-5 flex flex-wrap gap-3">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Subject name (e.g. Physics)" required
+          class="mn-input flex-1 rounded-xl px-4 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-300 transition" style="min-width:160px;">
+        <input type="text" name="icon" placeholder="Icon e.g. ⚡"
+          class="mn-input w-24 rounded-xl px-3 py-2 text-sm text-center font-semibold focus:ring-2 focus:ring-emerald-300 transition">
+        <input type="text" name="color" placeholder="Color e.g. blue"
+          class="mn-input w-28 rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-300 transition">
+        <button type="submit" class="text-xs font-bold text-white px-5 py-2 rounded-lg transition hover:opacity-90" style="background:linear-gradient(135deg,#047857,#0d9488);">{% if LANG == 'en' %}Add Subject{% else %}যোগ করুন{% endif %}</button>
+      </form>
     </div>
+
+    <!-- Subject table -->
+    <div class="mp-card overflow-hidden" data-aos="fade-up">
+      <div class="px-6 py-4 mp-strip mp-strip-slate">
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">{% if LANG == 'en' %}All Subjects{% else %}সকল বিষয়{% endif %}</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{% if LANG == 'en' %}Deleting a subject permanently deletes its questions too{% else %}Subject মুছলে এর প্রশ্নগুলোও স্থায়ীভাবে মুছে যায়{% endif %}</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full" style="font-size:13px;">
+          <thead>
+            <tr class="mn-thead">
+              <th class="mp-label text-left px-5 py-3">{% if LANG == 'en' %}Name{% else %}নাম{% endif %}</th>
+              <th class="mp-label text-left px-4 py-3">Icon</th>
+              <th class="mp-label text-left px-4 py-3">Color</th>
+              <th class="mp-label text-left px-4 py-3">{% if LANG == 'en' %}Questions{% else %}প্রশ্ন{% endif %}</th>
+              <th class="mp-label text-left px-4 py-3">Status</th>
+              <th class="mp-label text-right px-4 py-3">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in subjects %}
+            <tr class="mn-tr mp-row">
+              <td class="px-5 py-3 font-bold text-gray-800">{{ s.name }}</td>
+              <td class="px-4 py-3 text-xl">{{ s.icon }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ s.color }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ s.question_count }}</td>
+              <td class="px-4 py-3">
+                <span class="mp-badge {% if s.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                  {% if s.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <form method="post" action="{% url 'subject_delete' s.pk %}" class="inline" onsubmit="return confirm('{% if LANG == 'en' %}Delete subject {{ s.name|escapejs }}?{% if s.question_count %} WARNING: its {{ s.question_count }} question(s) will also be deleted permanently!{% endif %}{% else %}{{ s.name|escapejs }} subject delete করবে?{% if s.question_count %} সাবধান: এর {{ s.question_count }}টি question-ও স্থায়ীভাবে মুছে যাবে!{% endif %}{% endif %}')">
+                  {% csrf_token %}
+                  <button type="submit" class="mp-badge bg-red-100 text-red-700">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">{% include 'includes/empty_state.html' with icon='📚' compact=1 title_en='No subjects yet' title_bn='এখনো কোনো subject নেই' sub_en='Add the first subject with the form above.' sub_bn='উপরের form দিয়ে প্রথম subject যোগ করুন।' %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </div>
-
+</div>
 {% endblock %}

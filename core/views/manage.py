@@ -23,9 +23,18 @@ from .base import (
     _is_exam_staff, _notify_all_students,
 )
 
+def _manage_badge_counts():
+    """Pending-work badges shown on the manage-section tab bar (every manage page)."""
+    from ..models import ExamAttempt, NoteRequest
+    return {
+        'pending_cq_count': ExamAttempt.objects.filter(status='CQ_PENDING').count(),
+        'pending_note_request_count': NoteRequest.objects.filter(status='PENDING').count(),
+    }
+
+
 @admin_required
 def manage_dashboard(request):
-    from ..models import PracticalVideo, ExamPaper, ExamAttempt, NoteRequest
+    from ..models import PracticalVideo, ExamPaper, NoteRequest
     total_questions = Question.objects.filter(is_active=True).count()
     total_videos = PracticalVideo.objects.filter(is_active=True).count()
     total_boards = Board.objects.filter(is_active=True).count()
@@ -33,9 +42,7 @@ def manage_dashboard(request):
     total_classes = Class.objects.count()
     recent_questions = Question.objects.select_related('board', 'subject').order_by('-created_at')[:5]
     exam_paper_count = ExamPaper.objects.count()
-    pending_cq_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
     pending_note_requests = NoteRequest.objects.filter(status='PENDING').select_related('student', 'subject').order_by('-created_at')[:5]
-    pending_note_request_count = NoteRequest.objects.filter(status='PENDING').count()
     return render(request, 'manage/dashboard.html', {
         'total_questions': total_questions,
         'total_videos': total_videos,
@@ -44,9 +51,8 @@ def manage_dashboard(request):
         'total_classes': total_classes,
         'recent_questions': recent_questions,
         'exam_paper_count': exam_paper_count,
-        'pending_cq_count': pending_cq_count,
         'pending_note_requests': pending_note_requests,
-        'pending_note_request_count': pending_note_request_count,
+        **_manage_badge_counts(),
     })
 
 
@@ -98,6 +104,7 @@ def manage_questions(request):
         'sel_board': sel_board, 'sel_subject': sel_subject,
         'sel_class': sel_class, 'sel_year': sel_year,
         'sel_type': sel_type, 'search': search,
+        **_manage_badge_counts(),
     })
 
 
@@ -627,7 +634,7 @@ def question_delete(request, pk):
 def manage_boards(request):
     from django.db.models import Count
     boards = Board.objects.annotate(question_count=Count('questions'))
-    return render(request, 'manage/boards.html', {'boards': boards})
+    return render(request, 'manage/boards.html', {'boards': boards, **_manage_badge_counts()})
 
 
 @admin_required
@@ -660,7 +667,7 @@ def board_delete(request, pk):
 def manage_subjects(request):
     from django.db.models import Count
     subjects = Subject.objects.annotate(question_count=Count('questions'))
-    return render(request, 'manage/subjects.html', {'subjects': subjects})
+    return render(request, 'manage/subjects.html', {'subjects': subjects, **_manage_badge_counts()})
 
 
 @admin_required
@@ -694,7 +701,7 @@ def subject_delete(request, pk):
 def manage_classes(request):
     from django.db.models import Count
     classes = Class.objects.annotate(question_count=Count('questions'))
-    return render(request, 'manage/classes.html', {'classes': classes})
+    return render(request, 'manage/classes.html', {'classes': classes, **_manage_badge_counts()})
 
 
 @admin_required

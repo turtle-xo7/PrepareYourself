@@ -1,49 +1,73 @@
 {% extends 'base.html' %}
 {% block title %}Manage Classes{% endblock %}
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Classes</h1>
-        <a href="{% url 'manage_dashboard' %}" class="text-sm text-gray-500 hover:underline">← Dashboard</a>
-    </div>
+{% include 'manage/mn_theme.html' %}
 
-    <form method="post" action="{% url 'class_add' %}" class="bg-white rounded-xl border border-gray-200 p-5 mb-6 flex gap-3">
+<div class="mp-page" style="min-height:calc(100vh - 64px);">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
+
+  {% if LANG == 'en' %}
+  {% include 'manage/mn_nav.html' with mn_title='Classes' mn_sub='Class levels students can practise in' mn_active='classes' %}
+  {% else %}
+  {% include 'manage/mn_nav.html' with mn_title='ক্লাস' mn_sub='শিক্ষার্থীদের অনুশীলনের ক্লাসসমূহ' mn_active='classes' %}
+  {% endif %}
+
+  <div class="max-w-3xl w-full mx-auto" style="display:flex;flex-direction:column;gap:18px;">
+
+    <!-- Add class -->
+    <div class="mp-card overflow-hidden" data-aos="fade-up">
+      <div class="px-6 py-4 mp-strip mp-strip-green">
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">{% if LANG == 'en' %}Add a new class{% else %}নতুন Class যোগ করো{% endif %}</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{% if LANG == 'en' %}Sort order controls display position (9, 10, 11, 12){% else %}Sort order দিয়ে ক্রম ঠিক হয় (৯, ১০, ১১, ১২){% endif %}</p>
+      </div>
+      <form method="post" action="{% url 'class_add' %}" class="p-5 flex flex-wrap gap-3">
         {% csrf_token %}
         <input type="text" name="name" placeholder="Class name (e.g. Class 9)" required
-            class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          class="mn-input flex-1 rounded-xl px-4 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-300 transition" style="min-width:160px;">
         <input type="number" name="numeric_value" placeholder="Sort order (9, 10, 11, 12)" required
-            class="w-44 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-        <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700">Add</button>
-    </form>
-
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="text-left px-4 py-3 text-gray-600 font-medium">Name</th>
-                    <th class="text-left px-4 py-3 text-gray-600 font-medium">Sort Order</th>
-                    <th class="text-left px-4 py-3 text-gray-600 font-medium">Questions</th>
-                    <th class="text-left px-4 py-3 text-gray-600 font-medium">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for c in classes %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium">{{ c.name }}</td>
-                    <td class="px-4 py-3 text-gray-500">{{ c.numeric_value }}</td>
-                    <td class="px-4 py-3 text-gray-500">{{ c.question_count }}</td>
-                    <td class="px-4 py-3">
-                        <form method="post" action="{% url 'class_delete' c.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete class {{ c.name|escapejs }}?{% if c.question_count %} WARNING: its {{ c.question_count }} question(s) will also be deleted permanently!{% endif %}{% else %}{{ c.name|escapejs }} class delete করবে?{% if c.question_count %} সাবধান: এর {{ c.question_count }}টি question-ও স্থায়ীভাবে মুছে যাবে!{% endif %}{% endif %}')">
-                            {% csrf_token %}
-                            <button type="submit" class="text-red-500 hover:underline text-sm">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="4">{% include 'includes/empty_state.html' with icon='🎒' compact=1 title_en='No classes yet' title_bn='এখনো কোনো class নেই' sub_en='Add the first class with the form above — e.g. Class 9 or Intermediate 1st.' sub_bn='উপরের form দিয়ে প্রথম class যোগ করুন — যেমন Class 9 বা Intermediate 1st।' %}</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+          class="mn-input w-44 rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-300 transition">
+        <button type="submit" class="text-xs font-bold text-white px-5 py-2 rounded-lg transition hover:opacity-90" style="background:linear-gradient(135deg,#047857,#0d9488);">{% if LANG == 'en' %}Add Class{% else %}যোগ করুন{% endif %}</button>
+      </form>
     </div>
+
+    <!-- Class table -->
+    <div class="mp-card overflow-hidden" data-aos="fade-up">
+      <div class="px-6 py-4 mp-strip mp-strip-slate">
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">{% if LANG == 'en' %}All Classes{% else %}সকল ক্লাস{% endif %}</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{% if LANG == 'en' %}Deleting a class permanently deletes its questions too{% else %}Class মুছলে এর প্রশ্নগুলোও স্থায়ীভাবে মুছে যায়{% endif %}</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full" style="font-size:13px;">
+          <thead>
+            <tr class="mn-thead">
+              <th class="mp-label text-left px-5 py-3">{% if LANG == 'en' %}Name{% else %}নাম{% endif %}</th>
+              <th class="mp-label text-left px-4 py-3">Sort Order</th>
+              <th class="mp-label text-left px-4 py-3">{% if LANG == 'en' %}Questions{% else %}প্রশ্ন{% endif %}</th>
+              <th class="mp-label text-right px-4 py-3">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in classes %}
+            <tr class="mn-tr mp-row">
+              <td class="px-5 py-3 font-bold text-gray-800">{{ c.name }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ c.numeric_value }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ c.question_count }}</td>
+              <td class="px-4 py-3 text-right">
+                <form method="post" action="{% url 'class_delete' c.pk %}" class="inline" onsubmit="return confirm('{% if LANG == 'en' %}Delete class {{ c.name|escapejs }}?{% if c.question_count %} WARNING: its {{ c.question_count }} question(s) will also be deleted permanently!{% endif %}{% else %}{{ c.name|escapejs }} class delete করবে?{% if c.question_count %} সাবধান: এর {{ c.question_count }}টি question-ও স্থায়ীভাবে মুছে যাবে!{% endif %}{% endif %}')">
+                  {% csrf_token %}
+                  <button type="submit" class="mp-badge bg-red-100 text-red-700">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">{% include 'includes/empty_state.html' with icon='🎒' compact=1 title_en='No classes yet' title_bn='এখনো কোনো class নেই' sub_en='Add the first class with the form above — e.g. Class 9 or Intermediate 1st.' sub_bn='উপরের form দিয়ে প্রথম class যোগ করুন — যেমন Class 9 বা Intermediate 1st।' %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
 </div>
 {% endblock %}

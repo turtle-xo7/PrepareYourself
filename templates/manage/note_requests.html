@@ -2,30 +2,28 @@
 {% load bn_filters %}
 {% block title %}{% if LANG == 'en' %}Note Requests{% else %}Note Requests{% endif %}{% endblock %}
 {% block content %}
+{% include 'manage/mn_theme.html' %}
 
-<div class="max-w-5xl mx-auto px-4 py-8">
+<div class="mp-page" style="min-height:calc(100vh - 64px);">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
 
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-    <div>
-      <h1 class="text-2xl font-extrabold text-gray-900">
-        📩 {% if LANG == 'en' %}Student Note Requests{% else %}শিক্ষার্থীদের Note Request{% endif %}
-      </h1>
-      <p class="text-sm text-gray-400 mt-1">
-        {% if LANG == 'en' %}{{ pending_count }} pending request(s){% else %}{% if LANG == 'bn' %}{{ pending_count|bn_num }}{% else %}{{ pending_count }}{% endif %} {% if LANG == 'en' %} request(s) pending{% else %}টি request অপেক্ষমাণ{% endif %}{% endif %}
-      </p>
-    </div>
-    <div class="flex gap-2">
-      <a href="{% url 'study_note_add' %}"
-         class="text-sm font-semibold text-white px-4 py-2 rounded-xl transition"
-         style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
-        + {% if LANG == 'en' %}Add Note{% else %}নোট যোগ করুন{% endif %}
-      </a>
-      <a href="{% url 'manage_dashboard' %}"
-         class="text-sm text-gray-600 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-50 transition">
-        ← {% if LANG == 'en' %}Dashboard{% else %}ড্যাশবোর্ড{% endif %}
-      </a>
-    </div>
+  {% if LANG == 'en' %}
+  {% include 'manage/mn_nav.html' with mn_title='Note Requests' mn_sub='Topics students are waiting on — fulfill with a study note' mn_active='notes' %}
+  {% else %}
+  {% include 'manage/mn_nav.html' with mn_title='নোট রিকোয়েস্ট' mn_sub='শিক্ষার্থীদের চাওয়া টপিক — study note দিয়ে পূরণ করুন' mn_active='notes' %}
+  {% endif %}
+
+  <div class="max-w-5xl w-full mx-auto">
+
+  <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+    <p class="text-sm font-semibold text-gray-500">
+      {% if LANG == 'en' %}{{ pending_count }} pending request{{ pending_count|pluralize }}{% else %}{{ pending_count|bn_num }}টি request অপেক্ষমাণ{% endif %}
+    </p>
+    <a href="{% url 'study_note_add' %}"
+       class="text-xs font-bold text-white px-4 py-2 rounded-xl transition hover:opacity-90"
+       style="background:linear-gradient(135deg,#047857,#0d9488);">
+      + {% if LANG == 'en' %}Add Note{% else %}নোট যোগ করুন{% endif %}
+    </a>
   </div>
 
   {% if note_requests %}
@@ -75,7 +73,7 @@
         <!-- Fulfill by adding a note linked to this request -->
         <a href="{% url 'study_note_add' %}?req={{ req.pk }}"
            class="text-xs font-bold text-white px-3 py-2 rounded-xl text-center transition hover:opacity-90"
-           style="background: linear-gradient(135deg, #0f766e, #a78bfa);">
+           style="background:linear-gradient(135deg,#047857,#0d9488);">
           ✏️ {% if LANG == 'en' %}Add Note{% else %}নোট লিখুন{% endif %}
         </a>
         <!-- Quick fulfill (mark without adding note) -->
@@ -102,11 +100,12 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="text-center py-20 text-gray-400">
-    <p class="text-5xl mb-4">📭</p>
-    <p class="text-lg font-semibold">{% if LANG == 'en' %}No note requests yet.{% else %}এখনো কোনো note request নেই।{% endif %}</p>
+  <div class="mp-card">
+    {% include 'includes/empty_state.html' with icon='📭' title_en='No note requests yet' title_bn='এখনো কোনো note request নেই' sub_en='When a student requests a study note, it lands here for the team to fulfill.' sub_bn='শিক্ষার্থীরা note request পাঠালে এখানে দেখা যাবে।' %}
   </div>
   {% endif %}
 
+  </div>
+</div>
 </div>
 {% endblock %}

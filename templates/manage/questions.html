@@ -1,107 +1,108 @@
 {% extends 'base.html' %}
 {% block title %}Manage Questions{% endblock %}
 {% block content %}
+{% include 'manage/mn_theme.html' %}
 
-<div class="min-h-screen bg-gray-50">
-  <!-- Top Bar -->
-  <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <a href="{% url 'manage_dashboard' %}" class="text-gray-400 hover:text-gray-600 text-sm">← Dashboard</a>
-      <span class="text-gray-300">/</span>
-      <span class="text-sm font-medium text-gray-700">Questions</span>
-    </div>
-    <a href="{% url 'question_add' %}" class="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700">+ Add Question</a>
-  </div>
+<div class="mp-page" style="min-height:calc(100vh - 64px);">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
 
-  <div class="max-w-7xl mx-auto px-6 py-8">
+  {% if LANG == 'en' %}
+  {% include 'manage/mn_nav.html' with mn_title='Questions' mn_sub='Browse, filter, and edit the full question bank' mn_active='questions' %}
+  {% else %}
+  {% include 'manage/mn_nav.html' with mn_title='প্রশ্ন' mn_sub='সম্পূর্ণ question bank খুঁজুন ও সম্পাদনা করুন' mn_active='questions' %}
+  {% endif %}
 
-    <div class="flex items-center justify-between mb-6">
+  <!-- ══════════════════════════════════
+       QUESTION TABLE
+  ══════════════════════════════════ -->
+  <div class="mp-card overflow-hidden" data-aos="fade-up">
+    <div class="px-6 py-4 flex items-center justify-between gap-4 flex-wrap mp-strip mp-strip-slate">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Questions</h1>
-        <p class="text-sm text-gray-500 mt-1">{% if LANG == 'en' %}Total {% else %}মোট {% endif %}{{ total_matched }} {% if LANG == 'en' %} questions{% else %}টি question{% endif %}</p>
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">{% if LANG == 'en' %}All Questions{% else %}সকল প্রশ্ন{% endif %}</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{% if LANG == 'en' %}{{ total_matched }} matched — filter by board, subject, class, year, or type{% else %}{{ total_matched }}টি question পাওয়া গেছে{% endif %}</p>
       </div>
+      <a href="{% url 'question_add' %}" class="flex items-center gap-1.5 text-xs font-bold text-white px-3.5 py-2 rounded-xl hover:opacity-90 transition" style="background:linear-gradient(135deg,#059669,#0d9488);">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        {% if LANG == 'en' %}Add Question{% else %}প্রশ্ন যোগ করুন{% endif %}
+      </a>
     </div>
 
-    <form method="get" class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-      <div class="flex flex-wrap gap-3 items-center">
-        <input type="text" name="q" value="{{ search }}" placeholder="{% if LANG == 'en' %}Search question text...{% else %}প্রশ্ন খুঁজুন...{% endif %}"
-               class="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-        <select name="board" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
-          <option value="">{% if LANG == 'en' %}All Boards{% else %}সব Board{% endif %}</option>
-          {% for b in boards %}<option value="{{ b.pk }}" {% if sel_board == b.pk|stringformat:'s' %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
-        </select>
-        <select name="subject" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
-          <option value="">{% if LANG == 'en' %}All Subjects{% else %}সব Subject{% endif %}</option>
-          {% for s in subjects %}<option value="{{ s.pk }}" {% if sel_subject == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
-        </select>
-        <select name="class_obj" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
-          <option value="">{% if LANG == 'en' %}All Classes{% else %}সব Class{% endif %}</option>
-          {% for c in classes %}<option value="{{ c.pk }}" {% if sel_class == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
-        </select>
-        <select name="year" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
-          <option value="">{% if LANG == 'en' %}All Years{% else %}সব Year{% endif %}</option>
-          {% for y in years %}<option value="{{ y }}" {% if sel_year == y|stringformat:'s' %}selected{% endif %}>{{ y }}</option>{% endfor %}
-        </select>
-        <select name="type" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600">
-          <option value="">{% if LANG == 'en' %}All Types{% else %}সব Type{% endif %}</option>
-          <option value="MCQ" {% if sel_type == 'MCQ' %}selected{% endif %}>MCQ</option>
-          <option value="WRITTEN" {% if sel_type == 'WRITTEN' %}selected{% endif %}>CQ (Written)</option>
-        </select>
-        <button type="submit" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700">
-          {% if LANG == 'en' %}Filter{% else %}Filter করুন{% endif %}
-        </button>
-        {% if search or sel_board or sel_subject or sel_class or sel_year or sel_type %}
-        <a href="{% url 'manage_questions' %}" class="text-sm text-gray-500 hover:text-gray-700 underline">
-          {% if LANG == 'en' %}Clear{% else %}Clear করুন{% endif %}
-        </a>
-        {% endif %}
-      </div>
+    <form method="get" class="px-6 py-3 flex items-center flex-wrap gap-2 mn-filterbar">
+      <input type="text" name="q" value="{{ search }}"
+             placeholder="{% if LANG == 'en' %}Search question text...{% else %}প্রশ্ন খুঁজুন...{% endif %}"
+             class="mn-input flex-1 rounded-xl px-4 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-300 transition" style="min-width:180px;">
+      <select name="board" onchange="this.form.submit()" class="mn-input text-xs rounded-lg px-2 py-2 font-semibold" style="min-width:100px;">
+        <option value="">{% if LANG == 'en' %}All Boards{% else %}সব Board{% endif %}</option>
+        {% for b in boards %}<option value="{{ b.pk }}" {% if sel_board == b.pk|stringformat:'s' %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+      </select>
+      <select name="subject" onchange="this.form.submit()" class="mn-input text-xs rounded-lg px-2 py-2 font-semibold" style="min-width:100px;">
+        <option value="">{% if LANG == 'en' %}All Subjects{% else %}সব Subject{% endif %}</option>
+        {% for s in subjects %}<option value="{{ s.pk }}" {% if sel_subject == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+      </select>
+      <select name="class_obj" onchange="this.form.submit()" class="mn-input text-xs rounded-lg px-2 py-2 font-semibold" style="min-width:100px;">
+        <option value="">{% if LANG == 'en' %}All Classes{% else %}সব Class{% endif %}</option>
+        {% for c in classes %}<option value="{{ c.pk }}" {% if sel_class == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+      <select name="year" onchange="this.form.submit()" class="mn-input text-xs rounded-lg px-2 py-2 font-semibold" style="min-width:90px;">
+        <option value="">{% if LANG == 'en' %}All Years{% else %}সব Year{% endif %}</option>
+        {% for y in years %}<option value="{{ y }}" {% if sel_year == y|stringformat:'s' %}selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select>
+      <select name="type" onchange="this.form.submit()" class="mn-input text-xs rounded-lg px-2 py-2 font-semibold" style="min-width:90px;">
+        <option value="">{% if LANG == 'en' %}All Types{% else %}সব Type{% endif %}</option>
+        <option value="MCQ" {% if sel_type == 'MCQ' %}selected{% endif %}>MCQ</option>
+        <option value="WRITTEN" {% if sel_type == 'WRITTEN' %}selected{% endif %}>CQ (Written)</option>
+      </select>
+      <button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90" style="background:linear-gradient(135deg,#047857,#0d9488);">{% if LANG == 'en' %}Search{% else %}খুঁজুন{% endif %}</button>
+      {% if search or sel_board or sel_subject or sel_class or sel_year or sel_type %}
+      <a href="{% url 'manage_questions' %}" class="text-xs font-semibold text-gray-400 hover:text-gray-600 underline">{% if LANG == 'en' %}Clear{% else %}মুছুন{% endif %}</a>
+      {% endif %}
     </form>
 
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-gray-200">
-          <tr>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">#</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Question</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Subject</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Board</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Class</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Year</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Type</th>
-            <th class="text-left px-4 py-3 text-gray-500 font-medium">Action</th>
+    <div class="overflow-x-auto">
+      <table class="w-full" style="font-size:13px;">
+        <thead>
+          <tr class="mn-thead">
+            <th class="mp-label text-left px-5 py-3">#</th>
+            <th class="mp-label text-left px-4 py-3">{% if LANG == 'en' %}Question{% else %}প্রশ্ন{% endif %}</th>
+            <th class="mp-label text-left px-4 py-3">{% if LANG == 'en' %}Subject{% else %}বিষয়{% endif %}</th>
+            <th class="mp-label text-left px-4 py-3">Board</th>
+            <th class="mp-label text-left px-4 py-3">Class</th>
+            <th class="mp-label text-left px-4 py-3">{% if LANG == 'en' %}Year{% else %}সাল{% endif %}</th>
+            <th class="mp-label text-left px-4 py-3">Type</th>
+            <th class="mp-label text-right px-4 py-3">Action</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody>
           {% for q in questions %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-3 text-gray-400">{{ page_obj.start_index|add:forloop.counter0 }}</td>
-            <td class="px-4 py-3 text-gray-700 max-w-xs truncate" title="{{ q.question_text }}">{{ q.question_text|truncatechars:70|default:'—' }}</td>
+          <tr class="mn-tr mp-row">
+            <td class="px-5 py-3 text-gray-400">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+            <td class="px-4 py-3 text-gray-700 font-semibold max-w-xs truncate" title="{{ q.question_text }}">{{ q.question_text|truncatechars:70|default:'—' }}</td>
             <td class="px-4 py-3 text-gray-600">{{ q.subject }}</td>
             <td class="px-4 py-3 text-gray-600">{{ q.board }}</td>
             <td class="px-4 py-3 text-gray-600">{{ q.class_obj }}</td>
             <td class="px-4 py-3 text-gray-600">{{ q.year }}</td>
             <td class="px-4 py-3">
-              <span class="px-2 py-0.5 rounded text-xs font-medium
-                {% if q.question_type == 'MCQ' %}bg-blue-100 text-blue-700{% else %}bg-purple-100 text-purple-700{% endif %}">
-                {{ q.question_type }}
-              </span>
+              <span class="mp-badge {% if q.question_type == 'MCQ' %}bg-blue-100 text-blue-700{% else %}bg-purple-100 text-purple-700{% endif %}">{{ q.question_type }}</span>
             </td>
             <td class="px-4 py-3">
-              <div class="flex items-center gap-3">
-                <a href="{% url 'question_edit' q.pk %}" class="text-teal-600 hover:underline text-xs">Edit</a>
+              <div class="flex items-center gap-2 justify-end">
+                <a href="{% url 'question_edit' q.pk %}" class="mp-badge bg-teal-100 text-teal-700">Edit</a>
                 <form method="post" action="{% url 'question_delete' q.pk %}" onsubmit="return confirm('{% if LANG == 'en' %}Delete?{% else %}Delete করবে?{% endif %}')">
                   {% csrf_token %}
-                  <button type="submit" class="text-red-500 hover:underline text-xs">Delete</button>
+                  <button type="submit" class="mp-badge bg-red-100 text-red-700">Delete</button>
                 </form>
               </div>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="8" class="px-4 py-10 text-center text-gray-400">
-              {% if LANG == 'en' %}No questions.{% else %}কোনো question নেই।{% endif %}
-              <a href="{% url 'question_add' %}" class="text-teal-600 hover:underline">{% if LANG == 'en' %}Add a new one.{% else %}নতুন যোগ করো।{% endif %}</a>
+            <td colspan="8">
+              {% if search or sel_board or sel_subject or sel_class or sel_year or sel_type %}
+              {% include 'includes/empty_state.html' with icon='🔎' title_en='No questions match' title_bn='কোনো প্রশ্ন মেলেনি' sub_en='Try a different search, or clear the filters.' sub_bn='অন্যভাবে খুঁজুন, বা filter মুছে দেখুন।' %}
+              {% else %}
+              {% url 'question_add' as qa_url %}
+              {% include 'includes/empty_state.html' with icon='📝' title_en='No questions yet' title_bn='এখনো কোনো প্রশ্ন নেই' sub_en='Build the question bank — add the first question.' sub_bn='প্রথম প্রশ্নটি যোগ করে question bank শুরু করুন।' cta_url=qa_url cta_label_en='Add a question' cta_label_bn='প্রশ্ন যোগ করুন' %}
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -110,25 +111,20 @@
     </div>
 
     {% if page_obj.paginator.num_pages > 1 %}
-    <div class="flex items-center justify-center gap-3 pt-6">
+    <div class="flex items-center justify-center gap-3 py-4 mn-foot">
       {% if page_obj.has_previous %}
       <a href="?{{ base_qs }}&amp;page={{ page_obj.previous_page_number }}"
-         class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-teal-400 transition">
-        ← {% if LANG == 'en' %}Previous{% else %}আগের{% endif %}
-      </a>
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">← {% if LANG == 'en' %}Previous{% else %}আগের{% endif %}</a>
       {% endif %}
-      <span class="text-sm text-gray-500 font-medium">
-        {% if LANG == 'en' %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% else %}পৃষ্ঠা {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}{% endif %}
-      </span>
+      <span class="text-xs text-gray-400 font-semibold">{% if LANG == 'en' %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% else %}পৃষ্ঠা {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}{% endif %}</span>
       {% if page_obj.has_next %}
       <a href="?{{ base_qs }}&amp;page={{ page_obj.next_page_number }}"
-         class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-teal-400 transition">
-        {% if LANG == 'en' %}Next{% else %}পরের{% endif %} →
-      </a>
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">{% if LANG == 'en' %}Next{% else %}পরের{% endif %} →</a>
       {% endif %}
     </div>
     {% endif %}
   </div>
-</div>
 
+</div>
+</div>
 {% endblock %}

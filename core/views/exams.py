@@ -1044,11 +1044,13 @@ def manage_grade_list(request):
         for attempt in qs:
             attempt.is_urgent = bool(attempt.cq_submitted_at and attempt.cq_submitted_at < cutoff)
 
+    from .manage import _manage_badge_counts
     return render(request, 'manage/grade_queue.html', {
         'unclaimed': unclaimed,
         'my_queue': my_queue,
         'graded_by_me': graded_by_me,
         'total_pending': total_pending,
+        **_manage_badge_counts(),
     })
 
 

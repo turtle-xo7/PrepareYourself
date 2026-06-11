@@ -1,90 +1,16 @@
 {% extends 'base.html' %}
 {% block title %}Manage Panel{% endblock %}
 {% block content %}
-<style>
-  .mp-page { background:#f0f2f5; }
-  .mp-card { background:#fff; border-radius:18px; border:1px solid #e8edf2; box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.04); }
-  .mp-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
-  .mp-section-head { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-  .mp-row { border-bottom:1px solid #f1f5f9; }
-  .mp-row:last-child { border-bottom:none; }
-  .mp-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:7px; font-size:11px; font-weight:700; }
-  .mp-action { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px; transition:background .15s; }
-  .mp-action:hover { background:#f8fafc; }
-  .mp-action-icon { width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .mp-action-label { font-size:13px; font-weight:600; color:#374151; }
-  .mp-action:hover .mp-action-label { color:#1e293b; }
-  .mp-strip { border-bottom:1px solid #e8edf2; }
-  .mp-strip-blue   { background:linear-gradient(to right,#eff6ff,#fff); }
-  .mp-strip-violet { background:linear-gradient(to right,#f5f3ff,#fff); }
-  .mp-strip-green  { background:linear-gradient(to right,#f0fdf4,#fff); }
-  .mp-strip-slate  { background:linear-gradient(to right,#f8fafc,#fff); }
-  .mp-strip-amber  { background:linear-gradient(to right,#fffbeb,#fff); }
-
-  /* ── Dark mode ── */
-  html.dark .mp-page { background:#0f172a; }
-  html.dark .mp-card { background:#1e293b; border-color:#334155; box-shadow:0 1px 2px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.3); }
-  html.dark .mp-label { color:#64748b; }
-  html.dark .mp-row { border-bottom-color:#283548; }
-  html.dark .mp-action:hover { background:#243044; }
-  html.dark .mp-action-label { color:#cbd5e1; }
-  html.dark .mp-action:hover .mp-action-label { color:#f1f5f9; }
-  html.dark .mp-strip { border-bottom-color:#334155; }
-  html.dark .mp-strip-blue   { background:linear-gradient(to right,rgba(59,130,246,.07),transparent); }
-  html.dark .mp-strip-violet { background:linear-gradient(to right,rgba(139,92,246,.07),transparent); }
-  html.dark .mp-strip-green  { background:linear-gradient(to right,rgba(34,197,94,.07),transparent); }
-  html.dark .mp-strip-slate  { background:linear-gradient(to right,rgba(148,163,184,.06),transparent); }
-  html.dark .mp-strip-amber  { background:linear-gradient(to right,rgba(245,158,11,.07),transparent); }
-  html.dark .hover\:bg-slate-50\/60:hover { background:#243044 !important; }
-  html.dark .hover\:bg-amber-50\/40:hover { background:rgba(245,158,11,.08) !important; }
-</style>
+{% include 'manage/mn_theme.html' %}
 
 <div class="mp-page" style="min-height:calc(100vh - 64px);">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
 
-  <!-- ══════════════════════════════════
-       HEADER
-  ══════════════════════════════════ -->
-  <div class="relative overflow-hidden rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 px-7 py-6"
-       style="background:linear-gradient(130deg,#042f2e 0%,#134e4a 45%,#0f766e 80%,#0d9488 100%);box-shadow:0 10px 40px rgba(13,148,136,.35);">
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="opacity:.05;" xmlns="http://www.w3.org/2000/svg">
-      <defs><pattern id="mpgrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width=".5"/></pattern></defs>
-      <rect width="100%" height="100%" fill="url(#mpgrid)"/>
-    </svg>
-    <div class="absolute top-0 right-0 w-72 h-72 pointer-events-none" style="background:radial-gradient(circle,rgba(45,212,191,.15) 0%,transparent 70%);transform:translate(30%,-40%);"></div>
-
-    <div class="relative flex items-center gap-4">
-      <div class="flex items-center justify-center text-2xl flex-shrink-0" style="width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);">⚙️</div>
-      <div>
-        <p style="font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(153,246,228,.7);text-transform:uppercase;margin-bottom:4px;">Content Management</p>
-        <h1 class="font-black text-white" style="font-size:1.35rem;letter-spacing:-.02em;line-height:1.1;">Manage Panel</h1>
-        <p style="font-size:12px;color:rgba(153,246,228,.6);margin-top:3px;">{% if LANG == 'en' %}Manage everything from here{% else %}সব কিছু এখান থেকে manage করো{% endif %}</p>
-      </div>
-    </div>
-
-    <div class="relative flex items-center flex-wrap gap-2">
-      {% if pending_note_request_count > 0 %}
-      <a href="{% url 'manage_note_requests' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-bold hover:opacity-90 transition" style="font-size:13px;background:#f59e0b;color:#1c1917;">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        {{ pending_note_request_count }} Note Request{{ pending_note_request_count|pluralize }}
-      </a>
-      {% endif %}
-      {% if pending_cq_count > 0 %}
-      <a href="{% url 'manage_grade_list' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-bold bg-red-500 text-white hover:bg-red-400 transition" style="font-size:13px;">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-        {{ pending_cq_count }} To Grade
-      </a>
-      {% endif %}
-      <a href="{% url 'question_add' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition" style="font-size:13px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-        Add Question
-      </a>
-      <a href="{% url 'teacher_dashboard' %}" class="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition" style="font-size:13px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Students
-      </a>
-    </div>
-  </div>
+  {% if LANG == 'en' %}
+  {% include 'manage/mn_nav.html' with mn_title='Manage Panel' mn_sub='Content, exams, and catalogue — everything in one place' mn_active='panel' %}
+  {% else %}
+  {% include 'manage/mn_nav.html' with mn_title='ম্যানেজ প্যানেল' mn_sub='প্রশ্ন, পরীক্ষা ও ক্যাটালগ — সব এক জায়গায়' mn_active='panel' %}
+  {% endif %}
 
   <!-- ══════════════════════════════════
        STAT CARDS — 5 metrics

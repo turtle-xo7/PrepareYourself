@@ -65,10 +65,12 @@ def manage_note_requests(request):
     from ..models import NoteRequest
     note_requests = NoteRequest.objects.select_related('student', 'subject', 'fulfilled_by', 'fulfilled_note').order_by('-created_at')
     subjects = Subject.objects.filter(is_active=True)
+    from .manage import _manage_badge_counts
     return render(request, 'manage/note_requests.html', {
         'note_requests': note_requests,
         'subjects': subjects,
         'pending_count': note_requests.filter(status='PENDING').count(),
+        **_manage_badge_counts(),
     })
 
 
