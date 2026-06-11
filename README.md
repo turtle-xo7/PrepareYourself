@@ -46,17 +46,21 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 |:---:|:---:|
 | ![Interactive molecule lab with live bond simulation](docs/screenshots/practical-lab.jpeg) | ![Contest profile with rating, PrepCoins and activity heatmap](docs/screenshots/contest-profile.jpeg) |
 
-| Teacher Dashboard (dark) | Super Admin Control Centre |
+| Teacher · Overview (dark) | Teacher · Students |
 |:---:|:---:|
-| ![Teacher dashboard in dark mode](docs/screenshots/teacher-dashboard-dark.jpeg) | ![Super admin overview with KPIs, attention card and signups trend](docs/screenshots/superadmin.jpeg) |
+| ![Teacher overview with KPIs, needs-attention card and weekly chart](docs/screenshots/teacher-dashboard-dark.jpeg) | ![Student roster with search, filters and per-student drill-down](docs/screenshots/teacher-students.jpeg) |
 
-| Super Admin · User Management (dark) | Super Admin · Revenue |
+| Super Admin Control Centre | Super Admin · User Management (dark) |
 |:---:|:---:|
-| ![User management with inline role and plan editing](docs/screenshots/superadmin-users-dark.jpeg) | ![Revenue analytics with plan distribution and payment ledger](docs/screenshots/superadmin-revenue.jpeg) |
+| ![Super admin overview with KPIs, attention card and signups trend](docs/screenshots/superadmin.jpeg) | ![User management with inline role and plan editing](docs/screenshots/superadmin-users-dark.jpeg) |
 
-| Manage Panel (dark) | Login |
+| Super Admin · Revenue | Manage Panel (dark) |
 |:---:|:---:|
-| ![Content management panel in dark mode](docs/screenshots/manage-panel-dark.jpeg) | ![Bilingual login with theme toggle](docs/screenshots/login.jpeg) |
+| ![Revenue analytics with plan distribution and payment ledger](docs/screenshots/superadmin-revenue.jpeg) | ![Content management panel in dark mode](docs/screenshots/manage-panel-dark.jpeg) |
+
+| Global Search (Ctrl K) | Login |
+|:---:|:---:|
+| ![Command-palette search across questions, notes and papers](docs/screenshots/global-search.jpeg) | ![Bilingual login with theme toggle](docs/screenshots/login.jpeg) |
 
 ---
 
