@@ -40,7 +40,12 @@ def request_note(request):
         topic=topic,
         details=request.POST.get('details', ''),
     )
-    admin_ids = UserProfile.objects.filter(is_admin=True).values_list('user_id', flat=True)
+    # Note fulfilment is teacher work. (Was filter(is_admin=True) — a legacy
+    # boolean set on only a handful of old accounts, so most teachers never
+    # heard about requests.)
+    admin_ids = (UserProfile.objects
+                 .filter(role='ADMIN', is_approved=True, is_superadmin=False)
+                 .values_list('user_id', flat=True))
     Notification.objects.bulk_create([
         Notification(
             recipient_id=uid,

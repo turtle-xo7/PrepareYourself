@@ -123,6 +123,9 @@
     {% elif n.notif_type == 'question' %}{% with icon="❓" accent="#0284c7" bg="#f0f9ff" border="#7dd3fc" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=True %}
     {% endwith %}
+    {% elif n.notif_type == 'payment' %}{% with icon="💳" accent="#047857" bg="#ecfdf5" border="#6ee7b7" %}
+    {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=True %}
+    {% endwith %}
     {% else %}{% with icon="📚" accent="#059669" bg="#ecfdf5" border="#6ee7b7" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=True %}
     {% endwith %}
@@ -197,6 +200,9 @@
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=False %}
     {% endwith %}
     {% elif n.notif_type == 'question' %}{% with icon="❓" accent="#0284c7" bg="#f0f9ff" border="#e5e7eb" %}
+    {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=False %}
+    {% endwith %}
+    {% elif n.notif_type == 'payment' %}{% with icon="💳" accent="#047857" bg="#f0fdf4" border="#e5e7eb" %}
     {% include 'core/_notif_system_card.html' with notif=n icon=icon accent=accent bg=bg border=border unread=False %}
     {% endwith %}
     {% else %}{% with icon="📚" accent="#059669" bg="#f0fdf4" border="#e5e7eb" %}

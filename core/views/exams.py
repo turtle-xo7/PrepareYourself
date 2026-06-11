@@ -368,8 +368,9 @@ def submit_cq(request, attempt_id):
         subject_teachers = UserProfile.objects.filter(
             role='ADMIN', is_approved=True
         ).select_related('user')
-    superadmin_profiles = UserProfile.objects.filter(is_superadmin=True).select_related('user')
-    notify_users = {p.user for p in subject_teachers} | {p.user for p in superadmin_profiles}
+    # Grading is teacher work — superadmins are not notified here. They see
+    # the grade-queue backlog on the Control Centre "Needs Attention" card.
+    notify_users = {p.user for p in subject_teachers if not p.is_superadmin}
 
     pending_count = _EA.objects.filter(exam_paper=attempt.exam_paper, status='CQ_PENDING').count()
 

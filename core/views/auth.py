@@ -101,6 +101,22 @@ def signup_view(request):
         login(request, user)
 
         if role == 'ADMIN' and not is_superadmin:
+            # Teacher approval is a superadmin responsibility — tell them now
+            # instead of waiting for someone to open the dashboard.
+            from ..models import Notification
+            superadmin_ids = UserProfile.objects.filter(is_superadmin=True).values_list('user_id', flat=True)
+            Notification.objects.bulk_create([
+                Notification(
+                    recipient_id=uid,
+                    notif_type='request',
+                    title=f'New teacher application — {username}',
+                    title_bn=f'নতুন শিক্ষক আবেদন — {username}',
+                    message=f'{username} applied as a teacher ({profile.subject_expertise or "no expertise listed"}). Review the credentials to approve or reject.',
+                    message_bn=f'{username} শিক্ষক হিসেবে আবেদন করেছেন। Approve বা reject করতে credentials review করুন।',
+                    link='/superadmin/teacher-applications/',
+                )
+                for uid in superadmin_ids
+            ])
             return redirect('teacher_pending')
 
         if plan != 'FREE':

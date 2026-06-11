@@ -589,6 +589,7 @@ class Notification(models.Model):
         ('note', 'Study Note'),
         ('request', 'Note Request'),
         ('question', 'New Question'),
+        ('payment', 'Payment'),
     ]
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     notif_type = models.CharField(max_length=10, choices=TYPE_CHOICES)

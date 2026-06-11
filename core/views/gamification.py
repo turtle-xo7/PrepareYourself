@@ -326,7 +326,7 @@ def profile_contests(request):
 
     # Activity calendar (last 52 weeks)
     from datetime import timedelta
-    today = timezone.now().date()
+    today = timezone.localdate()  # local calendar day - now().date() is the UTC date
     days = []
     activity_map = {}
     for s in submissions:

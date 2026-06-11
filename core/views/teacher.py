@@ -30,7 +30,7 @@ def teacher_dashboard(request):
     from django.utils import timezone
     from django.db.models import Count, Q
 
-    today = timezone.now().date()
+    today = timezone.localdate()  # local calendar day - now().date() is the UTC date
     week_ago = today - timedelta(days=7)
 
     students = UserProfile.objects.filter(
@@ -266,7 +266,7 @@ def student_detail(request, pk):
             'accuracy': round(r['correct'] / r['total'] * 100, 1) if r['total'] > 0 else 0,
         }
 
-    today = timezone.now().date()
+    today = timezone.localdate()  # local calendar day - now().date() is the UTC date
     week_ago = today - timedelta(days=7)
 
     # One aggregated scan for the 14-day chart and 30-day heatmap

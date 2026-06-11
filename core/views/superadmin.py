@@ -57,8 +57,10 @@ def superadmin_dashboard(request):
     new_this_week = non_admin.filter(date_joined__gte=week_ago).count()
     new_prev_week = non_admin.filter(date_joined__gte=two_weeks_ago, date_joined__lt=week_ago).count()
 
-    # Signups per day, last 30 days (zero-filled for the chart)
-    since = (now - timedelta(days=29)).date()
+    # Signups per day, last 30 days (zero-filled for the chart).
+    # localdate() — TruncDate buckets convert to local time, so the zero-fill
+    # range must use the local calendar too.
+    since = timezone.localdate() - timedelta(days=29)
     raw = (non_admin.filter(date_joined__date__gte=since)
            .annotate(d=TruncDate('date_joined')).values('d')
            .annotate(c=Count('id')).order_by('d'))

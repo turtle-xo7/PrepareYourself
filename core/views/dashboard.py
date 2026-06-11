@@ -95,7 +95,7 @@ def dashboard(request):
     accuracy = round((total_correct / total_answered * 100), 1) if total_answered else 0
 
     # ----- This week vs last week (for trend arrows) -----
-    today = timezone.now().date()
+    today = timezone.localdate()  # local calendar day - now().date() is the UTC date
     week_start = today - timedelta(days=6)
     last_week_start = today - timedelta(days=13)
     last_week_end = today - timedelta(days=7)
@@ -458,7 +458,7 @@ def progress_history(request):
     filtered_count = paginator.count
 
     # Summary stats — over user's full history (not the filter)
-    today = timezone.now().date()
+    today = timezone.localdate()  # local calendar day - now().date() is the UTC date
     week_start = today - timedelta(days=6)
     week_qs = base.filter(answered_at__date__gte=week_start)
     week_total = week_qs.count()

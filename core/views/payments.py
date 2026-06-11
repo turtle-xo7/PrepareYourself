@@ -108,6 +108,22 @@ def payment_process(request, tran_id):
             _activate_plan(request.user.profile, payment.plan)
         logger.info('Payment completed: tran_id=%s user=%s plan=%s amount=%s',
                     payment.tran_id, request.user.username, payment.plan, payment.amount)
+        # Revenue is a superadmin concern — surface it on their bell with a
+        # link straight into the payment ledger.
+        from ..models import Notification, UserProfile
+        superadmin_ids = UserProfile.objects.filter(is_superadmin=True).values_list('user_id', flat=True)
+        Notification.objects.bulk_create([
+            Notification(
+                recipient_id=uid,
+                notif_type='payment',
+                title=f'Payment received — ৳{payment.amount} ({payment.plan})',
+                title_bn=f'পেমেন্ট এসেছে — ৳{payment.amount} ({payment.plan})',
+                message=f'{request.user.username} paid ৳{payment.amount} for the {payment.plan} plan.',
+                message_bn=f'{request.user.username} {payment.plan} প্ল্যানের জন্য ৳{payment.amount} পরিশোধ করেছেন।',
+                link='/superadmin/revenue/',
+            )
+            for uid in superadmin_ids
+        ])
         return redirect('payment_success', tran_id=tran_id)
     payment.status = 'FAILED'
     payment.save(update_fields=['status', 'updated_at'])

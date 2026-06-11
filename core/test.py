@@ -730,33 +730,43 @@ class SuperAdminTests(TestCase):
         teacher.profile.refresh_from_db()
         self.assertTrue(teacher.profile.is_approved)
 
-    def test_dashboard_user_search_and_filters(self):
+    def test_dashboard_overview_context(self):
+        response = self.client.get(reverse('superadmin_dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['signup_series']), 30)
+        self.assertIn('total_users', response.context)
+        self.assertIn('month_revenue', response.context)
+        # the user table moved to its own page — the overview must not carry it
+        self.assertNotIn('page_obj', response.context)
+
+    def test_users_page_search_and_filters(self):
         create_student(username='findme', email='findme@test.com', plan='FREE')
-        response = self.client.get(reverse('superadmin_dashboard') + '?q=findme')
+        response = self.client.get(reverse('superadmin_users') + '?q=findme')
         self.assertEqual(response.context['total_matched'], 1)
-        self.assertEqual(response.context['recent_users'][0].user.username, 'findme')
-        response = self.client.get(reverse('superadmin_dashboard') + '?plan=PREMIUM')
-        usernames = [p.user.username for p in response.context['recent_users']]
+        self.assertEqual(response.context['page_obj'].object_list[0].user.username, 'findme')
+        response = self.client.get(reverse('superadmin_users') + '?plan=PREMIUM')
+        usernames = [p.user.username for p in response.context['page_obj'].object_list]
         self.assertIn('student1', usernames)
         self.assertNotIn('findme', usernames)
 
-    def test_dashboard_user_pagination(self):
+    def test_users_page_pagination(self):
         for i in range(25):
             create_student(username=f'bulk{i}', email=f'bulk{i}@test.com')
-        page1 = self.client.get(reverse('superadmin_dashboard'))
-        self.assertEqual(len(page1.context['recent_users']), 20)
-        page2 = self.client.get(reverse('superadmin_dashboard') + '?page=2')
+        page1 = self.client.get(reverse('superadmin_users'))
+        self.assertEqual(len(page1.context['page_obj'].object_list), 20)
+        page2 = self.client.get(reverse('superadmin_users') + '?page=2')
         self.assertEqual(page2.context['page_obj'].number, 2)
 
-    def test_dashboard_revenue_stats(self):
+    def test_revenue_page_stats(self):
         from .models import Payment
         Payment.objects.create(user=self.student, plan='PREMIUM', amount=199,
                                tran_id='t1', status='COMPLETED')
         Payment.objects.create(user=self.student, plan='BASIC', amount=99,
                                tran_id='t2', status='FAILED')
-        response = self.client.get(reverse('superadmin_dashboard'))
+        response = self.client.get(reverse('superadmin_revenue'))
         self.assertEqual(response.context['total_revenue'], 199)
         self.assertEqual(response.context['payment_count'], 1)
+        self.assertEqual(len(response.context['revenue_series']), 6)
 
     def test_export_excel(self):
         response = self.client.get(reverse('export_excel'))
