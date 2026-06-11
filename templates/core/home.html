@@ -2,7 +2,8 @@
 {% block title %}{% if LANG == 'en' %}Home{% else %}হোম{% endif %}{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.min.js"></script>
+{# r149 is the last release shipping the UMD three.min.js; r160+ is ESM-only (this URL 404s on 0.163.0) #}
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
 {% endblock %}
 
 {% block content %}
