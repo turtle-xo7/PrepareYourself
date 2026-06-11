@@ -23,16 +23,10 @@ from .base import (
     _is_exam_staff, _notify_all_students,
 )
 
-@superadmin_required
-def superadmin_dashboard(request):
-    from ..models import PracticalVideo, StudyNote, Contest, ExamAttempt, Payment
-    from django.db.models import Count, Q, Sum
-    from django.core.paginator import Paginator
-    from django.utils import timezone
-
-    # All eight profile counts in a single aggregate query (was 8 separate COUNTs)
-    pc = UserProfile.objects.aggregate(
-        total_superadmins=Count('id', filter=Q(is_superadmin=True)),
+def _sa_profile_counts():
+    """Shared profile aggregates for the superadmin section (single query)."""
+    from django.db.models import Count, Q
+    return UserProfile.objects.aggregate(
         total_users=Count('id', filter=Q(is_superadmin=False)),
         total_students=Count('id', filter=Q(role='STUDENT', is_superadmin=False)),
         total_teachers=Count('id', filter=Q(role='ADMIN', is_superadmin=False)),
@@ -42,15 +36,75 @@ def superadmin_dashboard(request):
         pending_teachers_count=Count('id', filter=Q(role='ADMIN', is_approved=False, is_superadmin=False)),
     )
 
-    total_questions = Question.objects.filter(is_active=True).count()
-    total_boards = Board.objects.filter(is_active=True).count()
-    total_subjects = Subject.objects.filter(is_active=True).count()
-    total_videos = PracticalVideo.objects.filter(is_active=True).count()
-    total_notes = StudyNote.objects.filter(is_active=True).count()
-    total_contests = Contest.objects.filter(is_active=True).count()
-    grade_queue_count = ExamAttempt.objects.filter(status='CQ_PENDING').count()
 
-    # ----- User management: search + filters + pagination -----
+@superadmin_required
+def superadmin_dashboard(request):
+    """Overview only: KPIs, pending work, trends, and short recent-activity
+    lists. The full user table lives on /superadmin/users/, payments and the
+    plan breakdown on /superadmin/revenue/."""
+    from ..models import PracticalVideo, StudyNote, Contest, ExamAttempt, Payment, NoteRequest
+    from django.db.models import Count, Sum
+    from django.db.models.functions import TruncDate
+    from django.utils import timezone
+    from datetime import timedelta
+
+    pc = _sa_profile_counts()
+    now = timezone.now()
+
+    # Week-over-week signup delta for the headline KPI
+    week_ago, two_weeks_ago = now - timedelta(days=7), now - timedelta(days=14)
+    non_admin = User.objects.filter(profile__is_superadmin=False)
+    new_this_week = non_admin.filter(date_joined__gte=week_ago).count()
+    new_prev_week = non_admin.filter(date_joined__gte=two_weeks_ago, date_joined__lt=week_ago).count()
+
+    # Signups per day, last 30 days (zero-filled for the chart)
+    since = (now - timedelta(days=29)).date()
+    raw = (non_admin.filter(date_joined__date__gte=since)
+           .annotate(d=TruncDate('date_joined')).values('d')
+           .annotate(c=Count('id')).order_by('d'))
+    by_day = {r['d']: r['c'] for r in raw}
+    signup_series = []
+    for i in range(30):
+        day = since + timedelta(days=i)
+        signup_series.append({'label': day.strftime('%d %b'), 'count': by_day.get(day, 0)})
+
+    completed = Payment.objects.filter(status='COMPLETED')
+    month_revenue = completed.filter(
+        created_at__year=now.year, created_at__month=now.month
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    total_revenue = completed.aggregate(total=Sum('amount'))['total'] or 0
+
+    return render(request, 'core/superadmin_dashboard.html', {
+        **pc,
+        'paid_users': pc['basic_users'] + pc['premium_users'],
+        'new_this_week': new_this_week,
+        'new_prev_week': new_prev_week,
+        'signup_series': signup_series,
+        'month_revenue': month_revenue,
+        'total_revenue': total_revenue,
+        'grade_queue_count': ExamAttempt.objects.filter(status='CQ_PENDING').count(),
+        'note_request_count': NoteRequest.objects.filter(status='PENDING').count(),
+        'total_questions': Question.objects.filter(is_active=True).count(),
+        'total_boards': Board.objects.filter(is_active=True).count(),
+        'total_subjects': Subject.objects.filter(is_active=True).count(),
+        'total_videos': PracticalVideo.objects.filter(is_active=True).count(),
+        'total_notes': StudyNote.objects.filter(is_active=True).count(),
+        'total_contests': Contest.objects.filter(is_active=True).count(),
+        'recent_signups': UserProfile.objects.filter(is_superadmin=False)
+                          .select_related('user').order_by('-user__date_joined')[:5],
+        'recent_payments': completed.select_related('user')[:4],
+        'sa_active': 'dashboard',
+    })
+
+
+@superadmin_required
+def superadmin_users(request):
+    """Full user management: search, role/plan filters, pagination, inline
+    role/plan editing, subscription cancel, delete."""
+    from django.db.models import Q
+    from django.core.paginator import Paginator
+
+    pc = _sa_profile_counts()
     users = UserProfile.objects.filter(is_superadmin=False).select_related('user').order_by('-user__date_joined')
     search = (request.GET.get('q') or '').strip()
     sel_role = request.GET.get('role', '')
@@ -64,39 +118,70 @@ def superadmin_dashboard(request):
     total_matched = users.count()
     params = request.GET.copy()
     params.pop('page', None)
-    base_qs = params.urlencode()
     page_obj = Paginator(users, 20).get_page(request.GET.get('page'))
 
-    # ----- Revenue (completed payments only) -----
-    now = timezone.now()
-    completed = Payment.objects.filter(status='COMPLETED')
-    revenue = completed.aggregate(total=Sum('amount'), count=Count('id'))
-    month_revenue = completed.filter(
-        created_at__year=now.year, created_at__month=now.month
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    recent_payments = completed.select_related('user')[:6]
-
-    return render(request, 'core/superadmin_dashboard.html', {
+    return render(request, 'core/superadmin_users.html', {
         **pc,
-        'paid_users': pc['basic_users'] + pc['premium_users'],
-        'total_questions': total_questions,
-        'total_boards': total_boards,
-        'total_subjects': total_subjects,
-        'total_videos': total_videos,
-        'total_notes': total_notes,
-        'total_contests': total_contests,
-        'grade_queue_count': grade_queue_count,
-        'recent_users': page_obj.object_list,
         'page_obj': page_obj,
-        'base_qs': base_qs,
+        'base_qs': params.urlencode(),
         'total_matched': total_matched,
         'search': search,
         'sel_role': sel_role,
         'sel_plan': sel_plan,
-        'total_revenue': revenue['total'] or 0,
-        'payment_count': revenue['count'] or 0,
+        'sa_active': 'users',
+    })
+
+
+@superadmin_required
+def superadmin_revenue(request):
+    """Revenue analytics: totals, plan distribution, monthly trend, and the
+    full payment ledger."""
+    from ..models import Payment
+    from django.db.models import Count, Sum, Avg
+    from django.db.models.functions import TruncMonth
+    from django.core.paginator import Paginator
+    from django.utils import timezone
+
+    pc = _sa_profile_counts()
+    now = timezone.now()
+    completed = Payment.objects.filter(status='COMPLETED')
+
+    agg = completed.aggregate(total=Sum('amount'), count=Count('id'), avg=Avg('amount'))
+    month_revenue = completed.filter(
+        created_at__year=now.year, created_at__month=now.month
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Monthly revenue, last 6 calendar months (zero-filled)
+    month_starts = []
+    y, m = now.year, now.month
+    for _ in range(6):
+        month_starts.append((y, m))
+        m -= 1
+        if m == 0:
+            y, m = y - 1, 12
+    month_starts.reverse()
+    first = timezone.datetime(month_starts[0][0], month_starts[0][1], 1, tzinfo=now.tzinfo)
+    raw = (completed.filter(created_at__gte=first)
+           .annotate(mo=TruncMonth('created_at')).values('mo')
+           .annotate(total=Sum('amount')).order_by('mo'))
+    by_month = {(r['mo'].year, r['mo'].month): float(r['total']) for r in raw}
+    from calendar import month_abbr
+    revenue_series = [{'label': f'{month_abbr[m]} {y % 100}', 'total': by_month.get((y, m), 0)}
+                      for (y, m) in month_starts]
+
+    page_obj = Paginator(completed.select_related('user'), 15).get_page(request.GET.get('page'))
+
+    paid = pc['basic_users'] + pc['premium_users']
+    return render(request, 'core/superadmin_revenue.html', {
+        **pc,
+        'paid_users': paid,
+        'total_revenue': agg['total'] or 0,
+        'payment_count': agg['count'] or 0,
+        'avg_payment': round(agg['avg'] or 0),
         'month_revenue': month_revenue,
-        'recent_payments': recent_payments,
+        'revenue_series': revenue_series,
+        'page_obj': page_obj,
+        'sa_active': 'revenue',
     })
 
 

@@ -792,7 +792,7 @@ def update_user(request, pk):
     if request.method == 'POST':
         if profile.is_superadmin:
             messages.error(request, 'Superadmin accounts cannot be modified here.')
-            return redirect('superadmin_dashboard')
+            return redirect('superadmin_users')
         role = request.POST.get('role', profile.role)
         plan = request.POST.get('plan', profile.plan)
         valid_roles = {c[0] for c in UserProfile.ROLE_CHOICES}
@@ -806,7 +806,7 @@ def update_user(request, pk):
             logger.info('superadmin %s updated user %s: role=%s plan=%s',
                         request.user.username, profile.user.username, role, plan)
             messages.success(request, f'{profile.user.username} updated!')
-    return redirect('superadmin_dashboard')
+    return redirect('superadmin_users')
 
 
 @superadmin_required
@@ -815,13 +815,13 @@ def delete_user(request, pk):
     if request.method == 'POST':
         if profile.is_superadmin:
             messages.error(request, 'Superadmin accounts cannot be deleted.')
-            return redirect('superadmin_dashboard')
+            return redirect('superadmin_users')
         user = profile.user
         username = user.username
         user.delete()
         logger.info('superadmin %s deleted user %s', request.user.username, username)
         messages.success(request, 'User deleted!')
-    return redirect('superadmin_dashboard')
+    return redirect('superadmin_users')
 
 
 @superadmin_required
@@ -830,13 +830,13 @@ def cancel_subscription(request, pk):
     if request.method == 'POST':
         if profile.is_superadmin:
             messages.error(request, 'Superadmin accounts cannot be modified here.')
-            return redirect('superadmin_dashboard')
+            return redirect('superadmin_users')
         profile.plan = 'FREE'
         profile.plan_expires_at = None
         profile.save()
         logger.info('superadmin %s cancelled subscription for %s',
                     request.user.username, profile.user.username)
         messages.success(request, f'{profile.user.username} subscription cancelled!')
-    return redirect('superadmin_dashboard')
+    return redirect('superadmin_users')
 
 

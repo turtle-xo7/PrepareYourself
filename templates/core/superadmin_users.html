@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Super Admin · Users — Prepare Yourself{% endblock %}
+{% block content %}
+{% include 'core/sa_theme.html' %}
+
+<div class="sa-page" style="min-height:calc(100vh - 64px);">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
+
+  {% include 'core/sa_nav.html' with sa_title='User Management' sa_sub='Search, edit roles & plans, and moderate accounts' %}
+
+  <!-- ══════════════ USER TABLE ══════════════ -->
+  <div class="sa-card overflow-hidden">
+    <div class="px-6 py-4 flex items-center justify-between flex-wrap gap-3 sa-strip sa-strip-slate">
+      <div>
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">All Users</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{{ total_matched }} of {{ total_users }} user{{ total_users|pluralize }} — edit role &amp; plan inline without leaving this page</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="sa-badge bg-blue-100 text-blue-700">{{ total_students }} students</span>
+        <span class="sa-badge bg-indigo-100 text-indigo-700">{{ total_teachers }} teachers</span>
+        <span class="sa-badge bg-teal-100 text-teal-600">{{ premium_users }} premium</span>
+      </div>
+    </div>
+    <form method="get" class="px-6 py-3 flex items-center flex-wrap gap-2 sa-filterbar">
+      <input type="text" name="q" value="{{ search }}" placeholder="Search username or email..."
+             class="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold" style="outline:none;">
+      <select name="role" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-lg px-2 py-2 bg-white font-semibold text-gray-600">
+        <option value="">All Roles</option>
+        <option value="STUDENT" {% if sel_role == 'STUDENT' %}selected{% endif %}>Students</option>
+        <option value="ADMIN" {% if sel_role == 'ADMIN' %}selected{% endif %}>Teachers</option>
+      </select>
+      <select name="plan" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-lg px-2 py-2 bg-white font-semibold text-gray-600">
+        <option value="">All Plans</option>
+        <option value="FREE" {% if sel_plan == 'FREE' %}selected{% endif %}>Free</option>
+        <option value="BASIC" {% if sel_plan == 'BASIC' %}selected{% endif %}>Basic</option>
+        <option value="PREMIUM" {% if sel_plan == 'PREMIUM' %}selected{% endif %}>Premium</option>
+      </select>
+      <button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90" style="background:linear-gradient(135deg,#2d1b69,#3b0f8c);">Search</button>
+      {% if search or sel_role or sel_plan %}
+      <a href="{% url 'superadmin_users' %}" class="text-xs font-semibold text-gray-400 hover:text-gray-600 underline">Clear</a>
+      {% endif %}
+    </form>
+    <div class="overflow-x-auto">
+      <table class="w-full" style="font-size:13px;">
+        <thead>
+          <tr class="sa-thead">
+            <th class="sa-label text-left px-5 py-3">User</th>
+            <th class="sa-label text-left px-4 py-3">Role</th>
+            <th class="sa-label text-left px-4 py-3">Plan</th>
+            <th class="sa-label text-left px-4 py-3">Joined</th>
+            <th class="sa-label text-left px-4 py-3">Update</th>
+            <th class="sa-label text-left px-4 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for profile in page_obj.object_list %}
+          <tr class="sa-tr sa-row">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="sa-avatar" style="width:36px;height:36px;font-size:14px;">{{ profile.user.username|slice:":1"|upper }}</div>
+                <div>
+                  <p class="font-bold text-gray-900 leading-tight">{{ profile.user.username }}</p>
+                  <p class="text-xs text-gray-400 leading-tight mt-0.5">{{ profile.user.email|truncatechars:26 }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3.5">
+              {% if profile.role == 'ADMIN' %}
+              <span class="sa-badge bg-indigo-100 text-indigo-700">Teacher</span>
+              {% else %}
+              <span class="sa-badge bg-blue-100 text-blue-700">Student</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3.5">
+              {% if profile.plan == 'PREMIUM' %}
+              <span class="sa-badge bg-teal-100 text-teal-600">Premium</span>
+              {% elif profile.plan == 'BASIC' %}
+              <span class="sa-badge bg-blue-100 text-blue-700">Basic</span>
+              {% else %}
+              <span class="sa-badge bg-gray-100 text-gray-500">Free</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3.5 text-xs font-semibold text-gray-400">{{ profile.user.date_joined|date:"d M Y" }}</td>
+            <td class="px-4 py-3.5">
+              <form method="post" action="{% url 'update_user' profile.pk %}" class="flex items-center gap-1.5">
+                {% csrf_token %}
+                <select name="role" class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white font-semibold" style="outline:none;color:#374151;">
+                  <option value="STUDENT" {% if profile.role == 'STUDENT' %}selected{% endif %}>Student</option>
+                  <option value="ADMIN" {% if profile.role == 'ADMIN' %}selected{% endif %}>Teacher</option>
+                </select>
+                <select name="plan" class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white font-semibold" style="outline:none;color:#374151;">
+                  <option value="FREE" {% if profile.plan == 'FREE' %}selected{% endif %}>Free</option>
+                  <option value="BASIC" {% if profile.plan == 'BASIC' %}selected{% endif %}>Basic</option>
+                  <option value="PREMIUM" {% if profile.plan == 'PREMIUM' %}selected{% endif %}>Premium</option>
+                </select>
+                <button type="submit" class="text-xs font-bold text-white px-3 py-1.5 rounded-lg transition hover:opacity-90" style="background:#047857;">Save</button>
+              </form>
+            </td>
+            <td class="px-4 py-3.5">
+              <div class="flex items-center gap-1.5">
+                {% if profile.plan != 'FREE' %}
+                <form method="post" action="{% url 'cancel_subscription' profile.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" onclick="return confirm('Cancel subscription for {{ profile.user.username }}?')"
+                    class="text-xs font-bold px-2.5 py-1.5 rounded-lg transition hover:opacity-80 bg-amber-100 text-amber-800">
+                    Cancel Sub
+                  </button>
+                </form>
+                {% endif %}
+                <form method="post" action="{% url 'delete_user' profile.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" onclick="return confirm('Permanently delete {{ profile.user.username }}?')"
+                    class="text-xs font-bold px-2.5 py-1.5 rounded-lg transition hover:opacity-80 bg-red-100 text-red-700">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">
+              {% include 'includes/empty_state.html' with icon='🔎' title_en='No users match' sub_en='Try a different search, or clear the role and plan filters.' %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-center gap-3 py-4 sa-foot">
+      {% if page_obj.has_previous %}
+      <a href="?{{ base_qs }}&amp;page={{ page_obj.previous_page_number }}"
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">← Previous</a>
+      {% endif %}
+      <span class="text-xs text-gray-400 font-semibold">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?{{ base_qs }}&amp;page={{ page_obj.next_page_number }}"
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">Next →</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+</div>
+{% endblock %}

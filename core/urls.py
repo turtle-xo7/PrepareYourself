@@ -77,6 +77,8 @@ urlpatterns = [
 
     # Superadmin
     path('superadmin/', views.superadmin_dashboard, name='superadmin_dashboard'),
+    path('superadmin/users/', views.superadmin_users, name='superadmin_users'),
+    path('superadmin/revenue/', views.superadmin_revenue, name='superadmin_revenue'),
     path('superadmin/user/<int:pk>/update/', views.update_user, name='update_user'),
     path('superadmin/user/<int:pk>/delete/', views.delete_user, name='delete_user'),
     path('superadmin/user/<int:pk>/cancel-subscription/', views.cancel_subscription, name='cancel_subscription'),

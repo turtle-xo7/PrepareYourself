@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Super Admin · Revenue — Prepare Yourself{% endblock %}
+{% block content %}
+{% include 'core/sa_theme.html' %}
+
+<div class="sa-page" style="min-height:calc(100vh - 64px);">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-7" style="display:flex;flex-direction:column;gap:18px;">
+
+  {% include 'core/sa_nav.html' with sa_title='Revenue' sa_sub='Subscriptions, payments, and plan distribution' %}
+
+  <!-- ══════════════ REVENUE KPIs ══════════════ -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="sa-card p-5" style="border-left:3px solid #10b981;">
+      <p class="sa-num text-emerald-600">৳{{ total_revenue }}</p>
+      <p class="sa-label mt-2">All-Time Revenue</p>
+    </div>
+    <div class="sa-card p-5" style="border-left:3px solid #3b82f6;">
+      <p class="sa-num text-blue-600">৳{{ month_revenue }}</p>
+      <p class="sa-label mt-2">This Month</p>
+    </div>
+    <div class="sa-card p-5" style="border-left:3px solid #f59e0b;">
+      <p class="sa-num text-amber-600">৳{{ avg_payment }}</p>
+      <p class="sa-label mt-2">Avg Payment <span class="text-gray-300">·</span> {{ payment_count }} total</p>
+    </div>
+    <div class="sa-card p-5" style="border-left:3px solid #8b5cf6;">
+      <p class="sa-num text-purple-600">{{ paid_users }}{% if total_users %}<span style="font-size:1.1rem;color:#94a3b8;"> / {% widthratio paid_users total_users 100 %}%</span>{% endif %}</p>
+      <p class="sa-label mt-2">Paying Users</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ TREND + PLAN DISTRIBUTION ══════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+    <div class="sa-card p-6 lg:col-span-3">
+      <p class="sa-label mb-4">Revenue — Last 6 Months</p>
+      <div style="height:230px;"><canvas id="revenueChart"></canvas></div>
+    </div>
+
+    <div class="sa-card p-6 lg:col-span-2">
+      <p class="sa-label mb-5">Subscription Plans</p>
+      <div class="grid grid-cols-3 gap-3 mb-5">
+        <div class="text-center p-4 sa-tile sa-tile-slate">
+          <p class="text-3xl font-black text-gray-700 leading-none">{{ free_users }}</p>
+          <p class="text-xs font-bold text-gray-400 mt-2">FREE</p>
+          {% if total_users > 0 %}<p class="text-xs text-gray-400 mt-0.5 font-semibold">{% widthratio free_users total_users 100 %}%</p>{% endif %}
+        </div>
+        <div class="text-center p-4 sa-tile sa-tile-blue">
+          <p class="text-3xl font-black text-blue-600 leading-none">{{ basic_users }}</p>
+          <p class="text-xs font-bold text-blue-400 mt-2">BASIC</p>
+          {% if total_users > 0 %}<p class="text-xs text-blue-400 mt-0.5 font-semibold">{% widthratio basic_users total_users 100 %}%</p>{% endif %}
+        </div>
+        <div class="text-center p-4 sa-tile sa-tile-purple">
+          <p class="text-3xl font-black text-purple-600 leading-none">{{ premium_users }}</p>
+          <p class="text-xs font-bold text-purple-400 mt-2">PREMIUM</p>
+          {% if total_users > 0 %}<p class="text-xs text-purple-400 mt-0.5 font-semibold">{% widthratio premium_users total_users 100 %}%</p>{% endif %}
+        </div>
+      </div>
+      {% if total_users > 0 %}
+      <div class="sa-segbar">
+        {% if free_users %}<div style="width:{% widthratio free_users total_users 100 %}%;min-width:4px;background:#cbd5e1;"></div>{% endif %}
+        {% if basic_users %}<div style="width:{% widthratio basic_users total_users 100 %}%;min-width:4px;background:#3b82f6;"></div>{% endif %}
+        {% if premium_users %}<div style="width:{% widthratio premium_users total_users 100 %}%;min-width:4px;background:#8b5cf6;"></div>{% endif %}
+      </div>
+      {% endif %}
+      <p class="text-xs text-gray-400 font-semibold mt-4">Basic ৳99/mo · Premium ৳199/mo — plan changes apply from the <a href="{% url 'superadmin_users' %}" class="text-purple-600 font-bold hover:underline">Users page</a>.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PAYMENT LEDGER ══════════════ -->
+  <div class="sa-card overflow-hidden">
+    <div class="px-6 py-4 flex items-center justify-between flex-wrap gap-3 sa-strip sa-strip-slate">
+      <div>
+        <h2 class="font-bold text-gray-900" style="font-size:15px;">Payment Ledger</h2>
+        <p class="text-xs text-gray-400 mt-0.5">{{ payment_count }} completed payment{{ payment_count|pluralize }}</p>
+      </div>
+      <a href="{% url 'export_excel' %}" class="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Export Excel
+      </a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full" style="font-size:13px;">
+        <thead>
+          <tr class="sa-thead">
+            <th class="sa-label text-left px-5 py-3">User</th>
+            <th class="sa-label text-left px-4 py-3">Plan</th>
+            <th class="sa-label text-left px-4 py-3">Method</th>
+            <th class="sa-label text-left px-4 py-3">Date</th>
+            <th class="sa-label text-right px-5 py-3">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pay in page_obj.object_list %}
+          <tr class="sa-tr sa-row">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="sa-avatar" style="width:32px;height:32px;font-size:13px;">{{ pay.user.username|slice:":1"|upper }}</div>
+                <p class="font-bold text-gray-900">{{ pay.user.username }}</p>
+              </div>
+            </td>
+            <td class="px-4 py-3.5">
+              {% if pay.plan == 'PREMIUM' %}<span class="sa-badge bg-teal-100 text-teal-600">Premium</span>
+              {% else %}<span class="sa-badge bg-blue-100 text-blue-700">{{ pay.plan|title }}</span>{% endif %}
+            </td>
+            <td class="px-4 py-3.5 text-xs font-semibold text-gray-500">{{ pay.method|default:"—" }}</td>
+            <td class="px-4 py-3.5 text-xs font-semibold text-gray-400">{{ pay.created_at|date:"d M Y · H:i" }}</td>
+            <td class="px-5 py-3.5 text-right font-black text-emerald-600">৳{{ pay.amount }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5">
+              {% include 'includes/empty_state.html' with icon='💳' title_en='No completed payments yet' sub_en='Successful subscription payments will appear in this ledger.' %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-center gap-3 py-4 sa-foot">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}"
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">← Previous</a>
+      {% endif %}
+      <span class="text-xs text-gray-400 font-semibold">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}"
+         class="text-xs font-bold px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 transition bg-white">Next →</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+  var canvas = document.getElementById('revenueChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  function palette() {
+    var dark = document.documentElement.classList.contains('dark');
+    return {
+      grid:  dark ? 'rgba(148,163,184,0.12)' : '#f1f5f9',
+      ticks: dark ? '#94a3b8' : '#6b7280'
+    };
+  }
+  var p = palette();
+  var chart = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: [{% for m in revenue_series %}'{{ m.label }}',{% endfor %}],
+      datasets: [{
+        label: 'Revenue (৳)',
+        data: [{% for m in revenue_series %}{{ m.total }},{% endfor %}],
+        backgroundColor: 'rgba(16, 185, 129, 0.75)',
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e1654', padding: 10 } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: p.ticks } },
+        y: { beginAtZero: true, ticks: { font: { size: 10 }, color: p.ticks, callback: function (v) { return '৳' + v; } }, grid: { color: p.grid } }
+      }
+    }
+  });
+  // Re-skin live when the theme toggle flips html.dark
+  new MutationObserver(function () {
+    var p = palette();
+    chart.options.scales.x.ticks.color = p.ticks;
+    chart.options.scales.y.ticks.color = p.ticks;
+    chart.options.scales.y.grid.color = p.grid;
+    chart.update('none');
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+})();
+</script>
+{% endblock %}
