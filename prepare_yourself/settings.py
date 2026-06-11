@@ -20,6 +20,9 @@ ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h.strip()]
 
 INSTALLED_APPS = [
+    # Must come first: stops runserver serving static files itself so WhiteNoise
+    # handles them in dev too (consistent headers, no heuristic browser caching).
+    'whitenoise.runserver_nostatic',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -94,14 +97,25 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise serves compressed static files directly from the app in production.
+# Manifest storage renames files to styles.<hash>.css so browsers can never serve
+# a stale cached copy after a deploy. Plain storage in dev (no manifest needed).
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
-    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage' if DEBUG
+                   else 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
 }
 # In dev, re-read static files from source dirs on every request so CSS/JS edits
-# show up without restarting the server or running collectstatic.
+# show up without restarting the server or running collectstatic, and tell the
+# browser not to cache them at all.
 WHITENOISE_AUTOREFRESH = DEBUG
 WHITENOISE_USE_FINDERS = DEBUG
+if DEBUG:
+    # Without an explicit Cache-Control, Chrome heuristically caches static
+    # files (10% of file age) and serves stale CSS/JS after edits.
+    def WHITENOISE_ADD_HEADERS_FUNCTION(headers, path, url):
+        headers['Cache-Control'] = 'no-store'
 
 _STATIC_DIR = BASE_DIR / 'static'
 STATICFILES_DIRS = [_STATIC_DIR] if _STATIC_DIR.exists() else []

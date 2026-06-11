@@ -44,7 +44,8 @@
 
     <!-- Custom CSS -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {# ?v= busts old browser caches from before static files sent proper cache headers; bump if it ever happens again #}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2">
 
     <!-- KaTeX (math rendering) -->
     <link rel="stylesheet"
