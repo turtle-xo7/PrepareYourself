@@ -34,15 +34,30 @@
         color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center;
         font-size:.85rem; border:2px solid #fff;
     }
+
+    /* Dark variants for page-scoped chips/timeline */
+    html.dark .tag-amber  { background:rgba(245,158,11,.16); color:#fcd34d; border-color:rgba(245,158,11,.3); }
+    html.dark .tag-blue   { background:rgba(59,130,246,.16); color:#93c5fd; border-color:rgba(59,130,246,.3); }
+    html.dark .tag-green  { background:rgba(16,185,129,.16); color:#6ee7b7; border-color:rgba(16,185,129,.3); }
+    html.dark .tag-purple { background:rgba(139,92,246,.16); color:#c4b5fd; border-color:rgba(139,92,246,.3); }
+    html.dark .tag-gray   { background:rgba(148,163,184,.14); color:#cbd5e1; border-color:rgba(148,163,184,.25); }
+    html.dark .tag-red    { background:rgba(239,68,68,.16);  color:#fca5a5; border-color:rgba(239,68,68,.3); }
+    html.dark .timeline-step .dot { background:#334155; border-color:#1e293b; box-shadow:0 0 0 2px #334155; }
+    html.dark .timeline-step.active .dot { background:#d97706; box-shadow:0 0 0 2px rgba(245,158,11,.4); }
+    html.dark .timeline-step.done .dot { background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,.4); }
+    html.dark .timeline-bar { background:#334155; }
+    html.dark .timeline-step.done + .timeline-step .timeline-bar { background:#10b981; }
+    html.dark .avatar-circle { border-color:#1e293b; }
+    html.dark .hover\:bg-purple-50:hover { background:rgba(139,92,246,.12) !important; }
 </style>
 {% endblock %}
 
 {% block content %}
 
 <!-- Hero -->
-<div class="relative overflow-hidden" style="background: linear-gradient(135deg,#1e3a8a 0%,#059669 50%,#0d9488 100%); min-height:160px; display:flex; align-items:center;">
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg,#78350f 0%,#b45309 50%,#d97706 100%); min-height:160px; display:flex; align-items:center;">
     <div class="max-w-7xl mx-auto px-4 py-8 relative z-10 w-full">
-        <a href="{% url 'contest_list' %}" class="inline-flex items-center gap-1.5 text-blue-200 hover:text-white text-sm font-medium mb-3 transition">
+        <a href="{% url 'contest_list' %}" class="inline-flex items-center gap-1.5 text-amber-200 hover:text-white text-sm font-medium mb-3 transition">
             <i class="bi bi-arrow-left"></i> All contests
         </a>
         <div class="flex flex-wrap items-center gap-2 mb-2">
@@ -56,7 +71,7 @@
             {% if contest.is_multi_stage %}<span class="tag tag-purple">Stage {{ contest.stage_number }}</span>{% endif %}
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-white">{{ contest.title }}</h1>
-        <p class="text-blue-100 mt-1">
+        <p class="text-amber-100 mt-1">
             {{ contest.subject.name }} • {{ contest.class_obj.name }} • {{ contest.duration_minutes }} min
             {% if contest.sponsor_name %} • <span class="text-amber-200">Sponsored by {{ contest.sponsor_name }}</span>{% endif %}
         </p>

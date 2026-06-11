@@ -16,13 +16,16 @@
     .podium-2 { height:170px; background:linear-gradient(180deg,#f3f4f6,#d1d5db);  border-color:#9ca3af;}
     .podium-3 { height:140px; background:linear-gradient(180deg,#fed7aa,#fb923c);  border-color:#ea580c;}
     .row-me { background:#dbeafe !important; }
+    html.dark .row-me { background:rgba(59,130,246,.18) !important; }
     .flash { animation: flashy 1.2s ease-out; }
     @keyframes flashy { 0%{background:#fef3c7;} 100%{background:transparent;} }
     table.lb td, table.lb th { padding:.6rem .75rem; }
     table.lb thead th { background:#f9fafb; font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#6b7280; }
+    html.dark table.lb thead th { background:#16202f; color:#94a3b8; }
     .rating-up { color:#16a34a; font-weight:700; }
     .rating-down { color:#dc2626; font-weight:700; }
     .virtual-badge { background:#ede9fe; color:#6d28d9; font-size:.65rem; font-weight:700; padding:1px 6px; border-radius:999px; margin-left:4px; }
+    html.dark .virtual-badge { background:rgba(139,92,246,.18); color:#c4b5fd; }
     .avatar-mini { width:30px; height:30px; border-radius:999px; background:linear-gradient(135deg,#059669,#0d9488); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:.7rem; }
 </style>
 {% endblock %}

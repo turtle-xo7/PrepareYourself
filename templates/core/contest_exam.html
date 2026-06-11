@@ -30,25 +30,25 @@
                 <div class="space-y-2">
                     {% if q.option1 %}
                     <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                        <input type="radio" name="q_{{ q.pk }}" value="1" class="text-blue-600">
+                        <input type="radio" name="q_{{ q.pk }}" value="1" class="accent-amber-600">
                         <span class="text-sm text-gray-800 dark:text-slate-200">{{ q.option1 }}</span>
                     </label>
                     {% endif %}
                     {% if q.option2 %}
                     <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                        <input type="radio" name="q_{{ q.pk }}" value="2" class="text-blue-600">
+                        <input type="radio" name="q_{{ q.pk }}" value="2" class="accent-amber-600">
                         <span class="text-sm text-gray-800 dark:text-slate-200">{{ q.option2 }}</span>
                     </label>
                     {% endif %}
                     {% if q.option3 %}
                     <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                        <input type="radio" name="q_{{ q.pk }}" value="3" class="text-blue-600">
+                        <input type="radio" name="q_{{ q.pk }}" value="3" class="accent-amber-600">
                         <span class="text-sm text-gray-800 dark:text-slate-200">{{ q.option3 }}</span>
                     </label>
                     {% endif %}
                     {% if q.option4 %}
                     <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                        <input type="radio" name="q_{{ q.pk }}" value="4" class="text-blue-600">
+                        <input type="radio" name="q_{{ q.pk }}" value="4" class="accent-amber-600">
                         <span class="text-sm text-gray-800 dark:text-slate-200">{{ q.option4 }}</span>
                     </label>
                     {% endif %}
@@ -56,14 +56,14 @@
                 {% else %}
                 <textarea name="q_{{ q.pk }}" rows="4"
                     placeholder="{% if LANG == 'en' %}Write your answer...{% else %}উত্তর লিখো...{% endif %}"
-                    class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500"></textarea>
                 {% endif %}
             </div>
             {% endfor %}
         </div>
 
         <button type="submit"
-            class="w-full mt-8 bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition">
+            class="w-full mt-8 text-white py-3 rounded-xl font-bold hover:opacity-90 transition" style="background:linear-gradient(135deg,#d97706,#b45309);">
             {% if LANG == 'en' %}Submit{% else %}Submit করো{% endif %}
         </button>
     </form>

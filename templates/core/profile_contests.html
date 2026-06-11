@@ -10,6 +10,7 @@
     .panel { background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 2px 12px rgba(0,0,0,.05); }
     html.dark .panel { background:#1e293b; border-color:#334155; }
     .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:1rem; padding:1rem 1.25rem; text-align:center; }
+    html.dark .stat-card { background:#1e293b; border-color:#334155; }
     .rating-badge {
         display:inline-flex; align-items:center; gap:.5rem;
         padding:.4rem 1rem; border-radius:999px; font-weight:700;
@@ -27,6 +28,7 @@
 
     table.history td, table.history th { padding:.6rem .75rem; }
     table.history thead th { background:#f9fafb; font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#6b7280; }
+    html.dark table.history thead th { background:#16202f; color:#94a3b8; }
     .rating-up { color:#16a34a; font-weight:700; }
     .rating-down { color:#dc2626; font-weight:700; }
 
@@ -38,10 +40,10 @@
 
 {% block content %}
 
-<div class="relative overflow-hidden" style="background: linear-gradient(135deg,#1e3a8a 0%,#059669 50%,#0d9488 100%); min-height:140px; display:flex; align-items:center;">
+<div class="relative overflow-hidden" style="background: linear-gradient(135deg,#78350f 0%,#b45309 50%,#d97706 100%); min-height:140px; display:flex; align-items:center;">
     <div class="max-w-7xl mx-auto px-4 py-8 w-full">
         <h1 class="text-3xl font-extrabold text-white">📊 My Contest Profile</h1>
-        <p class="text-blue-100 text-sm mt-1">Rating, badges, history, and consistency at a glance.</p>
+        <p class="text-amber-100 text-sm mt-1">Rating, badges, history, and consistency at a glance.</p>
     </div>
 </div>
 
@@ -151,7 +153,7 @@
             <tbody>
                 {% for s in submissions_page %}
                 <tr class="border-t border-gray-100">
-                    <td><a href="{% url 'contest_detail' s.contest.pk %}" class="text-blue-700 hover:underline font-semibold">{{ s.contest.title }}</a></td>
+                    <td><a href="{% url 'contest_detail' s.contest.pk %}" class="text-amber-700 hover:underline font-semibold">{{ s.contest.title }}</a></td>
                     <td class="text-sm text-gray-500">{{ s.submitted_at|date:"d M Y" }}</td>
                     <td class="text-right font-bold">{% if s.rank_in_contest %}#{{ s.rank_in_contest }}{% else %}—{% endif %}</td>
                     <td class="text-right">{{ s.total_marks }}</td>
@@ -183,7 +185,15 @@
 <script>
   const ratingData = {{ chart_data_json|safe }};
   const ctx = document.getElementById('ratingChart').getContext('2d');
-  new Chart(ctx, {
+  function chartPalette() {
+      const dark = document.documentElement.classList.contains('dark');
+      return {
+          grid:  dark ? 'rgba(148,163,184,0.12)' : 'rgba(0,0,0,0.05)',
+          ticks: dark ? '#94a3b8' : '#6b7280'
+      };
+  }
+  const pal = chartPalette();
+  const ratingChart = new Chart(ctx, {
       type: 'line',
       data: {
           labels: ratingData.map(d => d.contest),
@@ -216,13 +226,21 @@
           scales: {
               y: {
                   suggestedMin: 600,
-                  ticks: { stepSize: 200 },
-                  grid: { color: 'rgba(0,0,0,0.05)' }
+                  ticks: { stepSize: 200, color: pal.ticks },
+                  grid: { color: pal.grid }
               },
-              x: { ticks: { font: { size: 10 } } }
+              x: { ticks: { font: { size: 10 }, color: pal.ticks } }
           }
       }
   });
+  // Re-skin when the theme toggle flips html.dark
+  new MutationObserver(() => {
+      const p = chartPalette();
+      ratingChart.options.scales.y.ticks.color = p.ticks;
+      ratingChart.options.scales.y.grid.color = p.grid;
+      ratingChart.options.scales.x.ticks.color = p.ticks;
+      ratingChart.update('none');
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 </script>
 {% endif %}
 {% endblock %}

@@ -25,17 +25,17 @@
             <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6">
                 <div class="flex justify-between items-start mb-4">
                     <p class="font-medium text-gray-900 dark:text-white">{{ forloop.counter }}. {{ q.question_text }}</p>
-                    <span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full ml-4 whitespace-nowrap">{{ q.marks }} marks</span>
+                    <span class="bg-purple-100 text-purple-700 dark:text-purple-300 text-xs px-2 py-1 rounded-full ml-4 whitespace-nowrap">{{ q.marks }} marks</span>
                 </div>
                 {% if q.question_type == 'MCQ' %}
                 <div class="space-y-2">
-                    {% if q.option1 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="1"><span class="text-sm">{{ q.option1 }}</span></label>{% endif %}
-                    {% if q.option2 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="2"><span class="text-sm">{{ q.option2 }}</span></label>{% endif %}
-                    {% if q.option3 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="3"><span class="text-sm">{{ q.option3 }}</span></label>{% endif %}
-                    {% if q.option4 %}<label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50"><input type="radio" name="q_{{ q.pk }}" value="4"><span class="text-sm">{{ q.option4 }}</span></label>{% endif %}
+                    {% if q.option1 %}<label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50"><input type="radio" name="q_{{ q.pk }}" value="1" class="accent-purple-600"><span class="text-sm dark:text-slate-200">{{ q.option1 }}</span></label>{% endif %}
+                    {% if q.option2 %}<label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50"><input type="radio" name="q_{{ q.pk }}" value="2" class="accent-purple-600"><span class="text-sm dark:text-slate-200">{{ q.option2 }}</span></label>{% endif %}
+                    {% if q.option3 %}<label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50"><input type="radio" name="q_{{ q.pk }}" value="3" class="accent-purple-600"><span class="text-sm dark:text-slate-200">{{ q.option3 }}</span></label>{% endif %}
+                    {% if q.option4 %}<label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50"><input type="radio" name="q_{{ q.pk }}" value="4" class="accent-purple-600"><span class="text-sm dark:text-slate-200">{{ q.option4 }}</span></label>{% endif %}
                 </div>
                 {% else %}
-                <textarea name="q_{{ q.pk }}" rows="4" class="w-full border border-gray-200 rounded-xl p-3 text-sm"></textarea>
+                <textarea name="q_{{ q.pk }}" rows="4" class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-purple-500"></textarea>
                 {% endif %}
             </div>
             {% endfor %}
