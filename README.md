@@ -11,7 +11,7 @@
 [![Tests](https://img.shields.io/badge/Tests-Selenium%20%2B%20Unit-brightgreen?style=for-the-badge&logo=selenium&logoColor=white)](core/test_selenium/)
 [![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)]()
 
-[Features](#-features) • [Tech Stack](#-tech-stack) • [Setup](#-getting-started) • [Tests](#-running-tests) • [Team](#-team)
+[Screenshots](#-screenshots) • [Features](#-features) • [Architecture](#-architecture) • [Tech Stack](#-tech-stack) • [Setup](#-getting-started) • [Tests](#-running-tests) • [Team](#-team)
 
 </div>
 
@@ -23,42 +23,122 @@ PrepareYourself is a full-stack web platform that helps Bangladeshi SSC & HSC st
 
 - **Adaptive practice** — board-specific MCQ and Creative Question (CQ) banks organized by subject, class, chapter, and year
 - **Teacher grading** — verified teachers provide per-part CQ feedback directly on the platform
-- **Live contests** — timed competitive exams with real-time leaderboards
-- **Study resources** — curated notes (PDF/text) and practical lab videos
+- **Competitive contests** — rated timed exams with live leaderboards, Elo-style ratings, PrepCoins, badges, and virtual replays
+- **Study resources** — curated notes (PDF/text), interactive science labs, and practical video lessons
 
 Built by a 4-person agile team over one semester using Scrum methodology.
 
 ---
 
-## Features
+## 📸 Screenshots
+
+> The full UI is bilingual (বাংলা / English) and ships with complete light & dark themes.
+
+| Home | Student Dashboard |
+|:---:|:---:|
+| ![Home page with animated 3D hero](docs/screenshots/home.jpeg) | ![Student dashboard with streaks, charts and subject progress](docs/screenshots/student-dashboard.jpeg) |
+
+| Question Bank (dark) | Contests |
+|:---:|:---:|
+| ![Question bank in dark mode](docs/screenshots/question-bank-dark.jpeg) | ![Contest arena with rating and PrepCoins](docs/screenshots/contests.jpeg) |
+
+| Teacher Dashboard (dark) | Super Admin Control Centre |
+|:---:|:---:|
+| ![Teacher dashboard in dark mode](docs/screenshots/teacher-dashboard-dark.jpeg) | ![Super admin dashboard with revenue and user management](docs/screenshots/superadmin.jpeg) |
+
+---
+
+## ✨ Features
 
 | Category | Feature |
 |----------|---------|
-| **Question Bank** | MCQ & CQ (Creative) questions filtered by board, class, subject, year, chapter |
+| **Question Bank** | MCQ & CQ (Creative) questions filtered by board, class, subject, year, chapter, difficulty, and solve status — with instant answer checking and progress tracking |
 | **Exam Engine** | Timed MCQ phase + CQ written submission with photo upload per part (ক/খ/গ/ঘ) |
-| **Teacher System** | Verified teacher accounts, subject claiming, per-part CQ grading with comments |
-| **Contests** | Scheduled competitive exams, live leaderboards, results & stats |
-| **Study Notes** | Rich text + PDF notes, bookmarks, scroll-based read-progress tracking |
-| **Note Comments** | Moderated student discussion threads on every note |
+| **Teacher System** | Verified teacher accounts (NID + qualification review), subject claiming, per-part CQ grading with comments |
+| **Contests** | Scheduled rated/unrated contests, live leaderboards, Elo-style rating tiers, podium results & per-question stats |
+| **Gamification** | PrepCoins ledger, earnable badge gallery, daily streaks, rank titles, virtual contest replays of past contests |
+| **Study Notes** | Rich text + PDF notes, bookmarks, scroll-based read-progress tracking, moderated comment threads |
 | **Practical Lab** | Interactive simulations (molecule builder, circuit lab, wave lab) + YouTube video lessons by subject and class |
 | **Syllabus** | Board-wise structured syllabus viewer |
-| **Subscriptions** | Free / Basic / Premium tiers with payment simulation |
-| **Notifications** | Real-time bilingual (বাংলা/English) notification system |
-| **Bilingual UI** | Full interface in Bangla and English; user-selectable |
-| **Admin Panel** | Jazzmin-powered admin dashboard for platform management |
+| **Subscriptions** | Free / Basic / Premium tiers with payment simulation and plan expiry |
+| **Global Search** | `Ctrl K` command-palette search across questions, notes, and exam papers with skeleton loading states |
+| **Notifications** | Real-time bilingual notification system + toast notifications on every page |
+| **Bilingual UI** | Full interface in Bangla and English; user-selectable, including Bengali numerals in charts |
+| **Dark Mode** | Complete dark theme across every page, persisted per user, with live re-skinning of charts |
+| **Admin Panel** | Custom Manage Panel + Super Admin control centre (user/role/plan management, revenue stats, Excel export) and Jazzmin-powered Django admin |
 | **Testing** | 190+ Selenium E2E tests + Django unit suite, run in CI on every push |
 
 ---
 
-## Tech Stack
+## 🏗 Architecture
+
+```mermaid
+flowchart LR
+    B["Browser<br/>Tailwind · GSAP + Lenis · KaTeX · Chart.js"]
+    B -->|HTTP| V
+
+    subgraph D["Django 6 — core app"]
+        V["views/ — split by domain<br/>auth · exams · contests · payments · manage…"]
+        S["services/<br/>ratings · coins · badges · AI gateway"]
+        M[("models.py — 33 models")]
+        V --> S
+        V --> M
+        S --> M
+    end
+
+    M --> DB[("SQLite (dev)<br/>PostgreSQL (prod)")]
+    D -->|"static (WhiteNoise)"| B
+    S -->|notes · MCQ · summaries| AI["Anthropic API"]
+    S -->|OCR| G["Gemini API"]
+    CI["GitHub Actions CI<br/>ruff · checks · unit tests"] -.->|every push / PR| D
+```
+
+### Domain model (simplified)
+
+```mermaid
+erDiagram
+    User ||--|| UserProfile : "role · plan"
+    UserProfile ||--o{ Payment : makes
+    User ||--o{ UserProgress : "answers tracked"
+    Board ||--o{ Question : categorizes
+    Subject ||--o{ Question : categorizes
+    ExamPaper ||--o{ ExamAttempt : "MCQ + CQ phases"
+    ExamAttempt ||--o{ CQSubmission : "graded per part"
+    Contest ||--o{ ContestSubmission : receives
+    Contest ||--o{ ContestRegistration : "rated / unrated"
+    User ||--|| UserRating : "Elo-style"
+    UserRating ||--o{ ContestRatingHistory : logs
+    User ||--o{ UserBadge : earns
+    User ||--o{ ContestCoinLedger : "PrepCoins"
+    StudyNote ||--o{ NoteComment : "moderated threads"
+    StudyNote ||--o{ NoteReadProgress : "scroll tracking"
+```
+
+### Design diagrams
+
+Detailed design documentation lives in [`diagrams/`](diagrams/):
+
+| Diagram | File |
+|---------|------|
+| Context DFD (Level 0) | [`dfd_level0.png`](diagrams/dfd_level0.png) |
+| System DFD (Level 1) | [`dfd_level1.png`](diagrams/dfd_level1.png) |
+| DFD Level 2 — Question Bank / Contest / Payment | [`dfd_level2_question.png`](diagrams/dfd_level2_question.png) · [`dfd_level2_contest.png`](diagrams/dfd_level2_contest.png) · [`dfd_level2_payment.png`](diagrams/dfd_level2_payment.png) |
+| Sequence — Login / MCQ / CQ Grading / Contest / Subscription | [`seq_login.png`](diagrams/seq_login.png) · [`seq_mcq.png`](diagrams/seq_mcq.png) · [`seq_cq_grade.png`](diagrams/seq_cq_grade.png) · [`seq_contest.png`](diagrams/seq_contest.png) · [`seq_subscription.png`](diagrams/seq_subscription.png) |
+| Exam activity flow | [`activity_exam.png`](diagrams/activity_exam.png) |
+| Tech stack overview | [`tech_stack.png`](diagrams/tech_stack.png) |
+| Project Gantt chart | [`gantt_chart.png`](diagrams/gantt_chart.png) |
+
+---
+
+## 🛠 Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | Django 6.0.5, Python 3.12 |
 | **Database** | SQLite (dev) — PostgreSQL via `DATABASE_URL` (dj-database-url) |
-| **Frontend** | Tailwind CSS, GSAP + Lenis animations, KaTeX math rendering |
+| **Frontend** | Tailwind CSS, GSAP + Lenis animations, Three.js hero, Chart.js, KaTeX math rendering |
 | **Config** | python-dotenv (`.env` secrets), env-driven hosts/email/DB |
-| **Deployment** | Gunicorn + WhiteNoise (Procfile included) |
+| **Deployment** | Gunicorn + WhiteNoise with manifest static files (Procfile included) |
 | **AI** | Anthropic API (note generation, MCQ, summaries), Gemini (OCR) |
 | **Admin** | Django Jazzmin 3.0.4 |
 | **File Processing** | Pillow, python-docx, python-pptx, openpyxl, xlsxwriter |
@@ -67,7 +147,7 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -127,7 +207,7 @@ python manage.py runserver
 
 ---
 
-## Running Tests
+## 🧪 Running Tests
 
 ### Unit Tests
 
@@ -176,12 +256,12 @@ Available Selenium test modules:
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 PrepareYourself/
 ├── core/                    # Main application
-│   ├── models.py            # All data models
+│   ├── models.py            # All data models (33 models)
 │   ├── views/               # Request handlers, split by domain
 │   │   ├── base.py          #   shared helpers, decorators, upload validation
 │   │   ├── auth.py          #   login / signup / onboarding
@@ -201,12 +281,14 @@ PrepareYourself/
 ├── prepare_yourself/        # Django project config
 │   └── settings.py          # Reads secrets from .env
 ├── templates/               # HTML templates
-│   ├── base.html
+│   ├── base.html            # Layout + toasts, global search, theme system
 │   ├── core/
+│   ├── manage/
 │   └── teacher/
 ├── static/                  # CSS, JS, images
 ├── media/                   # User-uploaded files (gitignored)
-├── diagrams/                # Architecture & design diagrams
+├── docs/screenshots/        # README screenshots
+├── diagrams/                # DFD, sequence & activity diagrams (PNG)
 ├── .github/workflows/ci.yml # CI: lint + checks + unit tests on every push/PR
 ├── .env.example             # Environment template (copy to .env)
 ├── Procfile                 # Production entrypoint (gunicorn)
@@ -219,7 +301,7 @@ PrepareYourself/
 
 ---
 
-## Team
+## 👥 Team
 
 Built by a 4-person Scrum team:
 
@@ -232,7 +314,7 @@ Built by a 4-person Scrum team:
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
@@ -244,7 +326,7 @@ Quick summary:
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
 
