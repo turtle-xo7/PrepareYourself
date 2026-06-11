@@ -78,6 +78,25 @@ Built by a 4-person agile team over one semester using Scrum methodology.
 
 ---
 
+## 🔬 Spotlight — Interactive Practical Lab
+
+Science practicals are hard to access for many students — so the platform ships a fully
+client-side, bilingual lab where they can run the experiments themselves. No plugins,
+no downloads: three canvas-based simulations rendered in real time.
+
+![Interactive molecule lab](docs/screenshots/practical-lab.jpeg)
+
+| Lab | What students can do |
+|-----|----------------------|
+| ⚗️ **Molecule Lab** | Build and break 9 molecules (H₂O, CO₂, NH₃, CH₄, NaCl…) by dragging atoms — live bond angles, molecular shape, bond type, polarity dipole, and bond energy update as the structure changes |
+| ⚡ **Circuit Lab** | A live DC circuit with battery-voltage and resistance sliders, an on/off switch, animated electron flow with conventional-current arrows, and a resistor that visibly heats (with shimmer) following *P = I²R* |
+| 🌊 **Wave Lab** | Frequency, amplitude and speed controls on a travelling wave — add the reflected wave to superpose into a standing wave with labelled nodes and antinodes, plus plain-language physics explanations in both Bangla and English |
+
+Every simulation pairs the visuals with a fact box that explains *why* — turning each
+experiment into a mini-lesson.
+
+---
+
 ## 🏗 Architecture
 
 ```mermaid
